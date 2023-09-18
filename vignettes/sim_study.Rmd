@@ -1,0 +1,227 @@
+---
+title: "sim_study"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{sim_study}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(tidyverse)
+library(ComPoM)
+
+#Sims
+
+get_samp <- function(prop, tot) which(rmultinom(tot,1, prop)==1, arr.ind = T)[,1]
+clo <- function(x) x/sum(x)
+
+# True fishery
+n_bins <- 10
+n_samps = 10
+n_areas = 4
+n_vessels = 10
+n_seasons = 2
+n_per_samps = 100
+n_years = 10
+
+M <- 0.2
+
+surv <- exp(-(1:n_bins)*M)
+popfreq <- clo(surv)
+
+Strata <- data.frame(
+  Var =    c("Area" ,  'Year',  'Vessel', 'Season'),
+  SD =     c(1      ,       2,       0.5,      0.5),
+  Levels = c(n_areas, n_years, n_vessels, n_seasons))
+
+# representative
+samp <- Strata %>%
+  group_by(Var) %>%
+  nest() %>%
+  mutate(id = lapply(data,function(df) get_samp(rep(1/df$Levels,df$Levels), n_samps*n_years))) %>%
+  unnest(c(data, id)) %>%
+  select(-Levels, -SD) %>%
+  group_by(Var) %>% mutate(samp = 1:n())
+
+
+# non_representative sampling
+samp <- Strata %>%
+  group_by(Var) %>%
+  nest() %>%
+  mutate(id = lapply(data,function(df) get_samp(clo(exp(-(1:df$Levels)*1/df$Levels)), n_samps*n_years))) %>%
+  unnest(c(data, id)) %>%
+  select(-Levels, -SD) %>%
+  group_by(Var) %>% mutate(samp = 1:n())
+
+levels <- Strata %>% 
+  group_by(Var) %>% 
+  nest() %>%
+  mutate(fx = lapply(data,function(df) rnorm(df$Levels, 0, df$SD))) %>%
+  unnest(c(data,fx)) %>%
+  mutate(id = 1:n(),
+         fx = case_when(all(fx==0) ~fx,
+                        TRUE ~ fx-mean(fx)))  %>%
+  select(-Levels, -SD) %>%
+  right_join(samp)
+
+L50_pre <- 4
+L95 <- 1
+
+
+true_catch_by_bin <- 
+  expand_grid(Year = 1:n_years,
+              Vessel = 1:n_vessels,
+              Area = 1:n_areas,
+              Season = 1:n_seasons,
+              bin = 1:n_bins) %>%
+  pivot_longer(cols = c(Year, Area, Season, Vessel), names_to = 'Var', values_to = 'id') %>%
+  inner_join(levels %>% select(-samp) %>% distinct()) %>% 
+  pivot_wider(names_from = Var, values_from = c(fx,id))  %>% 
+  unnest(cols = c(fx_Year, fx_Area, fx_Season, fx_Vessel, id_Year, id_Area, id_Season, id_Vessel)) %>%
+  mutate(L50 = L50_pre+fx_Area + fx_Season + fx_Vessel + fx_Year) %>%
+  group_by(id_Year, id_Area, id_Season, id_Vessel) %>%
+  mutate(catch = rgamma(1,100,0.01),
+         tcatch = Selectivity(bin, L50, L95)*popfreq[bin] * catch) %>%
+  arrange(id_Year,id_Area, id_Season, id_Vessel) %>% 
+  rename_with(.cols = contains('id_'), 
+              .fn = ~gsub("id_", "", .x))
+
+samps <- levels %>%
+  group_by(samp) %>%
+  summarise(L50 = L50_pre+sum(fx)) %>%
+  group_by(samp) %>%
+  nest() %>%
+  mutate(comp_samps = lapply(data,function(df) which(rmultinom(n_per_samps,1, Selectivity(1:n_bins,df$L50, L95)*popfreq)==1, arr.ind = T)[,1])) %>%
+  unnest(c(data, comp_samps)) %>%
+  mutate(ids=1:n())
+
+long_form_sims <- samps %>%
+  left_join(samp)  %>%
+  group_by(samp, L50, ids, comp_samps) %>%
+  pivot_wider(names_from = Var, values_from = id) %>%
+  mutate(count=1)
+
+
+### now try pkg funcs ###
+input_data <- data_prep(long_form_sims,
+                        vars_for_grouping = c('Area','Year','Season'),
+                        bin_lab = 'comp_samps')
+
+mods <- fit_model(form = 'Area + Year + Season + Area:Year',
+                  data = input_data,
+                  dist = 'poisson',
+                  chains=4,
+                  threads = 16,
+                  cores=32,
+                  backend = 'cmdstanr',
+                  iter = 1000,
+                  warmup = 500,
+                  thin = 2,
+                  refresh=10)
+
+plot(mods$model)
+
+post_pred_group(mods, "Area")
+post_pred_group(mods, "Year")
+
+Fx_plot(input_data, mods, grp='Year',grid=NULL)
+Fx_plot(input_data, mods, grp='Area',form = '~(1|bin:Area)', grid=NULL)
+Fx_plot(input_data, mods, grp=c('Year','Area'), form = '~(1|bin:Area)+(1|bin:Area:Year)', grid=c('Year','Area'))
+
+
+scale_df <- true_catch_by_bin %>% 
+  summarise(catch = sum(tcatch)) 
+
+scaled_comp <- scale_comps(scale_df, predvar='catch', mod = mods, grps = c('Area','Year','Season'))
+
+scaled_comp_plot(scaled_comp=scaled_comp, 
+                 grps = 'Area', 
+                 scaled=T, 
+                 scales = "free_y",
+                 comp_are = true_catch_by_bin,
+                 cvar = 'tcatch'
+)
+
+scaled_comp_plot(scaled_comp=scaled_comp, 
+                 grps = 'Year', 
+                 scaled=T, 
+                 scales = "free_y",
+                 comp_are = true_catch_by_bin,
+                 cvar = 'tcatch'
+)
+
+
+scaled_comp_plot(scaled_comp=scaled_comp, 
+                 grps = 'Year', 
+                 scaled=T, 
+                 scales = "free_y",
+                 comp_are = input_data %>% 
+                   inner_join(true_catch_by_bin) %>% 
+                   group_by(Year) %>% 
+                   mutate(tcatch = catch*tot_by_bin),
+                 cvar = 'tcatch'
+)
+
+
+### now try pkg funcs ###
+input_data <- data_prep(long_form_sims,
+                        vars_for_grouping = c('Year'),
+                        bin_lab = 'comp_samps')
+
+mods <- fit_model(form = 'Year',
+                  data = input_data,
+                  dist = 'poisson',
+                  chains=4,
+                  threads = 16,
+                  cores=32,
+                  backend = 'cmdstanr',
+                  iter = 1000,
+                  warmup = 500,
+                  thin = 2,
+                  refresh=10)
+
+plot(mods$model)
+
+post_pred_group(mods, "Year")
+
+Fx_plot(input_data, mods, grp='Year',grid=NULL)
+
+scale_df <- true_catch_by_bin %>% 
+  summarise(catch = sum(tcatch)) 
+
+scaled_comp <- scale_comps(scale_df, predvar='catch', mod = mods, grps = c('Year'))
+
+
+scaled_comp_plot(scaled_comp=scaled_comp, 
+                 grps = 'Year', 
+                 scaled=T, 
+                 scales = "free_y",
+                 comp_are = true_catch_by_bin,
+                 cvar = 'tcatch'
+)
+
+
+scaled_comp_plot(scaled_comp=scaled_comp, 
+                 grps = 'Year', 
+                 scaled=T, 
+                 scales = "free_y",
+                 comp_are2 = input_data %>% 
+                   inner_join(true_catch_by_bin) %>% 
+                   group_by(Year) %>% 
+                   mutate(tcatch = catch*tot_by_bin),
+                 comp_are = true_catch_by_bin,
+                 cvar = 'tcatch'
+)
+
+
+```
