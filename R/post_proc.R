@@ -56,7 +56,7 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL)
   p <- ggplot(preda)  + geom_hline(yintercept = 1,linetype=2,alpha=0.5) +
     geom_pointrange(aes(x=bin,y=pred,ymin=.lower,ymax=.upper)) +
     xlab('Length bin (cm)') +
-    ylab('Prediction') +
+    ylab('Multiplier') +
     theme_cowplot() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
   #browser()
@@ -179,4 +179,50 @@ scaled_comp_plot <- function(scaled_comp=NULL,
   if(length(grps)==1) print(p+facet_wrap(facets = vars(!!as.symbol(grps)),scales = scales,drop = T,ncol = 4))
   if(length(grps)>=2) print(p+facet_grid(rows = vars(!!as.symbol(grps[1])),cols = vars(!!!syms(grps[2:length(grps)])),scales = scales))
 
+}
+
+
+#' Plot scaled compositions as ridgeline plot
+#' @param scaled_comp data frame used for scaling
+#' @param grps groups to do scaling
+#' @param scales free y axis?
+#' @param plot_y y axis for ridgeline
+#' @param plot_facet faceting ridgelines (e.g., monthly or quarterly ridges within years)
+#'
+#' @import cowplot
+#' @export
+#'
+scaled_ridge_plot <- function(scaled_comp = NULL,
+                              grps = NULL,
+                              scales = "free_y",
+                              plot_y = NULL,
+                              plot_facet = NULL) {
+  sdat <- scaled_comp %>%
+    ungroup() %>%
+    group_by(across(all_of(grps)), .draw, bin) %>%
+    summarise(n=sum(tot_by_bin)) %>%
+    mutate(p=n/sum(n)) %>%
+    group_by(across(all_of(grps)), bin) %>%
+    median_qi(p)
+
+  sd <- sdat %>%
+    mutate(bin = as.numeric(as.character(bin))) %>%
+    filter(bin < 80, bin > 40,
+           !is.na(quarter)
+           # ,!quarter %in% c(3)
+    ) %>%
+    mutate(cat = cut(bin,breaks = c(0,55,67,100)))
+
+  p <- ggplot(sd, aes(x=bin, y=!!!syms(plot_y))) +
+    geom_density_ridges_gradient(aes(x=bin, y=!!sym(plot_y), height=p, fill=bin),
+                                 scale = 2, rel_min_height = 0.01, stat='identity') +
+    geom_density_ridges_gradient(aes(x=bin, y=!!sym(plot_y), height=p),
+                                 scale = 2, stat='identity',fill=NA) +
+    scale_fill_viridis_c(name = "", guide='none') +
+    facet_grid(as.formula(paste(plot_facet, "~ .")),as.table = F) +
+    xlab('Length (cm)') +
+    ylab(plot_y) +
+    theme_bw()
+
+  return(p)
 }
