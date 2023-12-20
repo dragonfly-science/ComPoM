@@ -2,10 +2,12 @@
 % Please edit documentation in R/pre_proc.R
 \name{fit_model}
 \alias{fit_model}
-\title{Fit the poisson multinomial model}
+\title{Fit the poisson multinomial model; see brms doc for brm() other parameters}
 \usage{
 fit_model(
   form,
+  cvars = NULL,
+  knots = "c(5,10)",
   data = NULL,
   dist = "poisson",
   chains = 4,
@@ -20,7 +22,11 @@ fit_model(
 }
 \arguments{
 \item{form}{A RHS formula for the poisson-multinomial model, without explicit mention of bins}
+
+\item{cvars}{Continuous variable to be fitted as 2D spline with bin}
+
+\item{knots}{knots (1D or 2D) for cvar spline; as character for now}
 }
 \description{
-Fit the poisson multinomial model
+Fit the poisson multinomial model; see brms doc for brm() other parameters
 }

@@ -34,7 +34,7 @@ data_prep <- function(
 #'
 #' Appends a formula by attaching a bin interaction term
 #' @param form A RHS formula for the poisson-multinomial model, without explicit mention of bins
-#' @param cvar Continuous variable to be fitted as 2D spline with bin
+#' @param cvars Continuous variable to be fitted as 2D spline with bin
 #' @param knots knots (1D or 2D) for cvar spline; as character for now
 #' @import stringr
 #'
@@ -50,13 +50,17 @@ parse_form <- function(form = 'gear + area + area:yy', cvars=NULL, knots='c(5,10
 
 }
 
-#' Fit the poisson multinomial model
+#' Fit the poisson multinomial model; see brms doc for brm() other parameters
 #' @param form A RHS formula for the poisson-multinomial model, without explicit mention of bins
+#' @param cvars Continuous variable to be fitted as 2D spline with bin
+#' @param knots knots (1D or 2D) for cvar spline; as character for now
 #' @export
 #' @import brms
 #' @import tidybayes
 #'
 fit_model <- function(form,
+                      cvars=NULL,
+                      knots='c(5,10)',
                       data = NULL,
                       dist = 'poisson',
                       chains=4,
@@ -68,7 +72,7 @@ fit_model <- function(form,
                       thin = 2,
                       refresh=10){
 
-  form <- parse_form(form)
+  form <- parse_form(form, cvars, knots)
 
   mod <- brm(bf(form),
              family = dist,
