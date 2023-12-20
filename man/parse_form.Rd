@@ -4,10 +4,14 @@
 \alias{parse_form}
 \title{Parse a formula}
 \usage{
-parse_form(form = "gear + area + area:yy")
+parse_form(form = "gear + area + area:yy", cvars = NULL, knots = "c(5,10)")
 }
 \arguments{
 \item{form}{A RHS formula for the poisson-multinomial model, without explicit mention of bins}
+
+\item{knots}{knots (1D or 2D) for cvar spline; as character for now}
+
+\item{cvar}{Continuous variable to be fitted as 2D spline with bin}
 }
 \description{
 Appends a formula by attaching a bin interaction term
