@@ -35,6 +35,7 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 #' @param form formula for effect
 #'
 #' @import cowplot
+#' @import dplyr
 #' @importFrom posterior draws_df
 #' @export
 #'
@@ -42,10 +43,10 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL)
 
   if(!is.null(grp)) grps <- as.symbol(grp)
 
-  int <- as_draws_df(mod$mod, "b_Intercept") %>% select(-.chain,-.iteration)
+  int <- as_draws_df(mod$mod, "b_Intercept") %>% dplyr::select(-.chain,-.iteration)
 
   preda <-
-    comp_data %>% ungroup() %>% select(bin,!!grp) %>% distinct() %>% mutate(n=100) %>%
+    comp_data %>% ungroup() %>% dplyr::select(bin,!!grp) %>% distinct() %>% mutate(n=100) %>%
     complete(nesting(!!!syms(grp)),bin,fill=list(n=100)) %>%
     add_linpred_draws(mod$mod, re_formula = form, allow_new_levels=T) %>%
     inner_join(int) %>%
