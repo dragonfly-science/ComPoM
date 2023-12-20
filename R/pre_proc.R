@@ -43,7 +43,7 @@ parse_form <- function(form = 'gear + area + area:yy', cvars=NULL, knots='c(5,10
   form_parts <- stringr::str_remove_all(stringr::str_split(form, '\\+')[[1]],pattern = ' ')
   newform <- paste('(1|bin) +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
 
-  if(!is.null(cvars)) newform <- paste(newform, paste("s(",cvars, ", bin, k = ",knots,")"), sep = ' + ')
+  if(!is.null(cvars)) newform <- paste(newform, paste("t2(",cvars, ", bin, k = ",knots,")"), sep = ' + ')
 
   form <- as.formula(paste("tot_by_bin~offset(log(n)) + ",newform))
   form
