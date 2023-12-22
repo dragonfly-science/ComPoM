@@ -4,7 +4,7 @@
 \alias{scale_comps}
 \title{scale compositions}
 \usage{
-scale_comps(scale_df, predvar = "catch", mod, grps)
+scale_comps(scale_df, predvar = "catch", mod, grps, iters = NULL)
 }
 \arguments{
 \item{scale_df}{data frame used for scaling}

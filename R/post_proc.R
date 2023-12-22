@@ -25,7 +25,7 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
     theme_cowplot() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
 
-  if(!is.null(grp)) print(p+facet_wrap(vars(!!grps),scales = 'free_y')) else print(p)
+  if(!is.null(grp)) p+facet_wrap(vars(!!grps),scales = 'free_y') else p
 }
 
 #' Effects
@@ -61,8 +61,10 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL)
     theme_cowplot() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
   #browser()
-  if(is.null(grid)) print(p+facet_wrap(facets = vars(!!grps),scales = 'free_y'))
-  if(!is.null(grid)) print(p+facet_grid(rows = vars(!!as.symbol(grid[1])),cols = vars(!!as.symbol(grid[2])),scales = 'free_y'))
+  if(is.null(grid))  p <- p+facet_wrap(facets = vars(!!grps),scales = 'free_y')
+  if(!is.null(grid)) p <- p+facet_grid(rows = vars(!!as.symbol(grid[1])),cols = vars(!!as.symbol(grid[2])),scales = 'free_y')
+
+  return(p)
 }
 
 #' scale compositions
@@ -74,7 +76,7 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL)
 #' @import cowplot
 #' @export
 #'
-scale_comps <- function(scale_df, predvar='catch', mod, grps){
+scale_comps <- function(scale_df, predvar='catch', mod, grps, iters=NULL){
 
   scale_df %>%
     group_by(across(all_of(grps) )) %>%
@@ -85,7 +87,7 @@ scale_comps <- function(scale_df, predvar='catch', mod, grps){
     group_by(across(all_of(grps) )) %>%
     mutate(n = sum(n)) %>%
     filter(n>0) %>%
-    add_predicted_draws(mod$mod, allow_new_levels=T, value = 'tot_by_bin')
+    add_predicted_draws(mod$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin')
 
 }
 
