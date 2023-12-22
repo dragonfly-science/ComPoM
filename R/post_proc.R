@@ -177,9 +177,10 @@ scaled_comp_plot <- function(scaled_comp=NULL,
     theme_cowplot() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
 
-  if(length(grps)==1) print(p+facet_wrap(facets = vars(!!as.symbol(grps)),scales = scales,drop = T,ncol = 4))
-  if(length(grps)>=2) print(p+facet_grid(rows = vars(!!as.symbol(grps[1])),cols = vars(!!!syms(grps[2:length(grps)])),scales = scales))
+  if(length(grps)==1) p <- p+facet_wrap(facets = vars(!!as.symbol(grps)),scales = scales,drop = T,ncol = 4)
+  if(length(grps)>=2) p <- p+facet_grid(rows = vars(!!as.symbol(grps[1])),cols = vars(!!!syms(grps[2:length(grps)])),scales = scales)
 
+  p
 }
 
 
