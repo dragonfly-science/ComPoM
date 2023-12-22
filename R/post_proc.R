@@ -25,7 +25,9 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
     theme_cowplot() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
 
-  if(!is.null(grp)) p+facet_wrap(vars(!!grps),scales = 'free_y') else p
+  if(!is.null(grp)) p <- p+facet_wrap(vars(!!grps),scales = 'free_y')
+
+  return(p)
 }
 
 #' Effects
