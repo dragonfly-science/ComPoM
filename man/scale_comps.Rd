@@ -4,7 +4,7 @@
 \alias{scale_comps}
 \title{scale compositions}
 \usage{
-scale_comps(scale_df, predvar = "catch", mod, grps, iters = NULL)
+scale_comps(scale_df, predvar = "catch", mod, grps, iters = NULL, form = NULL)
 }
 \arguments{
 \item{scale_df}{data frame used for scaling}
@@ -14,6 +14,8 @@ scale_comps(scale_df, predvar = "catch", mod, grps, iters = NULL)
 \item{mod}{An object from fit_model}
 
 \item{grps}{groups to do scaling}
+
+\item{form}{an alternative random effect structure to the fitted model}
 }
 \description{
 scale compositions

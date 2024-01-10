@@ -74,11 +74,17 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL)
 #' @param predvar Column in the scale_df used for scaling compositions
 #' @param grps groups to do scaling
 #' @param mod An object from fit_model
+#' @param form an alternative random effect structure to the fitted model
 #'
 #' @import cowplot
 #' @export
 #'
-scale_comps <- function(scale_df, predvar='catch', mod, grps, iters=NULL){
+scale_comps <- function(scale_df, predvar='catch', mod, grps, iters=NULL, form=NULL){
+
+  if(!is.null(form)){
+    form_parts <- stringr::str_remove_all(stringr::str_split(form, '\\+')[[1]],pattern = ' ')
+    form <- paste('~ (1|bin) +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
+  } else form = paste("~",paste(paste('(1|',fit$model$ranef$group,')'), collapse='+'))
 
   scale_df %>%
     group_by(across(all_of(grps) )) %>%
@@ -89,7 +95,7 @@ scale_comps <- function(scale_df, predvar='catch', mod, grps, iters=NULL){
     group_by(across(all_of(grps) )) %>%
     mutate(n = sum(n)) %>%
     filter(n>0) %>%
-    add_predicted_draws(mod$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin')
+    add_predicted_draws(mod$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin', re_formula = form)
 
 }
 
