@@ -54,6 +54,7 @@ parse_form <- function(form = 'gear + area + area:yy', cvars=NULL, knots='c(5,10
 #' @param form A RHS formula for the poisson-multinomial model, without explicit mention of bins
 #' @param cvars Continuous variable to be fitted as 2D spline with bin
 #' @param knots knots (1D or 2D) for cvar spline; as character for now
+#' @param add_preds add predictions? (Can be very slow)
 #' @export
 #' @import brms
 #' @import tidybayes

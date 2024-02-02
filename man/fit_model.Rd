@@ -17,7 +17,8 @@ fit_model(
   iter = 1000,
   warmup = 500,
   thin = 2,
-  refresh = 10
+  refresh = 10,
+  add_preds = TRUE
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ fit_model(
 \item{cvars}{Continuous variable to be fitted as 2D spline with bin}
 
 \item{knots}{knots (1D or 2D) for cvar spline; as character for now}
+
+\item{add_preds}{add predictions? (Can be very slow)}
 }
 \description{
 Fit the poisson multinomial model; see brms doc for brm() other parameters
