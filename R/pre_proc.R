@@ -70,7 +70,8 @@ fit_model <- function(form,
                       iter = 1000,
                       warmup = 500,
                       thin = 2,
-                      refresh=10){
+                      refresh=10,
+                      add_preds = TRUE){
 
   form <- parse_form(form, cvars, knots)
 
@@ -88,8 +89,10 @@ fit_model <- function(form,
 
   cat('Converged: ', all(brms::rhat(mod)<1.05))
 
+  if(add_preds) pp <- add_predicted_draws(data, mod) else pp <- NULL
+
   list(model = mod,
-       preds = add_predicted_draws(data, mod))
+       preds = pp)
 
 }
 
