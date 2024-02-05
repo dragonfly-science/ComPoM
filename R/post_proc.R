@@ -79,12 +79,14 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL)
 #' @import cowplot
 #' @export
 #'
-scale_comps <- function(scale_df, predvar='catch', mod, grps, iters=NULL, form=NULL){
+scale_comps <- function(scale_df, predvar='catch', fit = NULL, grps, iters=NULL, form=NULL){
 
   if(!is.null(form)){
     form_parts <- stringr::str_remove_all(stringr::str_split(form, '\\+')[[1]],pattern = ' ')
     form <- paste('~ (1|bin) +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
-  } else form = paste("~",paste(paste('(1|',fit$model$ranef$group,')'), collapse='+'))
+  } else if(!is.null(fit)){
+    form = paste("~",paste(paste('(1|',mod$model$ranef$group,')'), collapse='+'))
+  } else {stop("Must provide either a formula or a model fit from fit_model")}
 
   scale_df %>%
     group_by(across(all_of(grps) )) %>%
