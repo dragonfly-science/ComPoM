@@ -73,7 +73,7 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL)
 #' @param scale_df data frame used for scaling
 #' @param predvar Column in the scale_df used for scaling compositions
 #' @param grps groups to do scaling
-#' @param mod An object from fit_model
+#' @param fit An object from fit_model
 #' @param form an alternative random effect structure to the fitted model
 #'
 #' @import cowplot
@@ -85,7 +85,7 @@ scale_comps <- function(scale_df, predvar='catch', fit = NULL, grps, iters=NULL,
     form_parts <- stringr::str_remove_all(stringr::str_split(form, '\\+')[[1]],pattern = ' ')
     form <- paste('~ (1|bin) +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
   } else if(!is.null(fit)){
-    form = paste("~",paste(paste('(1|',mod$model$ranef$group,')'), collapse='+'))
+    form = paste("~",paste(paste('(1|',fit$model$ranef$group,')'), collapse='+'))
   } else {stop("Must provide either a formula or a model fit from fit_model")}
 
   scale_df %>%

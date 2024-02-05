@@ -18,11 +18,11 @@ scale_comps(
 
 \item{predvar}{Column in the scale_df used for scaling compositions}
 
+\item{fit}{An object from fit_model}
+
 \item{grps}{groups to do scaling}
 
 \item{form}{an alternative random effect structure to the fitted model}
-
-\item{mod}{An object from fit_model}
 }
 \description{
 scale compositions
