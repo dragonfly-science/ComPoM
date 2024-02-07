@@ -91,13 +91,13 @@ scale_comps <- function(scale_df, predvar='catch', fit = NULL, grps, iters=NULL,
   scale_df %>%
     group_by(across(all_of(grps) )) %>%
     summarize(n=sum(!!sym(predvar),na.rm=T)) %>%
-    mutate(bin = factor(min(unique(mod$mod$data$bin)), levels=unique(mod$mod$data$bin))) %>%
+    mutate(bin = factor(min(unique(fit$mod$data$bin)), levels=unique(fit$mod$data$bin))) %>%
     ungroup() %>% # need to ungroup before augmenting
     complete(nesting(!!!syms(grps)),bin,fill = list(n=0))  %>%
     group_by(across(all_of(grps) )) %>%
     mutate(n = sum(n)) %>%
     filter(n>0) %>%
-    add_predicted_draws(mod$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin', re_formula = form)
+    add_predicted_draws(fit$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin', re_formula = form)
 
 }
 
