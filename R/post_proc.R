@@ -35,15 +35,17 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 #' @param mod An object from fit_model
 #' @param grp group to do PPC over
 #' @param form formula for effect
+#' @param grid optional plotting with facet grid along two variables (need to be in grp)
+#' @param cvar continous variable if used in model
 #'
 #' @import cowplot
 #' @import dplyr
 #' @importFrom posterior draws_df
 #' @export
 #'
-Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL){
+Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL){
 
-  if(!is.null(grp)) grps <- as.symbol(grp)
+  if(!is.null(grp)) grps <- as.symbol(grp[(!grp==cvar)])
 
   int <- as_draws_df(mod$mod, "b_Intercept") %>% dplyr::select(-.chain,-.iteration)
 
@@ -88,6 +90,7 @@ scale_comps <- function(scale_df, predvar='catch', fit = NULL, grps, iters=NULL,
     form = paste("~",paste(paste('(1|',fit$model$ranef$group,')'), collapse='+'))
   } else {stop("Must provide either a formula or a model fit from fit_model")}
 
+  #browser()
   scale_df %>%
     group_by(across(all_of(grps) )) %>%
     summarize(n=sum(!!sym(predvar),na.rm=T)) %>%
@@ -95,7 +98,8 @@ scale_comps <- function(scale_df, predvar='catch', fit = NULL, grps, iters=NULL,
     ungroup() %>% # need to ungroup before augmenting
     complete(nesting(!!!syms(grps)),bin,fill = list(n=0))  %>%
     group_by(across(all_of(grps) )) %>%
-    mutate(n = sum(n)) %>%
+    mutate(n = sum(n),
+           bin = as.numeric(as.character(bin))) %>%
     filter(n>0) %>%
     add_predicted_draws(fit$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin', re_formula = form)
 
