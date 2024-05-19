@@ -45,7 +45,7 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 #'
 Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL){
 
-  if(!is.null(cvar)) grps <- as.symbol(grp[(!grp==cvar)])
+  if(!is.null(cvar)) grps <- as.symbol(grp[(!grp==cvar)]) else grps <- as.symbol(grp)
 
   int <- as_draws_df(mod$mod, "b_Intercept") %>% dplyr::select(-.chain,-.iteration)
 
