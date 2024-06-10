@@ -6,7 +6,6 @@
 #' @import cowplot
 #' @export
 #'
-
 post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 
   pds <- mod$preds

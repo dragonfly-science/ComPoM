@@ -15,4 +15,6 @@ Suggests:
 VignetteBuilder: knitr
 Imports: 
     brms,
-    dplyr
+    dplyr,
+    rlang,
+    cowplot

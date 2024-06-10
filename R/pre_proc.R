@@ -8,7 +8,8 @@
 #' @param bin_lab A string with the column label for the bins if not "bin"
 #' @param count_lab A string with the column label for the counts by bins if not "counts"
 #' @export
-#' @import tidyverse
+#' @import dplyr
+#' @import rlang
 
 data_prep <- function(
     comp = NULL,
