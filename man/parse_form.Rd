@@ -4,7 +4,12 @@
 \alias{parse_form}
 \title{Parse a formula}
 \usage{
-parse_form(form = "gear + area + area:yy", cvars = NULL, knots = "c(5,10)")
+parse_form(
+  form = "gear + area + area:yy",
+  cvars = NULL,
+  spl = "2D",
+  knots = "c(5,10)"
+)
 }
 \arguments{
 \item{form}{A RHS formula for the poisson-multinomial model, without explicit mention of bins}

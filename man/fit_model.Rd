@@ -7,6 +7,7 @@
 fit_model(
   form,
   cvars = NULL,
+  spl = "2D",
   knots = "c(5,10)",
   data = NULL,
   dist = "poisson",

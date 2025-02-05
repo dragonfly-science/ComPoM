@@ -32,10 +32,10 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 #' Effects
 #' @param comp_data Compositional dataframe
 #' @param mod An object from fit_model
-#' @param grp group to do PPC over
+#' @param grp group to do PPC over, needs to include cvar if present
 #' @param form formula for effect
 #' @param grid optional plotting with facet grid along two variables (need to be in grp)
-#' @param cvar continous variable if used in model
+#' @param cvar continuous variable if used in model
 #'
 #' @import cowplot
 #' @import dplyr
@@ -53,7 +53,7 @@ Fx_plot <- function(comp_data, mod, grp='Year', form='~(1|bin:Year)', grid=NULL,
     complete(nesting(!!!syms(grp)),bin,fill=list(n=100)) %>%
     add_linpred_draws(mod$mod, re_formula = form, allow_new_levels=T) %>%
     inner_join(int) %>%
-    group_by(bin,!!!syms(grp)) %>%
+    group_by(bin,!!!syms(grps)) %>%
     median_qi(pred = exp((.linpred-b_Intercept)-mean(.linpred-b_Intercept)))
 
 
@@ -129,8 +129,8 @@ scaled_comp_plot <- function(scaled_comp=NULL,
       group_by(across(all_of(grps) ), .draw) %>%
       mutate(prop = tot/sum(tot)) %>%
       group_by(across(all_of(grps) ), bin) %>%
-      median_qi(prop) %>%
-      filter(!is.na(prop),prop>0,prop<1) %>%
+      mean_qi(prop) %>%
+      filter(!is.na(prop)) %>%
       mutate(bin = as.numeric(as.character(bin)))
 
     if(!is.null(comp_are)){
@@ -159,8 +159,8 @@ scaled_comp_plot <- function(scaled_comp=NULL,
       group_by(across(all_of(grps) ), bin, .draw) %>%
       summarise(tot = sum(tot_by_bin)) %>%
       group_by(across(all_of(grps) ), bin) %>%
-      median_qi(prop = tot)  %>%
-      filter(!is.na(prop),sum(prop)>100) %>%
+      mean_qi(prop = tot)  %>%
+      filter(!is.na(prop)) %>%
       mutate(bin = as.numeric(as.character(bin)))
 
     if(!is.null(comp_are)){

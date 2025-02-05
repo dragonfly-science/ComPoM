@@ -39,12 +39,15 @@ data_prep <- function(
 #' @param knots knots (1D or 2D) for cvar spline; as character for now
 #' @import stringr
 #'
-parse_form <- function(form = 'gear + area + area:yy', cvars=NULL, knots='c(5,10)'){
+parse_form <- function(form = 'gear + area + area:yy', cvars=NULL, spl="2D", knots='c(5,10)'){
 
   form_parts <- stringr::str_remove_all(stringr::str_split(form, '\\+')[[1]],pattern = ' ')
   newform <- paste('(1|bin) +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
 
-  if(!is.null(cvars)) newform <- paste(newform, paste("t2(",cvars, ", bin, k = ",knots,")"), sep = ' + ')
+  if(!is.null(cvars) & spl=='2D') for(i in 1:length(cvars)) newform <- paste(newform, paste("t2(",cvars[i], ", bin, k = ",knots,")"), sep = ' + ')
+  if(!is.null(cvars) & spl=='by') for(i in 1:length(cvars)) newform <- paste(newform, paste("t2(",cvars[i], ", by=bin, k = ",knots,")"), sep = ' + ')
+
+  print(newform)
 
   form <- as.formula(paste("tot_by_bin~offset(log(n)) + ",newform))
   form
@@ -62,6 +65,7 @@ parse_form <- function(form = 'gear + area + area:yy', cvars=NULL, knots='c(5,10
 #'
 fit_model <- function(form,
                       cvars=NULL,
+                      spl='2D',
                       knots='c(5,10)',
                       data = NULL,
                       dist = 'poisson',
@@ -75,7 +79,7 @@ fit_model <- function(form,
                       refresh=10,
                       add_preds = TRUE){
 
-  form <- parse_form(form, cvars, knots)
+  form <- parse_form(form, cvars, spl, knots)
 
   mod <- brm(bf(form),
              family = dist,
