@@ -75,6 +75,8 @@ fit_model <- function(form,
                       backend = 'cmdstanr',
                       iter = 1000,
                       warmup = 500,
+                      mtd=10,
+                      ad=0.8,
                       thin = 2,
                       refresh=10,
                       add_preds = TRUE){
@@ -91,7 +93,9 @@ fit_model <- function(form,
              iter = iter,
              warmup = warmup,
              thin = thin,
-             refresh=refresh)
+             refresh=refresh,
+             control = list(max_treedepth=mtd, adapt_delta=ad)
+              )
 
   cat('Converged: ', all(brms::rhat(mod)<1.05))
 

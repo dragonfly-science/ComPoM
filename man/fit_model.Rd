@@ -17,6 +17,8 @@ fit_model(
   backend = "cmdstanr",
   iter = 1000,
   warmup = 500,
+  mtd = 10,
+  ad = 0.8,
   thin = 2,
   refresh = 10,
   add_preds = TRUE
