@@ -5,6 +5,7 @@
 \title{Parse a formula}
 \usage{
 parse_form(
+  data,
   form = "gear + area + area:yy",
   cvars = NULL,
   spl = "2D",

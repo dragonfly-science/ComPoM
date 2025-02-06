@@ -39,18 +39,31 @@ data_prep <- function(
 #' @param knots knots (1D or 2D) for cvar spline; as character for now
 #' @import stringr
 #'
-parse_form <- function(form = 'gear + area + area:yy', cvars=NULL, spl="2D", knots='c(5,10)'){
+parse_form <- function(data, form = 'gear + area + area:yy', cvars=NULL, spl="2D", knots='c(5,10)'){
 
   form_parts <- stringr::str_remove_all(stringr::str_split(form, '\\+')[[1]],pattern = ' ')
-  newform <- paste('(1|bin) +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
+  newform <- paste('0 + bin +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
 
   if(!is.null(cvars) & spl=='2D') for(i in 1:length(cvars)) newform <- paste(newform, paste("t2(",cvars[i], ", bin, k = ",knots,")"), sep = ' + ')
-  if(!is.null(cvars) & spl=='by') for(i in 1:length(cvars)) newform <- paste(newform, paste("t2(",cvars[i], ", by=bin, k = ",knots,")"), sep = ' + ')
+  if(!is.null(cvars) & spl=='by') {
+    mm <- model.matrix(data=data, ~bin)
+    binvars <- unique(data$bin)
+    colnames(mm) <- binvars
+    lb <- length(binvars)
+    data <- cbind(data, mm[,2:lb])
+
+    for(i in 1:length(cvars)) {
+
+      for (b in binvars[2:lb]) newform <- paste(newform,
+                                                paste("t2(",cvars[i], sprintf(", by=%s, k = ",b),knots,")"), sep = ' + ')
+
+    }
+  }
 
   print(newform)
 
   form <- as.formula(paste("tot_by_bin~offset(log(n)) + ",newform))
-  form
+  list(form=form, data=data)
 
 }
 
@@ -81,10 +94,18 @@ fit_model <- function(form,
                       refresh=10,
                       add_preds = TRUE){
 
-  form <- parse_form(form, cvars, spl, knots)
+  df <- parse_form(data, form, cvars, spl, knots)
+
+  form <- df$form
+  data <- df$data
+
+  fixed <- paste0("bin",unique(data$bin)[1])
+  pp <-  set_prior("student_t(10, 0, 1)", class = "b") +
+    set_prior("constant(0)", class = "b", coef = fixed)
 
   mod <- brm(bf(form),
              family = dist,
+             prior = pp,
              data = data,
              backend = backend,
              chains=chains,
@@ -95,13 +116,14 @@ fit_model <- function(form,
              thin = thin,
              refresh=refresh,
              control = list(max_treedepth=mtd, adapt_delta=ad)
-              )
+  )
 
   cat('Converged: ', all(brms::rhat(mod)<1.05))
 
   if(add_preds) pp <- add_predicted_draws(data, mod) else pp <- NULL
 
   list(model = mod,
+       data=data,
        preds = pp)
 
 }
