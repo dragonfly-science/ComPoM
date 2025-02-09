@@ -48,31 +48,38 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 #'
 Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL){
 
-  if(!is.null(cvar)) grps <- as.symbol(grp[(!grp==cvar)]) else grps <- as.symbol(grp)
+  if(!is.null(cvar)) grps <- as.symbol(grp[(!grp %in% cvar)]) else grps <- as.symbol(grp)
 
   #int <- as_draws_df(mod$mod, "b_Intercept") %>% dplyr::select(-.chain,-.iteration)
   helpers = any(grp %in% mod$data$bin)
   helper_vars = grp[grp %in% mod$data$bin]
 
+  #browser()
   preda <-
-    mod$data %>% ungroup() %>% dplyr::select(bin,!!grp) %>% distinct() %>% mutate(n=100) %>%
-    complete(nesting(!!!syms(grp)),bin,fill=list(n=100)) %>%
+    mod$data %>% ungroup() %>% dplyr::select(bin,!!grp) %>% distinct() %>%
+    mutate(n=100) %>%
+    {if(!is.null(cvar)) mutate(., !!cvar:=mean(mod$data[[cvar]])) else .} %>%
+    complete(nesting(!!!syms(grp),bin),fill=list(n=100)) %>%
     add_linpred_draws(mod$model, re_formula = form, allow_new_levels=T) %>%
     ungroup()
 
   # this is needed for when there are helper variables to run the splines over categories. We only want the combos of helpers
-  if(helpers){
-
-    preds <- c()
-    for (v in helper_vars)  preds <- bind_rows(preds, preda[preda$bin==v, ] %>% filter(!!sym(v) == 1))
-
-    preds <- bind_rows(preds, preda[!preda$bin %in% helper_vars, ] %>% filter(across(helper_vars, ~. != 1)))
-    preda <- preds
-  }
-
+  # if(helpers){
+  #
+  #   preds <- c()
+  #   for (v in helper_vars)  preds <- bind_rows(preds, preda[preda$bin==v, ] %>% filter(!!sym(v) == 1))
+  #
+  #   preds <- bind_rows(preds, preda[!preda$bin %in% helper_vars, ] %>% filter(across(helper_vars, ~. != 1)))
+  #   preda <- preds
+  # }
+ #browser()
   preda <- preda %>%
+    group_by(!!!syms(grps),.draw) %>%
+    mutate(lp = exp(.linpred)/sum(exp(.linpred))) %>%
+    group_by(bin) %>%
+    mutate(ml=gmean(lp)) %>%
     group_by(bin,!!!syms(grps)) %>%
-    median_qi(pred = exp((.linpred)-mean(.linpred)))
+    median_qi(pred = lp/ml)
 
 
   p <- ggplot(preda)  + geom_hline(yintercept = 1,linetype=2,alpha=0.5) +
