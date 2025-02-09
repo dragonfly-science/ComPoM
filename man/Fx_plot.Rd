@@ -4,18 +4,9 @@
 \alias{Fx_plot}
 \title{Effects}
 \usage{
-Fx_plot(
-  comp_data,
-  mod,
-  grp = "Year",
-  form = "~(1|bin:Year)",
-  grid = NULL,
-  cvar = NULL
-)
+Fx_plot(mod, grp = "Year", form = "~(1|bin:Year)", grid = NULL, cvar = NULL)
 }
 \arguments{
-\item{comp_data}{Compositional dataframe}
-
 \item{mod}{An object from fit_model}
 
 \item{grp}{group to do PPC over, needs to include cvar if present}
@@ -25,6 +16,8 @@ Fx_plot(
 \item{grid}{optional plotting with facet grid along two variables (need to be in grp)}
 
 \item{cvar}{continuous variable if used in model}
+
+\item{comp_data}{Compositional dataframe}
 }
 \description{
 Effects
