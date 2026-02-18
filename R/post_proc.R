@@ -48,20 +48,66 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 #'
 Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL){
 
-  if(!is.null(cvar)) grps <- as.symbol(grp[(!grp %in% cvar)]) else grps <- as.symbol(grp)
+  if(!is.null(cvar)) grps <- syms(grp[(!grp %in% cvar)]) else grps <- syms(grp)
 
   #int <- as_draws_df(mod$mod, "b_Intercept") %>% dplyr::select(-.chain,-.iteration)
   helpers = any(grp %in% mod$data$bin)
   helper_vars = grp[grp %in% mod$data$bin]
 
+  # Columns to exclude from factor conversion (coordinates for spatial models)
+  exclude_cols <- paste0('^', grp, '$')
+
+  if(any(grepl('TMB', attr(mod, "call")))) {
+   #if(!is.null(coords)) exclude_col <- paste(exclude_col, paste0('^', coords, '$', collapse='|'), sep='|')
+   exclude_cols <- paste(exclude_cols, paste0('^', mod$time, '$'), sep='|')
+  }
+
+  mean_or_mode <- function(x) {
+    if(is.numeric(x)) mean(x) else factor(names(sort(-table(x)))[1])
+  }
+
   #browser()
-  preda <-
-    mod$data %>% ungroup() %>% dplyr::select(bin,!!grp) %>% distinct() %>%
-    mutate(n=100) %>%
+  preda_data <-
+    mod$model$data %>%
+    ungroup() %>%
+    dplyr::select(-n, -tot_by_bin) %>%
+    group_by(bin) %>%
+    mutate(across(!matches(exclude_cols), ~mean_or_mode(.x))) %>%
+    distinct() %>%
+    mutate(n=100) %>% ungroup() %>%
     {if(!is.null(cvar)) mutate(., !!cvar:=mean(mod$data[[cvar]])) else .} %>%
-    complete(nesting(!!!syms(grp),bin),fill=list(n=100)) %>%
-    add_linpred_draws(mod$model, re_formula = form, allow_new_levels=T) %>%
-    ungroup()
+    complete(nesting(!!!syms(grp),bin),fill=list(n=100))
+
+  if(class(mod$model)=='brmsfit'){
+
+    preda <- preda_data %>%
+      add_linpred_draws(mod$model, allow_new_levels=T) %>%
+      ungroup()
+
+  } else if(class(mod$model)=='sdmTMB'){
+
+    # For spatial models, add coordinate columns using mean coordinates
+    if(mod$spatial_varying && !is.null(mod$coords)){
+      for(coord in mod$coords){
+        if(!coord %in% names(preda_data) && coord %in% names(mod$data)){
+          preda_data[[coord]] <- mean(mod$data[[coord]], na.rm=TRUE)
+        }
+      }
+    }
+
+    preda <- predict(mod$model,
+                     newdata = preda_data,
+                     offset = preda_data$n,
+                     type = c("link"),
+                     nsim = mod$nsim) %>%
+      as.data.frame() %>%
+      cbind(preda_data) %>%
+      mutate(.row = 1:n()) %>%
+      pivot_longer(cols=matches("V[0-9]+"), names_to = "iter", values_to = ".linpred") %>%
+      mutate(.draw = as.numeric(gsub("V","",iter))) %>%
+      ungroup()
+
+  } else {stop("Model must be either brmsfit or sdmTMB")}
 
   # this is needed for when there are helper variables to run the splines over categories. We only want the combos of helpers
   # if(helpers){
@@ -72,7 +118,7 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
   #   preds <- bind_rows(preds, preda[!preda$bin %in% helper_vars, ] %>% filter(across(helper_vars, ~. != 1)))
   #   preda <- preds
   # }
- #browser()
+  #browser()
   preda <- preda %>%
     group_by(!!!syms(grps),.draw) %>%
     mutate(lp = exp(.linpred)/sum(exp(.linpred))) %>%
@@ -89,7 +135,7 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
     theme_cowplot() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
   #browser()
-  if(is.null(grid))  p <- p+facet_wrap(facets = vars(!!grps),scales = 'free_y')
+  if(is.null(grid))  p <- p+facet_wrap(facets = vars(!!grps[[1]]),scales = 'free_y')
   if(!is.null(grid)) p <- p+facet_grid(rows = vars(!!as.symbol(grid[1])),cols = vars(!!as.symbol(grid[2])),scales = 'free_y')
 
   return(p)
@@ -105,28 +151,83 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
 #' @import cowplot
 #' @export
 #'
-scale_comps <- function(scale_df, predvar='catch', fit = NULL, grps, iters=NULL, form=NULL){
+scale_comps <- function(scale_df, 
+  predvar='catch', 
+  fit = NULL, 
+  grps, 
+  iters=NULL, 
+  form=NULL, 
+  pgrid = NULL # To do
+){
 
   if(!is.null(form)){
     form_parts <- stringr::str_remove_all(stringr::str_split(form, '\\+')[[1]],pattern = ' ')
     form <- paste('~ (1|bin) +',paste0('(1|bin:',form_parts,')', collapse = ' + '))
   } else if(!is.null(fit)){
-    form = paste("~",paste(paste('(1|',fit$model$ranef$group,')'), collapse='+'))
+    form = paste("~",paste(paste0('(1|bin:',grps,')'), collapse=' + '))
   } else {stop("Must provide either a formula or a model fit from fit_model")}
 
-  #browser()
-  scale_df %>%
+  # Get bin levels from the model data
+  if(fit$spatial_varying) grps <- c(grps, fit$coords)
+  bin_levels <- unique(fit$data$bin)
+  bin_is_factor <- is.factor(fit$data$bin)
+
+  scale_dfs <- scale_df %>%
     group_by(across(all_of(grps) )) %>%
-    summarize(n=sum(!!sym(predvar),na.rm=T)) %>%
-    mutate(bin = factor(min(unique(fit$mod$data$bin)), levels=unique(fit$mod$data$bin))) %>%
+    summarize(n=sum(!!sym(predvar),na.rm=T), .groups = "drop") %>%
+    mutate(bin = if(bin_is_factor) factor(bin_levels[1], levels=bin_levels) else bin_levels[1]) %>%
     ungroup() %>% # need to ungroup before augmenting
     complete(nesting(!!!syms(grps)),bin,fill = list(n=0))  %>%
     group_by(across(all_of(grps) )) %>%
     mutate(n = sum(n),
-           bin = as.numeric(as.character(bin))) %>%
-    filter(n>0) %>%
-    add_predicted_draws(fit$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin', re_formula = form)
+           bin = if(bin_is_factor) bin else as.numeric(as.character(bin))) %>%
+    filter(n>0)
 
+
+  if(class(fit$model)=='brmsfit'){
+
+    add_predicted_draws(scale_dfs, fit$mod, allow_new_levels=T, ndraws = iters, value = 'tot_by_bin', re_formula = form)
+
+  } else if(class(fit$model)=='sdmTMB'){
+
+   ff <- gsub("\\(1\\|","",form)
+    ff <- gsub("\\)","",ff)
+    form_nrfx <- as.formula(paste("tot_by_bin",ff))
+    lt <- labels(terms(form_nrfx))
+
+    for(col in lt){
+      scale_dfs[,col] <- paste(scale_dfs$bin, scale_dfs[[gsub('bin:','',col)]], sep = '_')
+    }
+
+    # Convert to factors but preserve coordinates, time, and numeric bin
+    exclude_pattern_tmb <- '.*_by_.*|^n$'
+    if(!bin_is_factor) exclude_pattern_tmb <- paste(exclude_pattern_tmb, '^bin$', sep='|')
+    if(!is.null(fit$coords)) exclude_pattern_tmb <- paste(exclude_pattern_tmb, paste0('^', fit$coords, '$', collapse='|'), sep='|')
+    if(!is.null(fit$time)) exclude_pattern_tmb <- paste(exclude_pattern_tmb, paste0('^', fit$time, '$'), sep='|')
+    scale_dfs <- scale_dfs %>%
+      mutate(across(-matches(exclude_pattern_tmb), as.factor))
+  
+    if(fit$spatial_varying){
+      svc_setup <- sdmTMB::make_category_svc(
+        data = scale_dfs,
+        category_column = "bin",
+        time_column = fit$time,
+        share_spatial_sd = TRUE,
+        share_spatiotemporal_sd = TRUE
+      )
+    }
+
+    predict(fit$model, type = "response",
+             newdata = if(fit$spatial_varying) svc_setup$data_expanded else scale_dfs,
+             offset = log(scale_dfs$n),
+             nsim = fit$nsim) %>%
+      as.data.frame() %>%
+      cbind(scale_dfs) %>%
+      mutate(.row = 1:n()) %>%
+      pivot_longer(cols=matches("V[0-9]+"), names_to = "iter", values_to = 'tot_by_bin') %>%
+      mutate(.draw = as.numeric(gsub("V","",iter))) %>%
+      ungroup()
+  }
 }
 
 #' Plot scaled compositions
@@ -161,20 +262,20 @@ scaled_comp_plot <- function(scaled_comp=NULL,
     if(!is.null(comp_are)){
       comp <- comp_are %>%
         group_by(across(all_of(grps) ), bin) %>%
-        summarise(tot = sum(!!sym(cvar))) %>%
+        summarise(tot = sum(!!sym(cvar)), .groups = "drop") %>%
         group_by(across(all_of(grps) )) %>%
         mutate(prop = tot/sum(tot)) %>%
-        filter(!is.na(prop),prop>0,prop<1) %>%
+        filter(!is.na(prop), prop > 0) %>%
         mutate(bin = as.numeric(as.character(bin)))
     }
 
     if(!is.null(comp_are2)){
       comp2 <- comp_are2 %>%
         group_by(across(all_of(grps) ), bin) %>%
-        summarise(tot = sum(!!sym(cvar))) %>%
+        summarise(tot = sum(!!sym(cvar)), .groups = "drop") %>%
         group_by(across(all_of(grps) )) %>%
         mutate(prop = tot/sum(tot)) %>%
-        filter(!is.na(prop),prop>0,prop<1) %>%
+        filter(!is.na(prop), prop > 0) %>%
         mutate(bin = as.numeric(as.character(bin)))
     }
 

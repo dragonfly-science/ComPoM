@@ -10,18 +10,27 @@ fit_model(
   spl = "2D",
   knots = "c(5,10)",
   data = NULL,
-  dist = "poisson",
+  dist = "poisson()",
   chains = 4,
   threads = 16,
   cores = 32,
-  backend = "cmdstanr",
+  backend = "brms",
+  brms_backend = "rstan",
   iter = 1000,
   warmup = 500,
   mtd = 10,
   ad = 0.8,
   thin = 2,
   refresh = 10,
-  add_preds = TRUE
+  add_preds = FALSE,
+  mesh = NULL,
+  spatial = "off",
+  spatiotemporal = "off",
+  time = NULL,
+  spatial_varying = FALSE,
+  share_spatial_sd = TRUE,
+  share_spatiotemporal_sd = TRUE,
+  coords = c("x", "y")
 )
 }
 \arguments{
@@ -29,9 +38,29 @@ fit_model(
 
 \item{cvars}{Continuous variable to be fitted as 2D spline with bin}
 
+\item{spl}{1D spline over cvar per bin, or 2D spline over bins and cvar; as character for now}
+
 \item{knots}{knots (1D or 2D) for cvar spline; as character for now}
 
-\item{add_preds}{add predictions? (Can be very slow)}
+\item{backend}{the backend used for model fitting}
+
+\item{add_preds}{add predictions? (Can be very slow - only use with brms)}
+
+\item{mesh}{An sdmTMB mesh object created with make_mesh() (TMB backend only)}
+
+\item{spatial}{Spatial random field: "off", "on", or "IID" (TMB backend only)}
+
+\item{spatiotemporal}{Spatiotemporal random field: "off", "iid", "ar1", "rw" (TMB backend only)}
+
+\item{time}{Column name for time (year) variable (TMB backend only)}
+
+\item{spatial_varying}{Use bin-specific spatial fields via spatial varying coefficients (TMB backend only)}
+
+\item{share_spatial_sd}{Share spatial SD across bins when using spatial_varying (TMB backend only, default TRUE)}
+
+\item{share_spatiotemporal_sd}{Share spatiotemporal SD across bins when using spatial_varying (TMB backend only, default TRUE)}
+
+\item{coords}{Character vector of length 2 specifying coordinate column names (TMB backend only, default c("x", "y"))}
 }
 \description{
 Fit the poisson multinomial model; see brms doc for brm() other parameters

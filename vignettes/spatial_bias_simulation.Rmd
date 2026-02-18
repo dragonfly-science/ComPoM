@@ -1,0 +1,418 @@
+---
+title: "Correcting for spatially biased sampling in compositional data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Correcting for spatially biased sampling in compositional data}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  cache = FALSE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+Fisheries catch composition data are often collected from non-representative
+sampling programmes — observers may cover only a subset of the fleet, certain
+areas or seasons may be over- or under-sampled, and spatial coverage can shift
+over time. Naively treating these samples as representative of the whole fishery
+can produce biased estimates of catch-at-age or catch-at-length compositions.
+
+This vignette demonstrates how `ComPoM` can correct for such biases by:
+fitting a Poisson-multinomial model with spatially varying coefficients
+(via `sdmTMB`), then scaling the model predictions to known total catches
+across the full fished area.
+
+The simulation sets up a known truth — spatially varying selectivity, temporal
+trends, and seasonal effects — then samples it with strong spatial and seasonal
+bias. We compare a spatial model that accounts for the full domain against a
+non-spatial model that cannot, showing that the spatial model recovers the true
+compositions more accurately.
+
+```{r setup}
+library(tidyverse)
+library(ComPoM)
+library(sdmTMB)
+
+source(here::here("R/helpers.R"))
+
+# Helper functions
+clo <- function(x) x / sum(x)
+
+# Simulation parameters
+n_bins <- 10
+n_samps <- 50
+n_locations <- 250
+n_seasons <- 4
+n_per_samps <- 100
+n_years <- 10
+
+M <- 0.2
+
+surv <- exp(-(1:n_bins) * M)
+popfreq <- clo(surv)
+
+# Selectivity parameters
+L50_base <- 6.5
+L95 <- 0.75
+```
+
+## Simulate Spatial Domain
+
+Create a spatial grid with coordinates and simulate spatially-varying selectivity.
+
+```{r simulate-spatial-domain, fig.width=7, fig.height=7}
+set.seed(123)
+
+# Create spatial locations (e.g., fishing locations)
+locations <- data.frame(
+  loc_id = 1:n_locations,
+  x = runif(n_locations, 0, 100),
+  y = runif(n_locations, 0, 100)
+)
+
+# Simulate spatial random field for selectivity variation
+# Using a simple distance-based correlation structure
+spatial_field <- function(x, y, range = 30, sigma = 0.3) {
+  n <- length(x)
+  dist_mat <- as.matrix(dist(cbind(x, y)))
+  cov_mat <- sigma^2 * exp(-dist_mat / range)
+  MASS::mvrnorm(1, rep(0, n), cov_mat)
+}
+
+# Generate spatial effect on L50
+locations$spatial_effect <- spatial_field(locations$x, locations$y, range = 10, sigma = 0.5)
+
+# Visualize spatial field
+ggplot(locations, aes(x = x, y = y, color = spatial_effect)) +
+  geom_point(size = 3) +
+  scale_color_viridis_c() +
+  theme_minimal() +
+  labs(title = "Spatial effect on selectivity (L50)")
+```
+
+## Simulate Temporal and Seasonal Effects
+
+```{r simulate-temporal-effects}
+# Year effects (random walk)
+year_effects <- cumsum(rnorm(n_years, 0, 0.1))
+
+# Season effects
+season_effects <- rnorm(n_seasons, 0, 0.2)
+season_effects <- season_effects - mean(season_effects)
+
+temporal_df <- expand_grid(
+  Year = factor(1:n_years),
+  Season = factor(1:n_seasons)
+) |>
+  mutate(
+    year_effect = year_effects[as.integer(Year)],
+    season_effect = season_effects[as.integer(Season)]
+  )
+```
+
+## Generate True Catch Compositions
+
+```{r true-catch-compositions}
+# Full factorial of all strata with spatial coordinates
+true_catch_by_bin <- expand_grid(
+  loc_id = 1:n_locations,
+  Year = factor(1:n_years),
+  Season = factor(1:n_seasons),
+  bin = 1:n_bins
+) |>
+  left_join(locations, by = "loc_id") |>
+  left_join(temporal_df, by = c("Year", "Season")) |>
+  mutate(
+    L50 = exp(log(L50_base) + spatial_effect + year_effect + season_effect),
+    catch = rgamma(n(), 100, 0.01),
+    tcatch = Selectivity(bin, L50, L95) * popfreq[bin] * catch
+  )
+
+# Summarize true catch
+true_catch_summary <- true_catch_by_bin |>
+  group_by(Year, bin) |>
+  summarise(tcatch = sum(tcatch), .groups = "drop")
+```
+
+## Simulate Non-Representative Sampling
+
+```{r simulate-sampling, fig.width=7, fig.height=7}
+# Sample locations with strong spatial bias (prefer high x AND high y corner)
+sample_locations <- function(n_samps, locations) {
+  # Strong bias towards the northeast corner of the domain
+  probs <- exp(locations$x / 25 + locations$y / 25)
+  probs <- probs / sum(probs)
+  sample(locations$loc_id, n_samps, replace = TRUE, prob = probs)
+}
+
+# Season sampling probabilities that shift across years
+# Early years oversample season 1, late years oversample season 4
+season_probs_by_year <- function(year, n_years, n_seasons) {
+  # Linear shift: weight moves from season 1 to season 4 over time
+  alpha <- (year - 1) / (n_years - 1)  # 0 for year 1, 1 for last year
+  weights <- numeric(n_seasons)
+  weights[1] <- 4 * (1 - alpha) + 0.5 * alpha
+
+  weights[n_seasons] <- 0.5 * (1 - alpha) + 4 * alpha
+  # Middle seasons stay low
+  if (n_seasons > 2) {
+    weights[2:(n_seasons - 1)] <- 0.5
+  }
+  weights / sum(weights)
+}
+
+# Generate samples - distribute across years
+set.seed(456)
+samples <- tibble(
+  samp_id = 1:(n_samps * n_years),
+  Year = factor(rep(1:n_years, each = n_samps))
+) |>
+  mutate(
+    loc_id = sample_locations(n(), locations),
+    Season = factor(sapply(as.integer(Year), function(yr) {
+      sample(1:n_seasons, 1, prob = season_probs_by_year(yr, n_years, n_seasons))
+    }))
+  ) |>
+  left_join(locations, by = "loc_id") |>
+  left_join(temporal_df, by = c("Year", "Season")) |>
+  mutate(
+    L50 = exp(log(L50_base) + spatial_effect + year_effect + season_effect)
+  )
+
+# Generate composition samples from each sampling event
+long_form_sims <- samples |>
+  group_by(samp_id) |>
+  nest() |>
+  mutate(
+    comp_samps = lapply(data, function(df) {
+      which(rmultinom(n_per_samps, 1,
+                      Selectivity(1:n_bins, df$L50, L95) * popfreq) == 1,
+            arr.ind = TRUE)[, 1]
+    })
+  ) |>
+  unnest(c(data, comp_samps)) |>
+  mutate(count = 1) |>
+  rename(bin = comp_samps)
+
+# Visualize sampling locations
+ggplot() +
+  geom_point(data = locations, aes(x = x, y = y), color = "grey70", size = 2) +
+  geom_point(data = long_form_sims |> distinct(loc_id, x, y),
+             aes(x = x, y = y), color = "red", alpha = 0.5) +
+  theme_minimal() +
+  labs(title = "Sampling locations (red) vs all locations (grey)")
+```
+
+## Prepare Data and Create Mesh
+
+```{r prepare-data-mesh, fig.width=5, fig.height=4}
+# Prepare input data for ComPoM
+input_data <- data_prep(
+  long_form_sims,
+  vars_for_grouping = c('loc_id', 'Year', 'Season', 'x', 'y'),
+  bin_lab = 'bin'
+) |>
+  mutate(
+    x = as.numeric(as.character(x)),
+    y = as.numeric(as.character(y))
+  )
+
+# Create mesh for sdmTMB — use ALL fishing locations for the domain,
+# not just the biased sample, so the mesh covers the full fished area
+all_locs_sf <- sf::st_as_sf(locations, coords = c("x", "y"))
+bnd <- fmesher::fm_nonconvex_hull(all_locs_sf, convex = -0.1, format = 'sf')
+msh <- fmesher::fm_mesh_2d(locations[, c("x", "y")], cutoff = 3, boundary = bnd)
+mesh <- make_mesh(input_data, xy_cols = c("x", "y"), mesh = msh)
+
+bnd_vect <- terra::vect(bnd)
+pg <- terra::rast(bnd_vect)
+pg$lyr.1 <- 1
+
+plot(mesh)
+```
+
+## Fit Spatiotemporal Model with sdmTMB
+
+```{r fit-spatiotemporal-model}
+# Fit model with bin-specific spatially varying coefficients
+mods_spatial <- fit_model(
+  form = 'Year + Season',
+  data = input_data,
+  backend = 'TMB',
+  mesh = mesh,
+  time = "Year",
+  coords = c("x", "y"),
+  iter = 1000,
+  warmup = 500,
+  thin = 2
+)
+
+summary(mods_spatial$model)
+```
+
+## Fit Non-Spatial Model for Comparison
+
+```{r fit-nonspatial-model}
+mods_nonspatial <- fit_model(
+  form = 'Year + Season',
+  data = input_data,
+  backend = 'TMB',
+  iter = 1000,
+  warmup = 500,
+  thin = 2
+)
+
+summary(mods_nonspatial$model)
+```
+
+## Compare Model Fits
+
+```{r compare-aic}
+AIC(mods_spatial$model)
+AIC(mods_nonspatial$model)
+```
+
+## Effects Plots
+
+```{r effects-plots, fig.dim=c(12,7)}
+Fx_plot(mods_nonspatial, grp = 'Year', grid = NULL) +
+  ggtitle("Year effects (Non-spatial model)")
+
+Fx_plot(mods_spatial, grp = 'Year', grid = NULL) +
+  ggtitle("Year effects (Spatial model)")
+
+Fx_plot(mods_nonspatial, grp = 'Season', grid = NULL) +
+  ggtitle("Season effects (Non-spatial model)")
+
+Fx_plot(mods_spatial, grp = 'Season', grid = NULL) +
+  ggtitle("Season effects (Spatial model)")
+```
+
+## Scale Compositions to Catch
+
+```{r scale-compositions, fig.dim=c(12,7)}
+# Prepare scaling data for spatial model
+IDs <- terra::extract(pg, true_catch_by_bin[, c('x', 'y')], ID = TRUE, xy = TRUE)
+true_catch_by_bin[, colnames(IDs)] <- IDs
+
+scale_df_spatial <- true_catch_by_bin |>
+  group_by(Season, Year, x, y) |>
+  summarise(catch = sum(tcatch), .groups = "drop")
+
+# Prepare scaling data for non-spatial model
+scale_df_nonspatial <- true_catch_by_bin |>
+  semi_join(
+    input_data |> ungroup() |> distinct(Year, Season),
+    by = c("Year", "Season")
+  ) |>
+  group_by(Year, Season) |>
+  summarise(catch = sum(tcatch), .groups = "drop")
+
+# Scale compositions
+scaled_comp_spatial <- scale_comps(
+  scale_df_spatial,
+  predvar = 'catch',
+  fit = mods_spatial,
+  grps = c('Season', 'Year')
+)
+
+scaled_comp_nonspatial <- scale_comps(
+  scale_df_nonspatial,
+  predvar = 'catch',
+  fit = mods_nonspatial,
+  grps = c('Year', 'Season')
+)
+```
+
+## Compare Scaled Compositions to Truth
+
+```{r compare-compositions, fig.dim=c(12,7)}
+# True compositions by year
+true_comp_year <- true_catch_by_bin |>
+  group_by(Year, bin) |>
+  summarise(tcatch = sum(tcatch), .groups = "drop")
+
+# Spatial model (aggregate across seasons)
+scaled_comp_spatial_yr <- scaled_comp_spatial |>
+  group_by(Year, bin, .draw) |>
+  summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
+
+scaled_comp_plot(
+  scaled_comp = scaled_comp_spatial_yr,
+  grps = 'Year',
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  cvar = 'tcatch'
+) + ggtitle("Spatial model vs true compositions (by year)")
+
+# Non-spatial model (aggregate across seasons)
+scaled_comp_nonspatial_yr <- scaled_comp_nonspatial |>
+  group_by(Year, bin, .draw) |>
+  summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
+
+scaled_comp_plot(
+  scaled_comp = scaled_comp_nonspatial_yr,
+  grps = 'Year',
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  cvar = 'tcatch'
+) + ggtitle("Non-spatial model vs true compositions (by year)")
+```
+
+## Evaluate Model Performance
+
+```{r evaluate-performance, fig.dim=c(12,7)}
+# Raw (biased) samples
+raw_comp <- input_data |>
+  group_by(Year, bin) |>
+  summarise(tcatch = sum(tot_by_bin), .groups = "drop")
+
+# Spatial model comparison
+scaled_comp_plot(
+  scaled_comp = scaled_comp_spatial_yr,
+  grps = 'Year',
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  comp_are2 = raw_comp,
+  cvar = 'tcatch'
+) + ggtitle("Blue = True, Orange = Raw samples, Black = Spatial model")
+
+scaled_comp_comp(
+  scaled_comp = scaled_comp_spatial_yr,
+  grps = 'Year',
+  scaled = TRUE,
+  comp_are = true_comp_year,
+  comp_are2 = raw_comp,
+  cvar = 'tcatch'
+) + ggtitle("Spatial model vs raw samples (by year)")
+
+# Non-spatial model comparison
+scaled_comp_plot(
+  scaled_comp = scaled_comp_nonspatial_yr,
+  grps = 'Year',
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  comp_are2 = raw_comp,
+  cvar = 'tcatch'
+) + ggtitle("Blue = True, Orange = Raw samples, Black = Non-spatial model")
+```
+
+## Model Diagnostics
+
+```{r model-diagnostics}
+tidy(mods_spatial$model, "ran_pars")
+```
+
+The spatial model can better account for the non-representative sampling by modeling the underlying spatial structure in the data.

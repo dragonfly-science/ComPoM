@@ -1,0 +1,404 @@
+---
+title: "Correcting for vessel-level sampling bias in compositional data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Correcting for vessel-level sampling bias in compositional data}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  cache = FALSE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+Observer programmes rarely sample all vessels equally. Some vessels are sampled
+in every season, others only sporadically, and the mix of observed vessels
+changes from year to year. Because vessels differ in the size-composition of
+their catch — through gear configuration, skipper behaviour, or preferred
+fishing grounds — the raw observer sample can be a poor representation of the
+fleet-wide catch composition.
+
+This vignette demonstrates how `ComPoM` can correct for vessel-level sampling
+bias using a Poisson-multinomial model fitted with either a Bayesian backend
+(`brms`) or a frequentist random-effects backend (`sdmTMB` without a mesh).
+Neither model uses spatial information; instead, both treat vessel identity and
+season as crossed random effects interacting with the composition bins.
+
+The simulation generates a fleet of vessels with vessel-specific selectivity
+offsets and year/season effects, then samples that fleet unevenly — a small
+subset of vessels is heavily over-represented, and their seasonal coverage
+shifts across years. We compare three approaches for estimating fleet-wide
+catch compositions:
+
+1. **Raw scaled samples** — naively treating observer data as representative
+2. **sdmTMB (non-spatial)** — maximum-likelihood Poisson-multinomial with
+   random effects
+3. **brms (Bayesian)** — fully Bayesian Poisson-multinomial with the same
+   random-effect structure
+
+## Setup
+
+```{r setup}
+library(tidyverse)
+library(ComPoM)
+library(sdmTMB)
+
+source(here::here("R/helpers.R"))
+
+clo <- function(x) x / sum(x)
+
+# Simulation parameters
+n_bins <- 10
+n_vessels <- 40
+n_seasons <- 4
+n_years <- 8
+n_samps_per_year <- 60
+n_per_samp <- 100
+
+# Population and selectivity
+M <- 0.2
+surv <- exp(-(1:n_bins) * M)
+popfreq <- clo(surv)
+
+L50_base <- 6.5
+L95 <- 0.75
+```
+
+## Simulate Fleet
+
+Each vessel has a persistent selectivity offset drawn from a normal
+distribution — some vessels catch larger fish, others smaller.
+
+```{r simulate-fleet, fig.width=6, fig.height=4}
+set.seed(42)
+
+vessels <- tibble(
+  vessel_id = factor(1:n_vessels),
+  vessel_effect = rnorm(n_vessels, 0, 0.3)
+)
+
+ggplot(vessels, aes(x = vessel_id, y = vessel_effect)) +
+  geom_col() +
+  theme_minimal() +
+  labs(
+    title = "Vessel-specific selectivity offsets",
+    x = "Vessel", y = "Effect on log(L50)"
+  )
+```
+
+## Simulate Temporal and Seasonal Effects
+
+```{r simulate-temporal}
+year_effects <- cumsum(rnorm(n_years, 0, 0.1))
+year_effects <- year_effects - mean(year_effects)
+
+season_effects <- rnorm(n_seasons, 0, 0.2)
+season_effects <- season_effects - mean(season_effects)
+
+temporal_df <- expand_grid(
+  Year = factor(1:n_years),
+  Season = factor(1:n_seasons)
+) |>
+  mutate(
+    year_effect = year_effects[as.integer(Year)],
+    season_effect = season_effects[as.integer(Season)]
+  )
+```
+
+## Generate True Catch Compositions
+
+The true fleet-wide composition integrates over all vessels, years, and
+seasons.
+
+```{r true-catch}
+true_catch_by_bin <- expand_grid(
+  vessel_id = factor(1:n_vessels),
+  Year = factor(1:n_years),
+  Season = factor(1:n_seasons),
+  bin = 1:n_bins
+) |>
+  left_join(vessels, by = "vessel_id") |>
+  left_join(temporal_df, by = c("Year", "Season")) |>
+  mutate(
+    L50 = exp(log(L50_base) + vessel_effect + year_effect + season_effect),
+    catch = rgamma(n(), 100, 0.01),
+    tcatch = Selectivity(bin, L50, L95) * popfreq[bin] * catch
+  )
+
+true_comp_year <- true_catch_by_bin |>
+  group_by(Year, bin) |>
+  summarise(tcatch = sum(tcatch), .groups = "drop")
+```
+
+## Simulate Non-Representative Sampling
+
+Sampling is biased in two ways:
+
+- **Vessel bias**: a handful of vessels (the top 8) are sampled much more
+  frequently than the rest.
+- **Seasonal shift**: early years oversample season 1; late years oversample
+  season 4 — mimicking a programme that changes its coverage over time.
+
+```{r simulate-sampling, fig.width=7, fig.height=5}
+# Vessel sampling weights — top 8 vessels get 5x the weight
+vessel_weights <- rep(1, n_vessels)
+vessel_weights[1:8] <- 5
+vessel_weights <- vessel_weights / sum(vessel_weights)
+
+# Seasonal weights that shift over time
+season_probs_by_year <- function(year, n_years, n_seasons) {
+  alpha <- (year - 1) / (n_years - 1)
+  weights <- rep(0.5, n_seasons)
+  weights[1] <- 4 * (1 - alpha) + 0.5 * alpha
+  weights[n_seasons] <- 0.5 * (1 - alpha) + 4 * alpha
+  weights / sum(weights)
+}
+
+
+samples <- tibble(
+  samp_id = 1:(n_samps_per_year * n_years),
+  Year = factor(rep(1:n_years, each = n_samps_per_year))
+) |>
+  mutate(
+    vessel_id = factor(sample(1:n_vessels, n(), replace = TRUE, prob = vessel_weights)),
+    Season = factor(sapply(as.integer(Year), function(yr) {
+      sample(1:n_seasons, 1, prob = season_probs_by_year(yr, n_years, n_seasons))
+    }))
+  ) |>
+  left_join(vessels, by = "vessel_id") |>
+  left_join(temporal_df, by = c("Year", "Season")) |>
+  mutate(
+    L50 = exp(log(L50_base) + vessel_effect + year_effect + season_effect)
+  )
+
+# Generate composition samples
+long_form_sims <- samples |>
+  group_by(samp_id) |>
+  nest() |>
+  mutate(
+    comp_samps = lapply(data, function(df) {
+      which(rmultinom(n_per_samp, 1,
+                      Selectivity(1:n_bins, df$L50, L95) * popfreq) == 1,
+            arr.ind = TRUE)[, 1]
+    })
+  ) |>
+  unnest(c(data, comp_samps)) |>
+  mutate(count = 1) |>
+  rename(bin = comp_samps)
+
+# Visualise sampling bias
+sampling_summary <- long_form_sims |>
+  distinct(samp_id, vessel_id, Year, Season) |>
+  count(vessel_id, name = "n_trips")
+
+ggplot(sampling_summary, aes(x = vessel_id, y = n_trips)) +
+  geom_col() +
+  theme_minimal() +
+  labs(
+    title = "Number of sampled trips per vessel",
+    x = "Vessel", y = "Trips sampled"
+  )
+```
+
+```{r sampling-by-season, fig.width=7, fig.height=4}
+season_summary <- long_form_sims |>
+  distinct(samp_id, Year, Season) |>
+  count(Year, Season)
+
+ggplot(season_summary, aes(x = Season, y = n, fill = Season)) +
+  geom_col() +
+  facet_wrap(~Year, nrow = 1) +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(
+    title = "Samples per season across years",
+    x = "Season", y = "Samples"
+  )
+```
+
+## Prepare Data
+
+```{r prepare-data}
+input_data <- data_prep(
+  long_form_sims,
+  vars_for_grouping = c("vessel_id", "Year", "Season"),
+  bin_lab = "bin"
+)
+```
+
+## Fit Non-Spatial sdmTMB Model
+
+```{r fit-tmb}
+mod_tmb <- fit_model(
+  form = "Year + Season + vessel_id",
+  data = input_data,
+  backend = "TMB",
+  iter = 1000,
+  warmup = 500,
+  thin = 2
+)
+```
+
+## Fit Bayesian Model with brms
+
+```{r fit-brms, message=FALSE}
+mod_brms <- fit_model(
+  form = "Year + Season + vessel_id",
+  data = input_data,
+  backend = "brms",
+  dist=poisson(),
+  brms_backend = "cmdstanr",
+  chains = 4,
+  cores = 4,
+  threads = 1,
+  iter = 1000,
+  warmup = 500,
+  thin = 2
+)
+```
+
+## Effects Plots
+
+```{r effects-year, fig.dim=c(10, 6)}
+Fx_plot(mod_tmb, grp = "Year", grid = NULL) +
+  ggtitle("Year effects (sdmTMB)")
+
+Fx_plot(mod_brms, grp = "Year", grid = NULL) +
+  ggtitle("Year effects (brms)")
+```
+
+```{r effects-season, fig.dim=c(10, 5)}
+Fx_plot(mod_tmb, grp = "Season", grid = NULL) +
+  ggtitle("Season effects (sdmTMB)")
+
+Fx_plot(mod_brms, grp = "Season", grid = NULL) +
+  ggtitle("Season effects (brms)")
+```
+
+## Scale Compositions to Catch
+
+We scale predictions from each model to the true total catch by year and
+season (summed across all vessels), then aggregate to annual compositions.
+
+```{r scale-compositions}
+# Scaling data: total catch by year and season across all vessels
+scale_df <- true_catch_by_bin |>
+  group_by(Year, Season, vessel_id) |>
+  summarise(catch = sum(tcatch), .groups = "drop")
+
+scaled_tmb <- scale_comps(
+  scale_df,
+  predvar = "catch",
+  fit = mod_tmb,
+  grps = c("Year", "Season", "vessel_id")
+)
+
+scaled_brms <- scale_comps(
+  scale_df,
+  predvar = "catch",
+  fit = mod_brms,
+  grps = c("Year", "Season", "vessel_id")
+)
+
+# Aggregate to annual
+scaled_tmb_yr <- scaled_tmb |>
+  group_by(Year, bin, .draw) |>
+  summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
+
+scaled_brms_yr <- scaled_brms |>
+  group_by(Year, bin, .draw) |>
+  summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
+```
+
+## Compare Scaled Compositions to Truth
+
+```{r compare-truth-tmb, fig.dim=c(10, 7)}
+scaled_comp_plot(
+  scaled_comp = scaled_tmb_yr,
+  grps = "Year",
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  cvar = "tcatch"
+) + ggtitle("sdmTMB vs true compositions (by year)")
+```
+
+```{r compare-truth-brms, fig.dim=c(10, 7)}
+scaled_comp_plot(
+  scaled_comp = scaled_brms_yr,
+  grps = "Year",
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  cvar = "tcatch"
+) + ggtitle("brms vs true compositions (by year)")
+```
+
+## Evaluate Against Raw Samples
+
+```{r raw-comp}
+raw_comp <- input_data |>
+  group_by(Year, bin) |>
+  summarise(tcatch = sum(tot_by_bin), .groups = "drop")
+```
+
+```{r compare-raw-tmb, fig.dim=c(10, 7)}
+scaled_comp_plot(
+  scaled_comp = scaled_tmb_yr,
+  grps = "Year",
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  comp_are2 = raw_comp,
+  cvar = "tcatch"
+) + ggtitle("Blue = True, Orange = Raw, Black = sdmTMB")
+```
+
+```{r compare-raw-brms, fig.dim=c(10, 7)}
+scaled_comp_plot(
+  scaled_comp = scaled_brms_yr,
+  grps = "Year",
+  scaled = TRUE,
+  scales = "free_y",
+  comp_are = true_comp_year,
+  comp_are2 = raw_comp,
+  cvar = "tcatch"
+) + ggtitle("Blue = True, Orange = Raw, Black = brms")
+```
+
+## Relative Error Comparison
+
+```{r relative-error-tmb, fig.dim=c(8, 5)}
+scaled_comp_comp(
+  scaled_comp = scaled_tmb_yr,
+  grps = "Year",
+  scaled = TRUE,
+  comp_are = true_comp_year,
+  comp_are2 = raw_comp,
+  cvar = "tcatch"
+) + ggtitle("sdmTMB model vs raw samples — relative error")
+```
+
+```{r relative-error-brms, fig.dim=c(8, 5)}
+scaled_comp_comp(
+  scaled_comp = scaled_brms_yr,
+  grps = "Year",
+  scaled = TRUE,
+  comp_are = true_comp_year,
+  comp_are2 = raw_comp,
+  cvar = "tcatch"
+) + ggtitle("brms model vs raw samples — relative error")
+```
+
+Both the Bayesian and frequentist models should recover the true fleet-wide
+compositions more accurately than the raw biased samples, particularly in years
+where the sampled vessel mix or seasonal coverage departs most from the fleet
+average.

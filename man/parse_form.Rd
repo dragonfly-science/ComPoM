@@ -6,18 +6,29 @@
 \usage{
 parse_form(
   data,
+  backend = "brms",
   form = "gear + area + area:yy",
   cvars = NULL,
   spl = "2D",
-  knots = "c(5,10)"
+  knots = "c(5,10)",
+  coords = NULL,
+  time = NULL
 )
 }
 \arguments{
+\item{backend}{the backend used for model fitting}
+
 \item{form}{A RHS formula for the poisson-multinomial model, without explicit mention of bins}
 
 \item{cvars}{Continuous variable to be fitted as 2D spline with bin}
 
+\item{spl}{1D spline over cvar per bin, or 2D spline over bins and cvar; as character for now}
+
 \item{knots}{knots (1D or 2D) for cvar spline; as character for now}
+
+\item{coords}{Character vector of coordinate column names to preserve (TMB backend only)}
+
+\item{time}{Time column name to preserve (TMB backend only)}
 }
 \description{
 Appends a formula by attaching a bin interaction term
