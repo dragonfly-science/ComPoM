@@ -21,13 +21,10 @@ fit_model(
   mtd = 10,
   ad = 0.8,
   thin = 2,
-  refresh = 10,
+  refresh = 1000,
   add_preds = FALSE,
   mesh = NULL,
-  spatial = "off",
-  spatiotemporal = "off",
   time = NULL,
-  spatial_varying = FALSE,
   share_spatial_sd = TRUE,
   share_spatiotemporal_sd = TRUE,
   coords = c("x", "y")
@@ -46,19 +43,13 @@ fit_model(
 
 \item{add_preds}{add predictions? (Can be very slow - only use with brms)}
 
-\item{mesh}{An sdmTMB mesh object created with make_mesh() (TMB backend only)}
+\item{mesh}{An sdmTMB mesh object created with make_mesh() (TMB backend only). When provided, a spatially varying coefficient model is always used.}
 
-\item{spatial}{Spatial random field: "off", "on", or "IID" (TMB backend only)}
+\item{time}{Column name for time (year) variable (TMB backend only, required when mesh is provided)}
 
-\item{spatiotemporal}{Spatiotemporal random field: "off", "iid", "ar1", "rw" (TMB backend only)}
+\item{share_spatial_sd}{Share spatial SD across bins (TMB backend only, default TRUE)}
 
-\item{time}{Column name for time (year) variable (TMB backend only)}
-
-\item{spatial_varying}{Use bin-specific spatial fields via spatial varying coefficients (TMB backend only)}
-
-\item{share_spatial_sd}{Share spatial SD across bins when using spatial_varying (TMB backend only, default TRUE)}
-
-\item{share_spatiotemporal_sd}{Share spatiotemporal SD across bins when using spatial_varying (TMB backend only, default TRUE)}
+\item{share_spatiotemporal_sd}{Share spatiotemporal SD across bins (TMB backend only, default TRUE)}
 
 \item{coords}{Character vector of length 2 specifying coordinate column names (TMB backend only, default c("x", "y"))}
 }

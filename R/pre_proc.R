@@ -9,6 +9,7 @@
 #' @param count_lab A string with the column label for the counts by bins if not "counts"
 #' @export
 #' @import dplyr
+#' @import tidyr
 #' @import rlang
 
 data_prep <- function(

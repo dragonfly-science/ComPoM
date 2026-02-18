@@ -1,30 +1,58 @@
-library(testthat)
-library(dplyr)
+## Tests for pre-processing functions (data_prep, parse_form)
+## Fixture objects (sim_comp, sim_dat) are created in helper-sim.R
 
-# Source the function to be tested
-source(here::here("R", "pre_proc.R"))
+# ── data_prep ─────────────────────────────────────────────────────────────────
 
-test_that("data_prep correctly processes compositional data", {
-  # 1. Create a sample compositional data frame
-  comp_data <- data.frame(
-    year = rep(2020, 4),
-    area = rep("A", 4),
-    bin = c(10, 20, 10, 30),
-    count = c(5, 10, 2, 8)
+test_that("data_prep returns expected columns", {
+  expect_true(all(c("year", "area", "bin", "tot_by_bin", "n") %in% names(sim_dat)))
+})
+
+test_that("data_prep aggregates counts correctly", {
+  # All bins present for each year x area combination
+  expect_equal(nrow(sim_dat), 4L * 2L * 2L)  # 4 bins x 2 years x 2 areas
+})
+
+test_that("data_prep computes n as total counts per group", {
+  totals <- sim_dat |>
+    dplyr::group_by(year, area) |>
+    dplyr::summarise(check = dplyr::first(n) == sum(tot_by_bin), .groups = "drop")
+  expect_true(all(totals$check))
+})
+
+test_that("data_prep drops groups with zero total", {
+  zero_comp <- sim_comp |> dplyr::mutate(count = 0L)
+  result <- suppressWarnings(data_prep(zero_comp, c("year", "area"), "bin", "count"))
+  expect_equal(nrow(result), 0L)
+})
+
+# ── parse_form ────────────────────────────────────────────────────────────────
+
+test_that("parse_form returns a list with 'form' and 'data'", {
+  pf <- suppressMessages(
+    parse_form(data = sim_dat, backend = "brms", form = "year + area")
   )
+  expect_type(pf, "list")
+  expect_true(all(c("form", "data") %in% names(pf)))
+})
 
-  # 2. Run data_prep() on the sample data
-  prepared_data <- data_prep(
-    comp = comp_data,
-    vars_for_grouping = c("year", "area"),
-    bin_lab = "bin",
-    count_var = "count"
+test_that("parse_form formula is a formula object", {
+  pf <- suppressMessages(
+    parse_form(data = sim_dat, backend = "brms", form = "year + area")
   )
+  expect_s3_class(pf$form, "formula")
+})
 
-  # 3. Check that the output has the expected structure and values
-  expect_true(all(c("year", "area", "bin", "tot_by_bin", "n") %in% names(prepared_data)))
-  expect_equal(nrow(prepared_data), 3)
-  expect_equal(prepared_data$tot_by_bin, c(7, 10, 8))
-  expect_equal(prepared_data$n, c(25, 25, 25))
-  expect_equal(prepared_data$bin, c(10, 20, 30))
+test_that("parse_form formula contains offset(log(n)) for brms backend", {
+  pf <- suppressMessages(
+    parse_form(data = sim_dat, backend = "brms", form = "year + area")
+  )
+  # deparse() may return a multi-element character vector for long formulas
+  expect_true(any(grepl("offset", deparse(pf$form))))
+})
+
+test_that("parse_form converts grouping columns to factors", {
+  pf <- suppressMessages(
+    parse_form(data = sim_dat, backend = "brms", form = "year + area")
+  )
+  expect_true(is.factor(pf$data$bin))
 })

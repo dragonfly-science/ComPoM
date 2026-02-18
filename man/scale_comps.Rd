@@ -10,7 +10,8 @@ scale_comps(
   fit = NULL,
   grps,
   iters = NULL,
-  form = NULL
+  form = NULL,
+  pgrid = NULL
 )
 }
 \arguments{

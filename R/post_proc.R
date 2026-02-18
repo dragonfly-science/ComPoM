@@ -4,6 +4,7 @@
 #' @param xlab label for composition plot
 #'
 #' @import cowplot
+#' @import ggplot2
 #' @export
 #'
 post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){

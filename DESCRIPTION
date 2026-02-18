@@ -17,6 +17,12 @@ VignetteBuilder: knitr
 Imports: 
     brms,
     dplyr,
+    tidyr,
+    ggplot2,
     rlang,
+    stringr,
+    recipes,
+    sdmTMB,
+    tidybayes,
     cowplot
 Config/testthat/edition: 3
