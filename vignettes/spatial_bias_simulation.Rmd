@@ -244,7 +244,8 @@ plot(mesh)
 ```{r fit-spatiotemporal-model}
 # Fit model with bin-specific spatially varying coefficients
 mods_spatial <- fit_model(
-  form = 'Year + Season',
+  re_form = 'Season',
+  ffx_form = 'Year',
   data = input_data,
   backend = 'TMB',
   mesh = mesh,
@@ -262,7 +263,8 @@ summary(mods_spatial$model)
 
 ```{r fit-nonspatial-model}
 mods_nonspatial <- fit_model(
-  form = 'Year + Season',
+  re_form = 'Season',
+  ffx_form = 'Year',
   data = input_data,
   backend = 'TMB',
   iter = 1000,
@@ -416,3 +418,223 @@ tidy(mods_spatial$model, "ran_pars")
 ```
 
 The spatial model can better account for the non-representative sampling by modeling the underlying spatial structure in the data.
+
+## Oceanographic Influence on Compositions
+
+Environmental covariates such as sea surface temperature (SST) can drive
+spatial and temporal shifts in fish size compositions independently of the
+year and season effects of primary interest. A recurring oceanographic cycle
+such as El Niño — warm SST every ~5 years — shifts fish size availability:
+warm years have larger fish more available; cold years have smaller fish.
+
+Including SST as a smooth spline (`spl = "by_factor"`) separates the
+oceanographic signal from the year fixed effects. `scale_comps()` can then
+either retain the SST effect (compositions as observed under the ENSO cycle)
+or remove it by evaluating the spline at mean SST (`sst_c = 0`), giving
+year compositions standardised to average oceanographic conditions.
+
+### Simulate ENSO-Like SST Cycle
+
+We simulate a 5-year sinusoidal SST cycle (peaks at years 2, 7; troughs at
+years 5, 10) plus independent spatial noise. The spatial noise is zero-centred
+within each year so the within-year mean SST equals the cycle value — SST
+carries both a temporal trend and within-year spatial variation.
+
+```{r sst-simulate}
+set.seed(42)
+
+# 5-year sinusoidal ENSO cycle: warm years 2, 3, 7, 8 — cold years 4, 5, 9, 10
+sst_cycle <- 1.5 * sin(2 * pi * (1:n_years - 1) / 5)
+cat("SST cycle by year:", round(sst_cycle, 2), "\n")
+
+# Spatial SST: temporal cycle + zero-centred spatial noise per year
+sst_loc_year_enso <- purrr::map_dfr(1:n_years, function(yr) {
+  spatial_noise <- spatial_field(locations$x, locations$y, range = 30, sigma = 0.4) +
+                   rnorm(nrow(locations), 0, 0.1)
+  locations |>
+    dplyr::mutate(
+      Year     = factor(yr),
+      sst_spat = spatial_noise - mean(spatial_noise),
+      sst_c    = sst_cycle[yr] + sst_spat
+    )
+})
+
+# Verify within-year SST mean tracks the cycle
+sst_loc_year_enso |>
+  dplyr::group_by(Year) |>
+  dplyr::summarise(mean_sst = round(mean(sst_c), 2),
+                   sd_sst   = round(sd(sst_c),   2)) |>
+  dplyr::mutate(cycle = round(sst_cycle, 2))
+```
+
+### Simulate SST-Shifted Compositions
+
+Warm SST shifts L50 upward — larger fish become more available.
+
+```{r sst-resample}
+set.seed(42)
+
+L50_sst_base <- 5
+L95_sst      <- 8
+
+input_sst_enso <- true_catch_by_bin |>
+  dplyr::left_join(
+    sst_loc_year_enso |> dplyr::select(loc_id, Year, sst_c),
+    by = c("loc_id", "Year")
+  ) |>
+  dplyr::mutate(
+    L50_use = L50_sst_base + 1.5 * sst_c,
+    sel_use = Selectivity(bin, L50_use, L95_sst),
+    avail   = popfreq[bin] * sel_use
+  ) |>
+  dplyr::group_by(loc_id, Year, Season) |>
+  dplyr::mutate(
+    prob   = avail / sum(avail),
+    counts = as.integer(rmultinom(1, n_per_samps, prob))
+  ) |>
+  dplyr::ungroup() |>
+  dplyr::select(loc_id, Year, Season, bin, counts, sst_c)
+
+# Verify: proportion of large fish tracks the ENSO cycle
+input_sst_enso |>
+  dplyr::group_by(Year) |>
+  dplyr::summarise(
+    prop_large = round(sum(counts[bin >= 6]) / sum(counts), 3),
+    mean_sst   = round(mean(sst_c), 2)
+  )
+```
+
+### Aggregate to SST Quintile Strata
+
+SST quintiles are computed within each year, preserving both the temporal
+cycle and within-year spatial variation independently of the year dummies.
+
+```{r sst-aggregate}
+input_sst_binned_enso <- input_sst_enso |>
+  dplyr::group_by(Year) |>
+  dplyr::mutate(
+    sst_q   = dplyr::ntile(sst_c, 5),
+    sst_mid = tapply(sst_c, sst_q, mean)[as.character(sst_q)]
+  ) |>
+  dplyr::ungroup() |>
+  dplyr::group_by(Year, Season, sst_q, sst_mid, bin) |>
+  dplyr::summarise(counts = sum(counts), .groups = "drop")
+
+prep_sst_enso <- data_prep(
+  comp              = input_sst_binned_enso |> dplyr::mutate(sst_c = sst_mid),
+  vars_for_grouping = c("Year", "Season", "sst_q", "sst_c"),
+  bin_lab           = "bin",
+  count_var         = "counts"
+)
+
+cat("Unique SST values:", length(unique(prep_sst_enso$sst_c)), "\n")
+```
+
+### Fit Model with SST Smooth
+
+`spl = "by_factor"` fits `s(sst_c, by=bin, k=4)` — a separate 1D smooth of
+SST for each bin level, capturing bin-specific responses to SST (large bins
+increase more in warm years). This is full-rank alongside `factor(Year):bin`
+because SST varies across quintile strata within each year independently of
+the year dummies. `Season` enters as nuisance RE via `re_form`.
+
+```{r sst-fit}
+mods_sst_enso <- suppressWarnings(fit_model(
+  ffx_form = "Year",
+  re_form  = "Season",
+  cvars    = "sst_c",
+  spl      = "by_factor",
+  knots    = "4",
+  data     = prep_sst_enso,
+  backend  = "TMB",
+  iter     = 1000,
+  warmup   = 500,
+  thin     = 2
+))
+
+mods_sst_enso$model <- sdmTMB::run_extra_optimization(
+  mods_sst_enso$model, newton_loops = 2
+)
+sanity(mods_sst_enso$model)
+```
+
+### Year Effects After Accounting for SST
+
+```{r sst-fx-plot, fig.dim=c(12, 5)}
+Fx_plot(mods_sst_enso, grp = "Year") +
+  ggtitle("Year-effect multipliers after accounting for ENSO SST spline")
+```
+
+### Scale Compositions — Retaining vs Removing ENSO Signal
+
+`remove_nuisance = FALSE` evaluates the SST spline at the observed quintile
+midpoint per stratum. Warm years (2, 7) produce larger-fish-dominated
+compositions reflecting the true ENSO-driven availability.
+
+`remove_nuisance = TRUE` with `sst_c = 0` evaluates the spline at mean SST
+and drops the Season RE, giving year compositions standardised to average
+oceanographic conditions and removing the ENSO signal.
+
+```{r sst-scale}
+true_comp_sst_enso <- input_sst_binned_enso |>
+  dplyr::group_by(Year, bin) |>
+  dplyr::summarise(tcatch = sum(counts), .groups = "drop")
+
+# Catch apportioned equally across 5 SST quintiles within each Year x Season
+scale_df_sst_enso <- input_sst_binned_enso |>
+  dplyr::distinct(Year, Season, sst_q, sst_c = sst_mid) |>
+  dplyr::left_join(
+    scale_df_nonspatial |> dplyr::select(Year, Season, catch),
+    by = c("Year", "Season")
+  ) |>
+  dplyr::mutate(catch = catch / 5)
+
+# ENSO signal retained
+scaled_enso_with <- suppressWarnings(scale_comps(
+  scale_df        = scale_df_sst_enso,
+  predvar         = "catch",
+  fit             = mods_sst_enso,
+  grps            = c("Year", "Season", "sst_q"),
+  remove_nuisance = FALSE
+))
+
+# ENSO signal removed: SST set to 0 (mean), Season RE marginalised out
+scaled_enso_without <- suppressWarnings(scale_comps(
+  scale_df        = scale_df_sst_enso |> dplyr::mutate(sst_c = 0),
+  predvar         = "catch",
+  fit             = mods_sst_enso,
+  grps            = c("Year", "Season", "sst_q"),
+  remove_nuisance = TRUE
+))
+```
+
+### Compare Annual Compositions
+
+```{r sst-compare, fig.dim=c(12, 10)}
+enso_with_yr <- scaled_enso_with |>
+  dplyr::group_by(Year, bin, .draw) |>
+  dplyr::summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
+
+enso_without_yr <- scaled_enso_without |>
+  dplyr::group_by(Year, bin, .draw) |>
+  dplyr::summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
+
+p_enso_with <- scaled_comp_plot(
+  scaled_comp = enso_with_yr, grps = "Year", scaled = TRUE,
+  comp_are    = true_comp_sst_enso, cvar = "tcatch"
+) + ggtitle("SST effect retained (observed ENSO cycle)")
+
+p_enso_without <- scaled_comp_plot(
+  scaled_comp = enso_without_yr, grps = "Year", scaled = TRUE,
+  comp_are    = true_comp_sst_enso, cvar = "tcatch"
+) + ggtitle("SST effect removed (standardised to mean SST = 0)")
+
+cowplot::plot_grid(p_enso_with, p_enso_without, nrow = 2)
+```
+
+With SST retained (top), warm ENSO years (2, 7) show relatively more large
+fish and cold years (4, 5, 9, 10) show small-fish-dominated compositions,
+matching the simulated truth (blue dots). With SST removed (bottom),
+predictions converge toward the mean-SST composition — the ENSO-driven
+inter-annual variability is standardised out, isolating the residual year
+fixed effects from the oceanographic forcing.

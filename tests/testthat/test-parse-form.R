@@ -1,39 +1,41 @@
 library(testthat)
 library(dplyr)
 
-# Source the function to be tested
-source(here::here("R", "pre_proc.R"))
-
 test_that("parse_form correctly parses formulas", {
-  # 1. Create a sample data frame
   sample_data <- data.frame(
-    bin = factor(c(1, 2, 1, 2)),
-    gear = factor(c("A", "B", "A", "B")),
-    area = factor(c("X", "X", "Y", "Y")),
-    yy = c(2020, 2020, 2021, 2021),
-    cvar1 = rnorm(4),
+    bin        = factor(c(1, 2, 1, 2)),
+    gear       = factor(c("A", "B", "A", "B")),
+    area       = factor(c("X", "X", "Y", "Y")),
+    yy         = factor(c(2020, 2020, 2021, 2021)),
     tot_by_bin = rpois(4, 10),
-    n = rpois(4, 100)
+    n          = rpois(4, 100)
   )
 
-  # 2. Test with brms backend
+  # brms: ffx_form = primary fixed effects, re_form = nuisance RE
   parsed_brms <- parse_form(
-    data = sample_data,
-    backend = "brms",
-    form = "gear + area + area:yy"
+    data     = sample_data,
+    backend  = "brms",
+    ffx_form = "gear + area",
+    re_form  = "yy"
   )
   expect_s3_class(parsed_brms$form, "formula")
-  expect_equal(
-    as.character(parsed_brms$form),
-    c("~", "tot_by_bin", "offset(log(n)) + 0 + bin + (1 | bin:gear) + (1 | bin:area) + (1 | bin:area:yy)")
-  )
+  # formula must contain factor(gear):bin and factor(area):bin fixed effects
+  form_str <- paste(deparse(parsed_brms$form), collapse = " ")
+  expect_true(grepl("factor\\(gear\\):bin", form_str))
+  expect_true(grepl("factor\\(area\\):bin", form_str))
+  # and the nuisance (1|bin:yy) random effect
+  expect_true(grepl("bin:yy", form_str))
+  # re_vars should store the nuisance variable
+  expect_equal(parsed_brms$re_vars, "yy")
 
-  # 3. Test with TMB backend
+  # TMB: interaction columns for nuisance RE should be created in data
   parsed_tmb <- parse_form(
-    data = sample_data,
-    backend = "TMB",
-    form = "gear + area"
+    data     = sample_data,
+    backend  = "TMB",
+    ffx_form = "gear",
+    re_form  = "area"
   )
   expect_s3_class(parsed_tmb$form, "formula")
-  expect_true(all(c("bin:gear", "bin:area") %in% names(parsed_tmb$data)))
+  expect_true("bin:area" %in% names(parsed_tmb$data))
+  expect_equal(parsed_tmb$re_vars, "area")
 })

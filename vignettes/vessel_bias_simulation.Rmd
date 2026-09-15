@@ -238,7 +238,8 @@ input_data <- data_prep(
 
 ```{r fit-tmb}
 mod_tmb <- fit_model(
-  form = "Year + Season + vessel_id",
+  re_form = "Season + vessel_id",
+  ffx_form = "Year",
   data = input_data,
   backend = "TMB",
   iter = 1000,
@@ -251,7 +252,8 @@ mod_tmb <- fit_model(
 
 ```{r fit-brms, message=FALSE}
 mod_brms <- fit_model(
-  form = "Year + Season + vessel_id",
+  re_form = "Season + vessel_id",
+  ffx_form = "Year",
   data = input_data,
   backend = "brms",
   dist=poisson(),
@@ -372,6 +374,50 @@ scaled_comp_plot(
   comp_are2 = raw_comp,
   cvar = "tcatch"
 ) + ggtitle("Blue = True, Orange = Raw, Black = brms")
+```
+
+## Ridgeline Plots of Scaled Compositions
+
+Ridgeline plots display how the modelled size composition shifts across years,
+making temporal trends easier to read than a grid of point-range panels.
+`scaled_ridge_plot()` takes the output of `scale_comps()` directly; `plot_y`
+sets the variable stacked on the y-axis and `plot_facet` optionally splits the
+display across a second variable (here, not needed as we are already aggregated
+to annual).
+
+```{r ridge-tmb, fig.dim=c(8, 7)}
+library(ggridges)
+
+scaled_ridge_plot(
+  scaled_comp = scaled_tmb_yr,
+  grps        = "Year",
+  plot_y      = "Year"
+) + ggtitle("sdmTMB — annual size compositions (ridgeline)")
+```
+
+```{r ridge-brms, fig.dim=c(8, 7)}
+scaled_ridge_plot(
+  scaled_comp = scaled_brms_yr,
+  grps        = "Year",
+  plot_y      = "Year"
+) + ggtitle("brms — annual size compositions (ridgeline)")
+```
+
+If you have a second grouping variable (e.g. season within year) you can pass
+it to `plot_facet` to produce a faceted ridgeline display:
+
+```{r ridge-tmb-season, fig.dim=c(10, 8)}
+# Re-aggregate retaining Season
+scaled_tmb_yr_season <- scaled_tmb |>
+  dplyr::group_by(Year, Season, bin, .draw) |>
+  dplyr::summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
+
+scaled_ridge_plot(
+  scaled_comp = scaled_tmb_yr_season,
+  grps        = c("Year", "Season"),
+  plot_y      = "Year",
+  plot_facet  = "Season"
+) + ggtitle("sdmTMB — annual compositions faceted by season")
 ```
 
 ## Relative Error Comparison
