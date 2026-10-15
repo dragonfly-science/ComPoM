@@ -107,11 +107,22 @@ sim_fit_tmb_spatial <- suppressMessages(
 )
 
 # ── 4. Minimal scale_df for scale_comps() ────────────────────────────────────
+# season is the nuisance RE in the fixtures; catch weighting
+# (remove_nuisance = FALSE) requires it in scale_df and grps
 sim_scale_df <- expand.grid(
-  year  = factor(2020:2021),
-  area  = factor(c("A", "B"))
+  year   = factor(2020:2021),
+  area   = factor(c("A", "B")),
+  season = factor(c("S1", "S2"))
 ) |>
-  mutate(catch = c(100, 150, 200, 250))
+  mutate(catch = rep(c(100, 150, 200, 250), 2))
 
 sim_scale_df_spatial <- sim_scale_df |>
-  mutate(x = c(0, 0, 10, 10), y = c(0, 10, 0, 10))
+  left_join(
+    tibble::tibble(
+      year = factor(c(2020, 2021, 2020, 2021)),
+      area = factor(c("A", "A", "B", "B")),
+      x    = c(0, 0, 10, 10),
+      y    = c(0, 10, 0, 10)
+    ),
+    by = c("year", "area")
+  )

@@ -1,8 +1,16 @@
-#' Preparing data
+#' Prepare compositional count data
 #'
-#' This function takes a dataset of counts (number of samples) per bin
-#' (length/age/etc) across a range of strata (vars_for_grouping) and expands
-#' it for use in the poisson-multinomial model
+#' Takes a dataset of counts (number of sampled individuals) per bin
+#' (length/age/etc) across a range of strata (\code{vars_for_grouping}) and
+#' expands it for use in the Poisson-multinomial model. Counts are summed
+#' within stratum and bin, bins without observations within a stratum are
+#' filled with zero counts, and the stratum total \code{n} (used as offset in
+#' \code{fit_model()}) is added.
+#'
+#' Strata are defined by the unique combinations of \code{vars_for_grouping}.
+#' Any variable later used in \code{fit_model()} (fixed effects, nuisance
+#' random effects, continuous covariates, coordinates, time) must be included
+#' here, otherwise it is aggregated away.
 #' @param comp A compositional dataset with columns for counts (can be names differently) per bin (can be named differently), and all `vars_for_grouping`
 #' @param vars_for_grouping A character vector of variables used for grouping the compositional dataframe
 #' @param bin_lab A string with the column label for the bins if not "bin"
@@ -15,6 +23,9 @@
 #'   this width before summarising (e.g. \code{bin_width = 20} merges 10cm bins
 #'   into 20cm bins). Applied before \code{min_n} filtering. Default \code{NULL}
 #'   (no aggregation).
+#' @return A grouped data frame with one row per stratum and bin, containing
+#'   \code{vars_for_grouping}, \code{bin}, the count per bin
+#'   (\code{tot_by_bin}) and the stratum total (\code{n}).
 #' @export
 #' @import dplyr
 #' @import tidyr
@@ -52,10 +63,25 @@ data_prep <- function(
 
 #' Parse a formula
 #'
-#' Constructs the poisson-multinomial model formula, separating fixed effects
+#' Constructs the Poisson-multinomial model formula, separating fixed effects
 #' (variables of primary interest, entered as \code{factor(var):bin}
 #' interactions) from nuisance random effects (entered as \code{(1|bin:var)}
-#' IID random intercepts).
+#' IID random intercepts). Called internally by \code{fit_model()}; it is
+#' exported to allow inspection of the formula and model data before fitting.
+#'
+#' The linear predictor always contains bin-specific intercepts
+#' (\code{0 + bin}). Continuous covariates in \code{cvars} are added as smooths
+#' according to \code{spl}:
+#' \describe{
+#'   \item{\code{"2D"}}{\code{t2(cvar, cbin, k = knots)}, a tensor-product
+#'     smooth over the covariate and the numeric bin value. Requires numeric
+#'     bins (e.g. length).}
+#'   \item{\code{"by_factor"}}{\code{s(cvar, by = bin, k = knots)}, a separate
+#'     1D smooth of the covariate for each bin. Also applicable to
+#'     non-ordered categories (e.g. species).}
+#'   \item{\code{"by"}}{Legacy option. Separate \code{t2()} smooths for each
+#'     non-reference bin via bin dummy columns.}
+#' }
 #'
 #' @param data Prepared data frame from \code{data_prep()}
 #' @param backend the backend used for model fitting (\code{"brms"} or \code{"TMB"})
@@ -64,14 +90,17 @@ data_prep <- function(
 #'   fixed-effect interactions in the model.
 #' @param re_form Character string of nuisance random-effect variables separated
 #'   by \code{+}, e.g. \code{"Season + Gear"}. These become
-#'   \code{(1|bin:Season)} IID random intercepts and are excluded from
-#'   predictions via \code{re_form_iid = NA} (sdmTMB) or
-#'   \code{re_formula = NA} (brms) in \code{scale_comps()}.
+#'   \code{(1|bin:Season)} IID random intercepts. \code{scale_comps()}
+#'   evaluates them at each stratum's level (\code{remove_nuisance = FALSE})
+#'   or removes them (\code{remove_nuisance = TRUE}).
 #' @param cvars Continuous variable to be fitted as 2D spline with bin
 #' @param knots knots (1D or 2D) for cvar spline; as character for now
 #' @param spl 1D spline over cvar per bin, or 2D spline over bins and cvar; as character for now
 #' @param coords Character vector of coordinate column names to preserve (TMB backend only)
 #' @param time Time column name to preserve (TMB backend only)
+#' @return A list with the model formula (\code{form}), the model data with
+#'   grouping variables converted to factors (\code{data}), and the names of
+#'   the nuisance random-effect variables (\code{re_vars}).
 #' @import stringr
 #' @import recipes
 #' @export
@@ -189,26 +218,73 @@ parse_form <- function(data,
   )
 }
 
-#' Fit the poisson multinomial model; see brms doc for brm() other parameters
+#' Fit the Poisson-multinomial model
+#'
+#' Builds the model formula with \code{parse_form()} and fits it with either
+#' \code{brms} (Bayesian, \code{backend = "brms"}) or \code{sdmTMB} (maximum
+#' likelihood, \code{backend = "TMB"}). Counts per stratum and bin are modelled
+#' as Poisson with \code{log(n)} as offset, so that the implied within-stratum
+#' proportions follow a multinomial-logit model (see
+#' \code{vignette("ComPoM")} for the model equations).
+#'
+#' With \code{backend = "TMB"} and a \code{mesh}, the model adds one spatial
+#' Gaussian random field per bin and one spatio-temporal field per bin and
+#' time step (set up with \code{sdmTMB::make_category_svc()}).
+#'
+#' With \code{backend = "brms"}, fixed effects receive a
+#' \code{student_t(10, 0, 1)} prior. With \code{backend = "TMB"}, uncertainty
+#' in downstream functions is obtained from \code{nsim} draws from the
+#' approximate joint sampling distribution of the parameters.
+#'
 #' @param ffx_form A character string of primary fixed-effect variables (RHS),
 #'   e.g. \code{"Year"}. Passed to \code{parse_form()}.
 #' @param re_form A character string of nuisance random-effect variables,
 #'   e.g. \code{"Season + Gear"}. These become \code{(1|bin:var)} IID
-#'   intercepts and are excluded from scaling predictions. \code{NULL} = none.
-#' @param backend the backend used for model fitting
-#' @param cvars Continuous variable to be fitted as 2D spline with bin
-#' @param knots knots (1D or 2D) for cvar spline; as character for now
-#' @param spl 1D spline over cvar per bin, or 2D spline over bins and cvar; as character for now
-#' @param add_preds add predictions? (Can be very slow - only use with brms)
+#'   intercepts. \code{NULL} = none.
+#' @param data Prepared data frame from \code{data_prep()}.
+#' @param dist Response distribution passed to \code{brms::brm()} as
+#'   \code{family} (brms backend only; the TMB backend always uses
+#'   \code{poisson()}).
+#' @param backend the backend used for model fitting: \code{"brms"} or
+#'   \code{"TMB"}.
+#' @param cvars Continuous covariate(s) to be fitted as smooths with bin; see
+#'   \code{spl}.
+#' @param knots Basis dimension(s) for the \code{cvars} smooth, as a character
+#'   string (e.g. \code{"4"} or \code{"c(5,10)"} for \code{spl = "2D"}).
+#' @param spl Smooth type for \code{cvars}: \code{"2D"}, \code{"by_factor"} or
+#'   \code{"by"}; see \code{parse_form()}.
+#' @param chains,cores,threads Number of MCMC chains, cores and within-chain
+#'   threads (brms backend only).
+#' @param brms_backend Stan interface used by brms (\code{"rstan"} or
+#'   \code{"cmdstanr"}).
+#' @param iter,warmup,thin MCMC iterations, warm-up iterations and thinning
+#'   (brms). For the TMB backend these only set the number of simulation draws
+#'   used downstream, \code{nsim = (iter - warmup) / thin}.
+#' @param mtd,ad Stan \code{max_treedepth} and \code{adapt_delta} (brms only).
+#' @param refresh Stan progress refresh interval (brms only).
+#' @param add_preds Add posterior predictive draws for the fitted data,
+#'   required by \code{post_pred_group()}. Can be slow.
 #' @param mesh An sdmTMB mesh object created with make_mesh() (TMB backend only)
 #' @param time Column name for time (year) variable (TMB backend only)
 #' @param share_spatial_sd Share spatial SD across bins (TMB backend only)
 #' @param share_spatiotemporal_sd Share spatiotemporal SD across bins (TMB backend only)
 #' @param coords Character vector of coordinate column names (TMB backend only)
-#' @param priors An \code{sdmTMBpriors()} object for regularisation (TMB backend only).
+#' @param priors An \code{sdmTMBpriors()} object for regularisation (TMB
+#'   non-spatial backend only; currently not passed to the spatial fit).
 #'   Useful when the design matrix is sparse (e.g. \code{normal(0, 2)} on fixed effects).
 #' @param newton_loops Number of extra Newton optimisation steps after initial fit
 #'   (TMB non-spatial only). Default 1. Increase to 2-3 for difficult convergence.
+#'   For spatial fits use \code{sdmTMB::run_extra_optimization()} on
+#'   \code{$model}.
+#' @return An object of class \code{ComPoM}: a list with the fitted model
+#'   (\code{model}, a \code{brmsfit} or \code{sdmTMB} object), the model data
+#'   (\code{data}), the number of draws used downstream (\code{nsim}),
+#'   posterior predictive draws (\code{preds}, or \code{NULL}), and the
+#'   settings needed by the post-processing functions (\code{mesh},
+#'   \code{spatial_varying}, \code{time}, \code{coords}, \code{re_vars},
+#'   \code{cvars}).
+#' @seealso \code{data_prep()}, \code{scale_comps()}, \code{Fx_plot()},
+#'   \code{vignette("ComPoM")}
 #' @export
 #' @import brms
 #' @import sdmTMB

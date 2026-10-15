@@ -1,7 +1,16 @@
-#' Post predictive
+#' Posterior predictive check by group
+#'
+#' Compares observed counts per bin with posterior predictive (brms) or
+#' simulated (sdmTMB) counts, summed within levels of \code{grp}. Predicted
+#' totals are rescaled to the observed total within each group and draw, so
+#' the check is on the composition rather than on the total.
+#' Requires a fit from \code{fit_model(..., add_preds = TRUE)}.
+#'
 #' @param mod An object from fit_model
 #' @param grp group to do PPC over
 #' @param xlab label for composition plot
+#' @return A ggplot with predicted medians and intervals (black) and observed
+#'   counts (blue), faceted by \code{grp}.
 #'
 #' @import cowplot
 #' @import ggplot2
@@ -34,13 +43,23 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
   return(p)
 }
 
-#' Effects
-#' @param comp_data Compositional dataframe
+#' Plot bin-specific effects as multipliers
+#'
+#' Predicts the composition for each level of \code{grp}, holding all other
+#' covariates at their mean (numeric) or mode (factor), and with the offset
+#' fixed. Within each level and draw, predictions are converted to
+#' proportions. Each proportion is then divided by the geometric mean of that
+#' bin's proportions across levels of \code{grp} and draws. A multiplier above 1
+#' indicates that the bin is relatively more frequent in that level than on
+#' average.
+#'
 #' @param mod An object from fit_model
-#' @param grp group to do PPC over, needs to include cvar if present
-#' @param form formula for effect
+#' @param grp group to plot effects for, needs to include cvar if present
+#' @param form Unused; retained for backwards compatibility.
 #' @param grid optional plotting with facet grid along two variables (need to be in grp)
 #' @param cvar continuous variable if used in model
+#' @return A ggplot of median multipliers and intervals per bin, faceted by
+#'   the first variable in \code{grp} (or by \code{grid}).
 #'
 #' @import cowplot
 #' @import dplyr
@@ -81,9 +100,32 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
 
   if(class(mod$model)=='brmsfit'){
 
-    preda <- preda_data %>%
+    # brms re-evaluates factor(var) in the formula on newdata, which fails when a
+    # factor held at its mode has a single level (e.g. Year when grp = "Season").
+    # Pad with one row per fitted level of such factors; padded rows are
+    # dropped after prediction (linear predictors are computed row-wise).
+    fit_data <- mod$model$data
+    collapsed <- names(preda_data)[vapply(names(preda_data), function(v)
+      v %in% names(fit_data) && is.factor(fit_data[[v]]) &&
+        !v %in% c(grp, "bin") &&
+        dplyr::n_distinct(preda_data[[v]]) < nlevels(fit_data[[v]]),
+      logical(1))]
+    pad <- dplyr::bind_rows(lapply(collapsed, function(v) {
+      lv <- setdiff(levels(fit_data[[v]]), as.character(preda_data[[v]]))
+      p  <- preda_data[rep(1, length(lv)), , drop = FALSE]
+      p[[v]] <- factor(lv, levels = levels(fit_data[[v]]))
+      p
+    }))
+    preda_pad <- dplyr::bind_rows(
+      dplyr::mutate(preda_data, .pad = FALSE),
+      if (nrow(pad) > 0) dplyr::mutate(pad, .pad = TRUE)
+    )
+
+    preda <- preda_pad %>%
       add_linpred_draws(mod$model, allow_new_levels=T) %>%
-      ungroup()
+      ungroup() %>%
+      dplyr::filter(!.pad) %>%
+      dplyr::select(-.pad)
 
   } else if(class(mod$model)=='sdmTMB'){
 
@@ -142,21 +184,66 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
   return(p)
 }
 
-#' scale compositions
-#' @param scale_df data frame used for scaling
+#' Scale predicted compositions to catch
+#'
+#' Predicts the composition for each stratum in \code{scale_df} from a fitted
+#' model and multiplies the predicted proportions by the stratum weight
+#' (\code{predvar}, e.g. catch or predicted CPUE). Strata are the unique combinations of \code{grps} (plus
+#' the coordinates for spatial models). The result is a set of draws of
+#' numbers-at-bin per stratum, which can be summed over any subset of
+#' \code{grps} and normalised to obtain weighted compositions (e.g. with
+#' \code{scaled_comp_plot()}).
+#'
+#' The two settings of \code{remove_nuisance} correspond to two uses:
+#' \describe{
+#'   \item{Catch weighting (\code{remove_nuisance = FALSE}, default)}{The
+#'     aim is the composition of the total catch of the full fleet. All model
+#'     terms are evaluated at the values of each stratum in \code{scale_df},
+#'     including the nuisance random effects (\code{re_form}). Every nuisance
+#'     variable must therefore be in \code{grps}. \code{predvar} is the catch.}
+#'   \item{CPUE-based scaling (\code{remove_nuisance = TRUE})}{The aim is a
+#'     composition representative of the population, standardised for
+#'     variables that affect the local availability of sizes to the sampling
+#'     (e.g. fleet, season). Nuisance random effects are removed (population
+#'     level); fixed effects, smooths and spatial fields are retained.
+#'     \code{predvar} is typically predicted CPUE or abundance per stratum.}
+#' }
+#'
+#' In both cases:
+#' \itemize{
+#'   \item Fixed effects (\code{ffx_form}) are evaluated at the levels in
+#'     \code{scale_df}; these variables must therefore be in \code{grps}.
+#'   \item Continuous covariates (\code{cvars}) are evaluated at their mean
+#'     within each stratum of \code{scale_df}. Setting them to a reference
+#'     value in \code{scale_df} standardises the compositions to that value.
+#'   \item Spatial and spatio-temporal fields (spatial sdmTMB fits) are
+#'     evaluated at the coordinates in \code{scale_df}.
+#' }
+#'
+#' Nuisance levels that were not in the fitted data (e.g. unsampled vessels)
+#' are handled differently by the backends. brms uses, in each draw, the
+#' posterior draw of a randomly chosen fitted level
+#' (\code{sample_new_levels = "uncertainty"}). sdmTMB predicts such rows at
+#' the population level of all nuisance random effects, and a warning is
+#' issued.
+#'
+#' @param scale_df data frame used for scaling, with one or more rows per
+#'   stratum, containing \code{grps}, \code{predvar}, any \code{cvars}, and
+#'   (spatial fits) the coordinate and time columns.
 #' @param predvar Column in \code{scale_df} used for scaling (e.g. catch)
-#' @param grps Primary grouping variables (matching \code{ffx_form} in \code{fit_model()})
+#' @param grps Grouping variables defining the scaling strata. Must include the
+#'   \code{ffx_form} variables and, for catch weighting, the \code{re_form}
+#'   variables.
 #' @param fit A \code{ComPoM} object from \code{fit_model()}
 #' @param iters Number of posterior draws (brms only; default uses all stored draws)
 #' @param pgrid Reserved for future use
-#' @param remove_nuisance Logical (default \code{FALSE}). For spatial sdmTMB models
-#'   only: when \code{TRUE}, predictions come from the spatio-temporal random
-#'   field only - nuisance IID random effects are
-#'   excluded (re_form_iid = NA). scale_df must contain the
-#'   coordinate columns used at fit time.
-#'   When \code{FALSE} (default), nuisance IID random effects stored in
-#'   fit$re_vars are excluded (re_form_iid = NA) while fixed effects are
-#'   retained, giving composition predictions marginalised over nuisance vars.
+#' @param remove_nuisance Logical. \code{FALSE} (default) selects catch
+#'   weighting, with nuisance random effects evaluated at each stratum's level.
+#'   \code{TRUE} selects CPUE-based scaling, with nuisance random effects
+#'   removed.
+#' @return A data frame of draws (\code{.draw}) with predicted numbers-at-bin
+#'   (\code{tot_by_bin}) per stratum and bin. The weight per stratum (sum of
+#'   \code{predvar}) is in \code{n}.
 #'
 #' @import cowplot
 #' @export
@@ -244,123 +331,102 @@ scale_comps <- function(scale_df,
       dplyr::ungroup()
   }
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # remove_nuisance path: IID nuisance RE marginalised out (re_form_iid = NA)
-  # For spatial models this also drops the spatial field fixed contribution.
-  # cvars are still evaluated at their mean — the spline effect is retained
-  # unless the user wants to set cvars to a reference value in scale_df.
-  # ════════════════════════════════════════════════════════════════════════════
-  if (remove_nuisance) {
-
-    group_vars <- if (fit$spatial_varying) unique(c(grps, fit$coords)) else grps
-    nd <- build_newdata(scale_df, group_vars)
-
-    if (!is.null(fit$re_vars)) {
-      for (v in fit$re_vars) {
-        col <- paste0("bin:", v)
-        nd[[v]]   <- levels(fit$data[[v]])[1]
-        nd[[col]] <- paste(nd$bin, nd[[v]], sep = "_")
-      }
-    }
-
-    nd <- coerce_tmb(nd)
-
-    if (fit$spatial_varying) {
-      svc_setup <- sdmTMB::make_category_svc(
-        data                    = nd,
-        category_column         = "bin",
-        time_column             = fit$time,
-        share_spatial_sd        = TRUE,
-        share_spatiotemporal_sd = TRUE
-      )
-      predict_data <- svc_setup$data_expanded
-      offset_n     <- nd$n
-    } else {
-      predict_data <- nd
-      offset_n     <- nd$n
-    }
-
-    sim_mat <- predict(
-      fit$model,
-      type        = "response",
-      newdata     = predict_data,
-      offset      = rep(0, nrow(predict_data)),
-      nsim        = fit$nsim,
-      re_form_iid = NA
-    )
-
-    return(tmb_to_long(sim_mat, nd))
-  }
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # Standard path: fixed effects + splines retained; nuisance RE retained
-  # ════════════════════════════════════════════════════════════════════════════
   group_vars <- if (fit$spatial_varying) unique(c(grps, fit$coords)) else grps
   nd <- build_newdata(scale_df, group_vars)
 
-  if (class(fit$model) == "brmsfit") {
+  # ── nuisance random effects (re_form variables) ─────────────────────────────
+  # Catch weighting (remove_nuisance = FALSE): the composition of the total catch
+  # is predicted, so every nuisance variable is evaluated at the stratum's own
+  # level. All of them must therefore be in grps (and scale_df).
+  # CPUE-based scaling (remove_nuisance = TRUE): nuisance effects are removed, so
+  # the composition is standardised to the population level of those variables.
+  re_vars <- fit$re_vars
+  if (!remove_nuisance && length(re_vars) > 0) {
+    missing_re <- setdiff(re_vars, names(nd))
+    if (length(missing_re) > 0)
+      stop("Catch weighting (remove_nuisance = FALSE) predicts each stratum at its own ",
+           "level of every nuisance variable; add ",
+           paste0("'", missing_re, "'", collapse = ", "),
+           " to `grps` and `scale_df`, or use remove_nuisance = TRUE.")
+  }
+  keep_re <- !remove_nuisance && length(re_vars) > 0
 
-    re_formula <- if (!is.null(fit$re_vars)) {
-      kept <- grep(
-        paste(paste0("bin:", fit$re_vars), collapse = "|"),
-        lme4::findbars(fit$model$formula$formula),
-        invert = TRUE, value = TRUE
-      )
-      if (length(kept) == 0) NA else
-        as.formula(paste("~", paste(paste0("(", kept, ")"), collapse = " + ")))
-    } else NULL
+  if (inherits(fit$model, "brmsfit")) {
 
-    tidybayes::add_predicted_draws(
+    # Levels not seen in the fit (e.g. unsampled vessels) take, in each draw,
+    # the posterior draw of a randomly chosen fitted level
+    # (brms sample_new_levels = "uncertainty").
+    return(tidybayes::add_predicted_draws(
       nd, fit$model,
       allow_new_levels = TRUE,
       ndraws           = iters,
       value            = "tot_by_bin",
-      re_formula       = re_formula
-    )
-
-  } else if (class(fit$model) == "sdmTMB") {
-
-    if (!is.null(fit$re_vars)) {
-      for (v in fit$re_vars) {
-        col <- paste0("bin:", v)
-        nd[[v]]   <- levels(fit$data[[v]])[1]
-        nd[[col]] <- paste(nd$bin, nd[[v]], sep = "_")
-      }
-    }
-
-    nd <- coerce_tmb(nd)
-
-    if (fit$spatial_varying) {
-      svc_setup <- sdmTMB::make_category_svc(
-        data                    = nd,
-        category_column         = "bin",
-        time_column             = fit$time,
-        share_spatial_sd        = TRUE,
-        share_spatiotemporal_sd = TRUE
-      )
-      predict_data <- svc_setup$data_expanded
-    } else {
-      predict_data <- nd
-    }
-
-    sim_mat <- predict(
-      fit$model,
-      type        = "response",
-      newdata     = predict_data,
-      offset      = rep(0, nrow(predict_data)),
-      nsim        = fit$nsim
-    )
-
-    tmb_to_long(sim_mat, nd)
+      re_formula       = if (keep_re) NULL else NA
+    ))
   }
+
+  if (!inherits(fit$model, "sdmTMB"))
+    stop("Model must be either brmsfit or sdmTMB")
+
+  # predict_data carries the model columns; nd keeps the stratum values for output
+  nd <- coerce_tmb(nd)
+  predict_data <- nd
+  for (v in re_vars) {
+    lev <- if (keep_re) as.character(nd[[v]]) else levels(fit$data[[v]])[1]
+    if (keep_re) {
+      new_lev <- setdiff(unique(lev), levels(fit$data[[v]]))
+      if (length(new_lev) > 0)
+        warning("Levels of '", v, "' not in the fitted data: ",
+                paste(utils::head(new_lev, 5), collapse = ", "),
+                if (length(new_lev) > 5) ", ..." else "",
+                ". sdmTMB predicts these rows at the population level of ALL nuisance ",
+                "random effects (re_form_iid = NA for those rows).", call. = FALSE)
+    }
+    predict_data[[v]]                 <- factor(lev)
+    predict_data[[paste0("bin:", v)]] <- factor(paste(nd$bin, lev, sep = "_"))
+  }
+
+  if (fit$spatial_varying) {
+    predict_data <- sdmTMB::make_category_svc(
+      data                    = predict_data,
+      category_column         = "bin",
+      time_column             = fit$time,
+      share_spatial_sd        = TRUE,
+      share_spatiotemporal_sd = TRUE
+    )$data_expanded
+  }
+
+  sim_mat <- predict(
+    fit$model,
+    type             = "response",
+    newdata          = predict_data,
+    offset           = rep(0, nrow(predict_data)),
+    nsim             = fit$nsim,
+    re_form_iid      = if (keep_re) NULL else NA,
+    allow_new_levels = TRUE
+  )
+
+  tmb_to_long(sim_mat, nd)
 }
 
 
 #' Plot scaled compositions
-#' @param scaled_comp data frame used for scaling
-#' @param grps groups to do scaling
-#' @param scaled proportions or catch-at
-#' @param scales free y axis?
+#'
+#' Sums the draws from \code{scale_comps()} over all strata within levels of
+#' \code{grps} and plots the resulting compositions (as proportions or as
+#' catch-at-bin) with uncertainty intervals. Optional reference compositions
+#' (e.g. raw samples or a known truth) can be overlaid.
+#'
+#' @param scaled_comp output of \code{scale_comps()}
+#' @param grps grouping variables to aggregate to (e.g. \code{"Year"})
+#' @param scaled If \code{TRUE}, plot proportions; if \code{FALSE}, plot
+#'   catch-at-bin.
+#' @param scales passed to \code{facet_wrap()}/\code{facet_grid()}
+#' @param comp_are,comp_are2 Optional data frames with \code{grps}, \code{bin}
+#'   and \code{cvar}, overlaid as blue and orange points respectively.
+#' @param cvar Column in \code{comp_are}/\code{comp_are2} holding the counts
+#'   or catch per bin.
+#' @return A ggplot.
 #'
 #' @import cowplot
 #' @export

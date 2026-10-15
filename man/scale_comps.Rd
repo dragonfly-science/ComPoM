@@ -2,29 +2,85 @@
 % Please edit documentation in R/post_proc.R
 \name{scale_comps}
 \alias{scale_comps}
-\title{scale compositions}
+\title{Scale predicted compositions to catch}
 \usage{
 scale_comps(
   scale_df,
   predvar = "catch",
   fit = NULL,
-  grps,
+  grps = NULL,
   iters = NULL,
-  form = NULL,
-  pgrid = NULL
+  pgrid = NULL,
+  remove_nuisance = FALSE
 )
 }
 \arguments{
-\item{scale_df}{data frame used for scaling}
+\item{scale_df}{data frame used for scaling, with one or more rows per
+stratum, containing \code{grps}, \code{predvar}, any \code{cvars}, and
+(spatial fits) the coordinate and time columns.}
 
-\item{predvar}{Column in the scale_df used for scaling compositions}
+\item{predvar}{Column in \code{scale_df} used for scaling (e.g. catch)}
 
-\item{fit}{An object from fit_model}
+\item{fit}{A \code{ComPoM} object from \code{fit_model()}}
 
-\item{grps}{groups to do scaling}
+\item{grps}{Grouping variables defining the scaling strata. Must include the
+\code{ffx_form} variables and, for catch weighting, the \code{re_form}
+variables.}
 
-\item{form}{an alternative random effect structure to the fitted model}
+\item{iters}{Number of posterior draws (brms only; default uses all stored draws)}
+
+\item{pgrid}{Reserved for future use}
+
+\item{remove_nuisance}{Logical. \code{FALSE} (default) selects catch
+weighting, with nuisance random effects evaluated at each stratum's level.
+\code{TRUE} selects CPUE-based scaling, with nuisance random effects
+removed.}
+}
+\value{
+A data frame of draws (\code{.draw}) with predicted numbers-at-bin
+  (\code{tot_by_bin}) per stratum and bin. The weight per stratum (sum of
+  \code{predvar}) is in \code{n}.
 }
 \description{
-scale compositions
+Predicts the composition for each stratum in \code{scale_df} from a fitted
+model and multiplies the predicted proportions by the stratum weight
+(\code{predvar}, e.g. catch or predicted CPUE). Strata are the unique combinations of \code{grps} (plus
+the coordinates for spatial models). The result is a set of draws of
+numbers-at-bin per stratum, which can be summed over any subset of
+\code{grps} and normalised to obtain weighted compositions (e.g. with
+\code{scaled_comp_plot()}).
+}
+\details{
+The two settings of \code{remove_nuisance} correspond to two uses:
+\describe{
+  \item{Catch weighting (\code{remove_nuisance = FALSE}, default)}{The
+    aim is the composition of the total catch of the full fleet. All model
+    terms are evaluated at the values of each stratum in \code{scale_df},
+    including the nuisance random effects (\code{re_form}). Every nuisance
+    variable must therefore be in \code{grps}. \code{predvar} is the catch.}
+  \item{CPUE-based scaling (\code{remove_nuisance = TRUE})}{The aim is a
+    composition representative of the population, standardised for
+    variables that affect the local availability of sizes to the sampling
+    (e.g. fleet, season). Nuisance random effects are removed (population
+    level); fixed effects, smooths and spatial fields are retained.
+    \code{predvar} is typically predicted CPUE or abundance per stratum.}
+}
+
+In both cases:
+\itemize{
+  \item Fixed effects (\code{ffx_form}) are evaluated at the levels in
+    \code{scale_df}; these variables must therefore be in \code{grps}.
+  \item Continuous covariates (\code{cvars}) are evaluated at their mean
+    within each stratum of \code{scale_df}. Setting them to a reference
+    value in \code{scale_df} standardises the compositions to that value.
+  \item Spatial and spatio-temporal fields (spatial sdmTMB fits) are
+    evaluated at the coordinates in \code{scale_df}.
+}
+
+Nuisance levels that were not in the fitted data (e.g. unsampled vessels)
+are handled differently by the backends. brms uses, in each draw, the
+posterior draw of a randomly chosen fitted level
+(\code{sample_new_levels = "uncertainty"}). sdmTMB predicts such rows at
+the population level of all nuisance random effects, and a warning is
+issued.
 }

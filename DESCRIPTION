@@ -1,20 +1,36 @@
 Package: ComPoM
 Type: Package
-Title: Fitting Poisson-multinomial models to standardise and scale compositions
+Title: Poisson-Multinomial Models to Standardise and Scale Compositions
 Version: 0.2.0
 Author: Philipp Neubauer, D'Arcy Webber
 Maintainer: Philipp Neubauer <philipp@dragonfly.co.nz>
-Description: More about what it does
-License: What license is it under? Good question
+Description: Fits Poisson-multinomial models to compositional count data, such
+    as length or age frequencies from fisheries observer or market sampling, in
+    order to standardise compositions for non-representative sampling and scale
+    them to total catch. Counts per bin and sampling stratum are modelled as
+    Poisson with the stratum sample size as offset, and all covariate effects
+    enter as bin-specific terms, so that the implied proportions within a
+    stratum follow a multinomial-logit model. Effects of interest (e.g. year)
+    are fitted as bin-specific fixed effects, nuisance sampling factors (e.g.
+    vessel, season) as bin-specific independent random effects, and continuous
+    covariates (e.g. sea-surface temperature) as smooths over covariate and
+    bin. Models are fitted with 'brms' (Bayesian, via Stan) or 'sdmTMB'
+    (maximum likelihood, via TMB). The 'sdmTMB' backend can add bin-specific
+    spatial and spatio-temporal Gaussian random fields through the SPDE
+    approach. Fitted models are used to predict compositions for strata with
+    known catch, which are then aggregated to catch-weighted compositions with
+    uncertainty from posterior or simulation draws. Plotting functions show
+    estimated effects, posterior predictive checks, smooth effects, spatial
+    fields, and scaled compositions.
+License: MIT
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.3
-Suggests: 
+Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
-Imports: 
+Imports:
     brms,
     dplyr,
     tidyr,
@@ -25,5 +41,11 @@ Imports:
     recipes,
     sdmTMB,
     tidybayes,
-    cowplot
+    cowplot,
+    lme4,
+    parallel,
+    posterior,
+    purrr,
+    tibble
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.1

@@ -7,21 +7,24 @@
 scaled_ridge_plot(
   scaled_comp = NULL,
   grps = NULL,
-  scales = "free_y",
   plot_y = NULL,
-  plot_facet = NULL
+  plot_facet = NULL,
+  scales = "free_y",
+  bin_range = NULL
 )
 }
 \arguments{
-\item{scaled_comp}{data frame used for scaling}
+\item{scaled_comp}{data frame from \code{scale_comps()}}
 
-\item{grps}{groups to do scaling}
+\item{grps}{character vector of grouping variables used in \code{scale_comps()}}
 
-\item{scales}{free y axis?}
+\item{plot_y}{variable name (string) to stack on the y-axis (e.g. \code{"Year"})}
 
-\item{plot_y}{y axis for ridgeline}
+\item{plot_facet}{optional variable name (string) to facet by. \code{NULL} = no facet.}
 
-\item{plot_facet}{faceting ridgelines (e.g., monthly or quarterly ridges within years)}
+\item{scales}{passed to \code{facet_wrap()}, default \code{"free_y"}}
+
+\item{bin_range}{optional numeric vector \code{c(min, max)} to restrict plotted bins}
 }
 \description{
 Plot scaled compositions as ridgeline plot

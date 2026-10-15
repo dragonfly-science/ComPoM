@@ -15,14 +15,27 @@ scaled_comp_plot(
 )
 }
 \arguments{
-\item{scaled_comp}{data frame used for scaling}
+\item{scaled_comp}{output of \code{scale_comps()}}
 
-\item{grps}{groups to do scaling}
+\item{grps}{grouping variables to aggregate to (e.g. \code{"Year"})}
 
-\item{scaled}{proportions or catch-at}
+\item{scaled}{If \code{TRUE}, plot proportions; if \code{FALSE}, plot
+catch-at-bin.}
 
-\item{scales}{free y axis?}
+\item{scales}{passed to \code{facet_wrap()}/\code{facet_grid()}}
+
+\item{comp_are, comp_are2}{Optional data frames with \code{grps}, \code{bin}
+and \code{cvar}, overlaid as blue and orange points respectively.}
+
+\item{cvar}{Column in \code{comp_are}/\code{comp_are2} holding the counts
+or catch per bin.}
+}
+\value{
+A ggplot.
 }
 \description{
-Plot scaled compositions
+Sums the draws from \code{scale_comps()} over all strata within levels of
+\code{grps} and plots the resulting compositions (as proportions or as
+catch-at-bin) with uncertainty intervals. Optional reference compositions
+(e.g. raw samples or a known truth) can be overlaid.
 }

@@ -2,23 +2,31 @@
 % Please edit documentation in R/post_proc.R
 \name{Fx_plot}
 \alias{Fx_plot}
-\title{Effects}
+\title{Plot bin-specific effects as multipliers}
 \usage{
 Fx_plot(mod, grp = "Year", form = "~(1|bin:Year)", grid = NULL, cvar = NULL)
 }
 \arguments{
 \item{mod}{An object from fit_model}
 
-\item{grp}{group to do PPC over, needs to include cvar if present}
+\item{grp}{group to plot effects for, needs to include cvar if present}
 
-\item{form}{formula for effect}
+\item{form}{Unused; retained for backwards compatibility.}
 
 \item{grid}{optional plotting with facet grid along two variables (need to be in grp)}
 
 \item{cvar}{continuous variable if used in model}
-
-\item{comp_data}{Compositional dataframe}
+}
+\value{
+A ggplot of median multipliers and intervals per bin, faceted by
+  the first variable in \code{grp} (or by \code{grid}).
 }
 \description{
-Effects
+Predicts the composition for each level of \code{grp}, holding all other
+covariates at their mean (numeric) or mode (factor), and with the offset
+fixed. Within each level and draw, predictions are converted to
+proportions. Each proportion is then divided by the geometric mean of that
+bin's proportions across levels of \code{grp} and draws. A multiplier above 1
+indicates that the bin is relatively more frequent in that level than on
+average.
 }

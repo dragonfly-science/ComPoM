@@ -2,13 +2,15 @@
 % Please edit documentation in R/pre_proc.R
 \name{data_prep}
 \alias{data_prep}
-\title{Preparing data}
+\title{Prepare compositional count data}
 \usage{
 data_prep(
   comp = NULL,
   vars_for_grouping = NULL,
   bin_lab = "bin",
-  count_var = "count"
+  count_var = "count",
+  min_n = 1L,
+  bin_width = NULL
 )
 }
 \arguments{
@@ -18,10 +20,34 @@ data_prep(
 
 \item{bin_lab}{A string with the column label for the bins if not "bin"}
 
-\item{count_lab}{A string with the column label for the counts by bins if not "counts"}
+\item{count_var}{A string with the column label for the counts by bins if not "count"}
+
+\item{min_n}{Integer. Minimum total count per grouping stratum. Strata with
+fewer than \code{min_n} total fish are dropped before fitting. Useful for
+removing sparse early years that would create all-zero design matrix
+columns and a singular Hessian. Default \code{1L} (only empty strata dropped).}
+
+\item{bin_width}{Numeric. If supplied, bins are aggregated into wider bins of
+this width before summarising (e.g. \code{bin_width = 20} merges 10cm bins
+into 20cm bins). Applied before \code{min_n} filtering. Default \code{NULL}
+(no aggregation).}
+}
+\value{
+A grouped data frame with one row per stratum and bin, containing
+  \code{vars_for_grouping}, \code{bin}, the count per bin
+  (\code{tot_by_bin}) and the stratum total (\code{n}).
 }
 \description{
-This function takes a dataset of counts (number of samples) per bin
-(length/age/etc) across a range of strata (vars_for_grouping) and expands
-it for use in the poisson-multinomial model
+Takes a dataset of counts (number of sampled individuals) per bin
+(length/age/etc) across a range of strata (\code{vars_for_grouping}) and
+expands it for use in the Poisson-multinomial model. Counts are summed
+within stratum and bin, bins without observations within a stratum are
+filled with zero counts, and the stratum total \code{n} (used as offset in
+\code{fit_model()}) is added.
+}
+\details{
+Strata are defined by the unique combinations of \code{vars_for_grouping}.
+Any variable later used in \code{fit_model()} (fixed effects, nuisance
+random effects, continuous covariates, coordinates, time) must be included
+here, otherwise it is aggregated away.
 }

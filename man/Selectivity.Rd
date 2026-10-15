@@ -11,7 +11,7 @@ Selectivity(bins, L50, L95)
 
 \item{L50}{50 pc selectivity}
 
-\item{l95}{95 pc selectivity offset from L50}
+\item{L95}{length at 95 pc selectivity}
 }
 \description{
 Selectivity

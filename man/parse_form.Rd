@@ -7,7 +7,8 @@
 parse_form(
   data,
   backend = "brms",
-  form = "gear + area + area:yy",
+  ffx_form = "Year",
+  re_form = NULL,
   cvars = NULL,
   spl = "2D",
   knots = "c(5,10)",
@@ -16,9 +17,19 @@ parse_form(
 )
 }
 \arguments{
-\item{backend}{the backend used for model fitting}
+\item{data}{Prepared data frame from \code{data_prep()}}
 
-\item{form}{A RHS formula for the poisson-multinomial model, without explicit mention of bins}
+\item{backend}{the backend used for model fitting (\code{"brms"} or \code{"TMB"})}
+
+\item{ffx_form}{Character string of primary fixed-effect variables separated
+by \code{+}, e.g. \code{"Year"}. These become \code{factor(Year):bin}
+fixed-effect interactions in the model.}
+
+\item{re_form}{Character string of nuisance random-effect variables separated
+by \code{+}, e.g. \code{"Season + Gear"}. These become
+\code{(1|bin:Season)} IID random intercepts. \code{scale_comps()}
+evaluates them at each stratum's level (\code{remove_nuisance = FALSE})
+or removes them (\code{remove_nuisance = TRUE}).}
 
 \item{cvars}{Continuous variable to be fitted as 2D spline with bin}
 
@@ -30,6 +41,30 @@ parse_form(
 
 \item{time}{Time column name to preserve (TMB backend only)}
 }
+\value{
+A list with the model formula (\code{form}), the model data with
+  grouping variables converted to factors (\code{data}), and the names of
+  the nuisance random-effect variables (\code{re_vars}).
+}
 \description{
-Appends a formula by attaching a bin interaction term
+Constructs the Poisson-multinomial model formula, separating fixed effects
+(variables of primary interest, entered as \code{factor(var):bin}
+interactions) from nuisance random effects (entered as \code{(1|bin:var)}
+IID random intercepts). Called internally by \code{fit_model()}; it is
+exported to allow inspection of the formula and model data before fitting.
+}
+\details{
+The linear predictor always contains bin-specific intercepts
+(\code{0 + bin}). Continuous covariates in \code{cvars} are added as smooths
+according to \code{spl}:
+\describe{
+  \item{\code{"2D"}}{\code{t2(cvar, cbin, k = knots)}, a tensor-product
+    smooth over the covariate and the numeric bin value. Requires numeric
+    bins (e.g. length).}
+  \item{\code{"by_factor"}}{\code{s(cvar, by = bin, k = knots)}, a separate
+    1D smooth of the covariate for each bin. Also applicable to
+    non-ordered categories (e.g. species).}
+  \item{\code{"by"}}{Legacy option. Separate \code{t2()} smooths for each
+    non-reference bin via bin dummy columns.}
+}
 }

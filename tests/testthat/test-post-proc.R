@@ -13,7 +13,7 @@ get_sc <- function(fit, scale_df) {
       scale_df = scale_df,
       predvar  = "catch",
       fit      = fit,
-      grps     = c("year", "area")
+      grps     = c("year", "area", "season")
     )
   )
 }
@@ -64,6 +64,12 @@ test_that("Fx_plot returns a ggplot [brms]", {
 test_that("Fx_plot y-axis is 'Multiplier' [brms]", {
   p <- suppressWarnings(Fx_plot(sim_fit_brms, grp = "year", form = "~(1|bin:year)"))
   expect_equal(p$labels$y, "Multiplier")
+})
+
+test_that("Fx_plot works for a non-fixed-effect group [brms]", {
+  # year is held at its mode, leaving factor(year) with one level in newdata
+  p <- suppressWarnings(Fx_plot(sim_fit_brms, grp = "season"))
+  expect_s3_class(p, "ggplot")
 })
 
 test_that("Fx_plot returns a ggplot [TMB non-spatial]", {
@@ -129,6 +135,71 @@ test_that("scale_comps contains expected columns [TMB spatial]", {
 })
 
 # ── scale_comps remove_nuisance ───────────────────────────────────────────────
+
+# Predicted proportion per draw x stratum x bin, for comparing seasons
+season_props <- function(sc) {
+  sc |>
+    dplyr::ungroup() |>
+    dplyr::mutate(p = tot_by_bin / n) |>
+    dplyr::select(year, area, season, bin, .draw, p) |>
+    tidyr::pivot_wider(names_from = season, values_from = p)
+}
+
+test_that("catch weighting keeps each stratum's nuisance level [TMB non-spatial]", {
+  sc <- get_sc(sim_fit_tmb, sim_scale_df)
+  expect_setequal(as.character(unique(sc$season)), c("S1", "S2"))
+})
+
+test_that("catch weighting errors when a nuisance variable is missing [TMB]", {
+  expect_error(
+    scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_tmb,
+                grps = c("year", "area")),
+    "season"
+  )
+})
+
+test_that("catch weighting errors when a nuisance variable is missing [brms]", {
+  expect_error(
+    scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_brms,
+                grps = c("year", "area")),
+    "season"
+  )
+})
+
+test_that("catch weighting warns on unseen nuisance levels [TMB non-spatial]", {
+  sdf <- sim_scale_df
+  levels(sdf$season) <- c("S1", "S9")
+  expect_warning(
+    scale_comps(sdf, predvar = "catch", fit = sim_fit_tmb,
+                grps = c("year", "area", "season")),
+    "S9"
+  )
+})
+
+test_that("CPUE scaling gives identical compositions across nuisance levels [TMB non-spatial]", {
+  sc <- suppressWarnings(
+    scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_tmb,
+                grps = c("year", "area", "season"), remove_nuisance = TRUE)
+  )
+  sp <- season_props(sc)
+  expect_equal(sp$S1, sp$S2)
+})
+
+test_that("CPUE scaling keeps the stratum columns in the output [TMB non-spatial]", {
+  sc <- suppressWarnings(
+    scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_tmb,
+                grps = c("year", "area", "season"), remove_nuisance = TRUE)
+  )
+  expect_setequal(as.character(unique(sc$season)), c("S1", "S2"))
+})
+
+test_that("CPUE scaling runs [brms]", {
+  sc <- suppressWarnings(
+    scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_brms,
+                grps = c("year", "area"), remove_nuisance = TRUE)
+  )
+  expect_true(all(c("tot_by_bin", ".draw", "bin") %in% names(sc)))
+})
 
 test_that("scale_comps remove_nuisance returns a data frame [TMB non-spatial]", {
   sc <- suppressWarnings(

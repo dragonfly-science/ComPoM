@@ -567,13 +567,18 @@ Fx_plot(mods_sst_enso, grp = "Year") +
 
 ### Scale Compositions — Retaining vs Removing ENSO Signal
 
-`remove_nuisance = FALSE` evaluates the SST spline at the observed quintile
-midpoint per stratum. Warm years (2, 7) produce larger-fish-dominated
-compositions reflecting the true ENSO-driven availability.
+`remove_nuisance = FALSE` (catch weighting) evaluates all model terms at the
+values of each stratum. The SST spline is evaluated at the observed quintile
+midpoint and the Season random effect at the stratum's season. `Season` must
+therefore be in `grps`.
 
-`remove_nuisance = TRUE` with `sst_c = 0` evaluates the spline at mean SST
-and drops the Season RE, giving year compositions standardised to average
-oceanographic conditions and removing the ENSO signal.
+`remove_nuisance = TRUE` (CPUE-based scaling) removes the Season random effect,
+and `sst_c = 0` evaluates the spline at mean SST. This gives year compositions
+standardised to average oceanographic conditions and to the population level
+of the season effect, removing the ENSO signal. In an application the weight
+would be a predicted CPUE or abundance per stratum. Here the simulated catch
+was used as the weight for both settings, so that only the treatment of the
+model terms differed.
 
 ```{r sst-scale}
 true_comp_sst_enso <- input_sst_binned_enso |>
@@ -589,7 +594,7 @@ scale_df_sst_enso <- input_sst_binned_enso |>
   ) |>
   dplyr::mutate(catch = catch / 5)
 
-# ENSO signal retained
+# ENSO signal retained (catch weighting: Season at each stratum's level)
 scaled_enso_with <- suppressWarnings(scale_comps(
   scale_df        = scale_df_sst_enso,
   predvar         = "catch",
@@ -598,7 +603,7 @@ scaled_enso_with <- suppressWarnings(scale_comps(
   remove_nuisance = FALSE
 ))
 
-# ENSO signal removed: SST set to 0 (mean), Season RE marginalised out
+# ENSO signal removed: SST set to 0 (mean), Season RE removed (CPUE-based scaling)
 scaled_enso_without <- suppressWarnings(scale_comps(
   scale_df        = scale_df_sst_enso |> dplyr::mutate(sst_c = 0),
   predvar         = "catch",

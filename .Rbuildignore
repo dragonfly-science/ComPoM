@@ -1,2 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.github$
+^\.vscode$
+^\.claude$
+^figure$
+^README\.md$
+^sst-long-5x5\.rds$
+^R/.*\.bak$
+^vignettes/.*\.bak$
+^vignettes/.*\.html$

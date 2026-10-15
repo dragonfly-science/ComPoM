@@ -2,10 +2,11 @@
 % Please edit documentation in R/pre_proc.R
 \name{fit_model}
 \alias{fit_model}
-\title{Fit the poisson multinomial model; see brms doc for brm() other parameters}
+\title{Fit the Poisson-multinomial model}
 \usage{
 fit_model(
-  form,
+  ffx_form,
+  re_form = NULL,
   cvars = NULL,
   spl = "2D",
   knots = "c(5,10)",
@@ -21,38 +22,107 @@ fit_model(
   mtd = 10,
   ad = 0.8,
   thin = 2,
-  refresh = 1000,
+  refresh = 10,
   add_preds = FALSE,
   mesh = NULL,
   time = NULL,
   share_spatial_sd = TRUE,
   share_spatiotemporal_sd = TRUE,
-  coords = c("x", "y")
+  coords = c("x", "y"),
+  priors = NULL,
+  newton_loops = 1
 )
 }
 \arguments{
-\item{form}{A RHS formula for the poisson-multinomial model, without explicit mention of bins}
+\item{ffx_form}{A character string of primary fixed-effect variables (RHS),
+e.g. \code{"Year"}. Passed to \code{parse_form()}.}
 
-\item{cvars}{Continuous variable to be fitted as 2D spline with bin}
+\item{re_form}{A character string of nuisance random-effect variables,
+e.g. \code{"Season + Gear"}. These become \code{(1|bin:var)} IID
+intercepts. \code{NULL} = none.}
 
-\item{spl}{1D spline over cvar per bin, or 2D spline over bins and cvar; as character for now}
+\item{cvars}{Continuous covariate(s) to be fitted as smooths with bin; see
+\code{spl}.}
 
-\item{knots}{knots (1D or 2D) for cvar spline; as character for now}
+\item{spl}{Smooth type for \code{cvars}: \code{"2D"}, \code{"by_factor"} or
+\code{"by"}; see \code{parse_form()}.}
 
-\item{backend}{the backend used for model fitting}
+\item{knots}{Basis dimension(s) for the \code{cvars} smooth, as a character
+string (e.g. \code{"4"} or \code{"c(5,10)"} for \code{spl = "2D"}).}
 
-\item{add_preds}{add predictions? (Can be very slow - only use with brms)}
+\item{data}{Prepared data frame from \code{data_prep()}.}
 
-\item{mesh}{An sdmTMB mesh object created with make_mesh() (TMB backend only). When provided, a spatially varying coefficient model is always used.}
+\item{dist}{Response distribution passed to \code{brms::brm()} as
+\code{family} (brms backend only; the TMB backend always uses
+\code{poisson()}).}
 
-\item{time}{Column name for time (year) variable (TMB backend only, required when mesh is provided)}
+\item{chains, cores, threads}{Number of MCMC chains, cores and within-chain
+threads (brms backend only).}
 
-\item{share_spatial_sd}{Share spatial SD across bins (TMB backend only, default TRUE)}
+\item{backend}{the backend used for model fitting: \code{"brms"} or
+\code{"TMB"}.}
 
-\item{share_spatiotemporal_sd}{Share spatiotemporal SD across bins (TMB backend only, default TRUE)}
+\item{brms_backend}{Stan interface used by brms (\code{"rstan"} or
+\code{"cmdstanr"}).}
 
-\item{coords}{Character vector of length 2 specifying coordinate column names (TMB backend only, default c("x", "y"))}
+\item{iter, warmup, thin}{MCMC iterations, warm-up iterations and thinning
+(brms). For the TMB backend these only set the number of simulation draws
+used downstream, \code{nsim = (iter - warmup) / thin}.}
+
+\item{mtd, ad}{Stan \code{max_treedepth} and \code{adapt_delta} (brms only).}
+
+\item{refresh}{Stan progress refresh interval (brms only).}
+
+\item{add_preds}{Add posterior predictive draws for the fitted data,
+required by \code{post_pred_group()}. Can be slow.}
+
+\item{mesh}{An sdmTMB mesh object created with make_mesh() (TMB backend only)}
+
+\item{time}{Column name for time (year) variable (TMB backend only)}
+
+\item{share_spatial_sd}{Share spatial SD across bins (TMB backend only)}
+
+\item{share_spatiotemporal_sd}{Share spatiotemporal SD across bins (TMB backend only)}
+
+\item{coords}{Character vector of coordinate column names (TMB backend only)}
+
+\item{priors}{An \code{sdmTMBpriors()} object for regularisation (TMB
+non-spatial backend only; currently not passed to the spatial fit).
+Useful when the design matrix is sparse (e.g. \code{normal(0, 2)} on fixed effects).}
+
+\item{newton_loops}{Number of extra Newton optimisation steps after initial fit
+(TMB non-spatial only). Default 1. Increase to 2-3 for difficult convergence.
+For spatial fits use \code{sdmTMB::run_extra_optimization()} on
+\code{$model}.}
+}
+\value{
+An object of class \code{ComPoM}: a list with the fitted model
+  (\code{model}, a \code{brmsfit} or \code{sdmTMB} object), the model data
+  (\code{data}), the number of draws used downstream (\code{nsim}),
+  posterior predictive draws (\code{preds}, or \code{NULL}), and the
+  settings needed by the post-processing functions (\code{mesh},
+  \code{spatial_varying}, \code{time}, \code{coords}, \code{re_vars},
+  \code{cvars}).
 }
 \description{
-Fit the poisson multinomial model; see brms doc for brm() other parameters
+Builds the model formula with \code{parse_form()} and fits it with either
+\code{brms} (Bayesian, \code{backend = "brms"}) or \code{sdmTMB} (maximum
+likelihood, \code{backend = "TMB"}). Counts per stratum and bin are modelled
+as Poisson with \code{log(n)} as offset, so that the implied within-stratum
+proportions follow a multinomial-logit model (see
+\code{vignette("ComPoM")} for the model equations).
+}
+\details{
+With \code{backend = "TMB"} and a \code{mesh}, the model adds one spatial
+Gaussian random field per bin and one spatio-temporal field per bin and
+time step (set up with \code{sdmTMB::make_category_svc()}).
+
+With \code{backend = "brms"}, fixed effects receive a
+\code{student_t(10, 0, 1)} prior. With \code{backend = "TMB"}, uncertainty
+in downstream functions is obtained from \code{nsim} draws from the
+approximate joint sampling distribution of the parameters.
+}
+\seealso{
+\code{data_prep()}, \code{scale_comps()}, \code{Fx_plot()},
+  \code{vignette("ComPoM")}
 }

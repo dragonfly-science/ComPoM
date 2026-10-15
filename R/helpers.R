@@ -1,7 +1,7 @@
 #' Selectivity
 #' @param bins Bin structure
 #' @param L50 50 pc selectivity
-#' @param l95 95 pc selectivity offset from L50
+#' @param L95 length at 95 pc selectivity
 #'
 #' @export
 #'
@@ -14,6 +14,10 @@ Selectivity <-function (bins,
   return(Selex)
 
 }
+
+# Geometric mean; used by Fx_plot() to express bin proportions relative to
+# their geometric mean across levels of the plotted grouping variable.
+gmean <- function(x) exp(mean(log(x)))
 
 require(tidybayes)
 require(cowplot)

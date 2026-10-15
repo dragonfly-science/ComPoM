@@ -2,7 +2,7 @@
 % Please edit documentation in R/post_proc.R
 \name{post_pred_group}
 \alias{post_pred_group}
-\title{Post predictive}
+\title{Posterior predictive check by group}
 \usage{
 post_pred_group(mod, grp = NULL, xlab = "Length (cm)")
 }
@@ -13,6 +13,14 @@ post_pred_group(mod, grp = NULL, xlab = "Length (cm)")
 
 \item{xlab}{label for composition plot}
 }
+\value{
+A ggplot with predicted medians and intervals (black) and observed
+  counts (blue), faceted by \code{grp}.
+}
 \description{
-Post predictive
+Compares observed counts per bin with posterior predictive (brms) or
+simulated (sdmTMB) counts, summed within levels of \code{grp}. Predicted
+totals are rescaled to the observed total within each group and draw, so
+the check is on the composition rather than on the total.
+Requires a fit from \code{fit_model(..., add_preds = TRUE)}.
 }
