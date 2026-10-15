@@ -27,7 +27,9 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          # BH, RcppEigen: compile-time headers rstan needs to build the brms
+          # models fitted in tests/testthat/helper-sim.R
+          extra-packages: any::rcmdcheck, any::rstan, any::BH, any::RcppEigen
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2

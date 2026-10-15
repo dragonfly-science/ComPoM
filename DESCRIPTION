@@ -28,6 +28,7 @@ LazyData: true
 Suggests:
     knitr,
     rmarkdown,
+    rstan,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Imports:
@@ -42,7 +43,6 @@ Imports:
     sdmTMB,
     tidybayes,
     cowplot,
-    lme4,
     parallel,
     posterior,
     purrr,
