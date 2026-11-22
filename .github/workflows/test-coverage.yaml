@@ -40,7 +40,7 @@ jobs:
           covr::to_cobertura(cov)
         shell: Rscript {0}
 
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v7
         with:
           # Do not fail the workflow if the upload fails (e.g. token not yet set)
           fail_ci_if_error: false
