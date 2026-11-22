@@ -41,7 +41,7 @@ library(tidyverse)
 library(ComPoM)
 library(sdmTMB)
 
-source(here::here("R/helpers.R"))
+source("vignette_helpers.R")
 
 # Helper functions
 clo <- function(x) x / sum(x)
@@ -68,7 +68,12 @@ L95 <- 0.75
 
 Create a spatial grid with coordinates and simulate spatially-varying selectivity.
 
-```{r simulate-spatial-domain, fig.width=7, fig.height=7}
+Figure 1 shows the simulated spatial effect on L50.
+
+```{r simulate-spatial-domain, fig.width=7, fig.height=6}
+#| fig.cap: >
+#|   Figure 1. Simulated spatial effect on the selectivity parameter L50 (log scale) at the candidate
+#|   locations.
 set.seed(123)
 
 # Create spatial locations (e.g., fishing locations)
@@ -93,9 +98,8 @@ locations$spatial_effect <- spatial_field(locations$x, locations$y, range = 10, 
 # Visualize spatial field
 ggplot(locations, aes(x = x, y = y, color = spatial_effect)) +
   geom_point(size = 3) +
-  scale_color_viridis_c() +
-  theme_minimal() +
-  labs(title = "Spatial effect on selectivity (L50)")
+  scale_color_viridis_c(option = "cividis", name = "Spatial\neffect") +
+  coord_equal()
 ```
 
 ## Simulate Temporal and Seasonal Effects
@@ -144,7 +148,11 @@ true_catch_summary <- true_catch_by_bin |>
 
 ## Simulate Non-Representative Sampling
 
-```{r simulate-sampling, fig.width=7, fig.height=7}
+Figure 2 shows the candidate and sampled locations.
+
+```{r simulate-sampling, fig.width=7, fig.height=6}
+#| fig.cap: >
+#|   Figure 2. Candidate locations (grey) and locations that were sampled (orange).
 # Sample locations with strong spatial bias (prefer high x AND high y corner)
 sample_locations <- function(n_samps, locations) {
   # Strong bias towards the northeast corner of the domain
@@ -204,11 +212,12 @@ long_form_sims <- samples |>
 
 # Visualize sampling locations
 ggplot() +
-  geom_point(data = locations, aes(x = x, y = y), color = "grey70", size = 2) +
+  geom_point(data = locations, aes(x = x, y = y, colour = "Candidate"), size = 2) +
   geom_point(data = long_form_sims |> distinct(loc_id, x, y),
-             aes(x = x, y = y), color = "red", alpha = 0.5) +
-  theme_minimal() +
-  labs(title = "Sampling locations (red) vs all locations (grey)")
+             aes(x = x, y = y, colour = "Sampled"), alpha = 0.7, size = 2) +
+  scale_colour_manual(values = c(Candidate = "grey70", Sampled = "orange"), name = NULL) +
+  coord_equal() +
+  theme(legend.position = "bottom")
 ```
 
 ## Prepare Data and Create Mesh
@@ -236,7 +245,18 @@ bnd_vect <- terra::vect(bnd)
 pg <- terra::rast(bnd_vect)
 pg$lyr.1 <- 1
 
-plot(mesh)
+```
+
+Figure 3 shows the mesh used for the spatial fields.
+
+```{r mesh-figure, fig.width=5, fig.height=4.5}
+#| fig.cap: >
+#|   Figure 3. SPDE mesh (grey triangles), domain boundary (skyblue) and sampled locations (points).
+ggplot() +
+  geom_sf(data = fmesher::fm_as_sfc(msh), fill = NA, colour = "grey70", linewidth = 0.15) +
+  geom_sf(data = bnd, fill = NA, colour = "skyblue", linewidth = 0.8) +
+  geom_point(data = distinct(input_data, x, y), aes(x = x, y = y), size = 0.7) +
+  labs(x = "x", y = "y")
 ```
 
 ## Fit Spatiotemporal Model with sdmTMB
@@ -284,18 +304,18 @@ AIC(mods_nonspatial$model)
 
 ## Effects Plots
 
-```{r effects-plots, fig.dim=c(12,7)}
-Fx_plot(mods_nonspatial, grp = 'Year', grid = NULL) +
-  ggtitle("Year effects (Non-spatial model)")
+Figure 4 shows the year and season effects from the non-spatial and spatial models.
 
-Fx_plot(mods_spatial, grp = 'Year', grid = NULL) +
-  ggtitle("Year effects (Spatial model)")
-
-Fx_plot(mods_nonspatial, grp = 'Season', grid = NULL) +
-  ggtitle("Season effects (Non-spatial model)")
-
-Fx_plot(mods_spatial, grp = 'Season', grid = NULL) +
-  ggtitle("Season effects (Spatial model)")
+```{r effects-plots, fig.dim=c(14, 12)}
+#| fig.cap: >
+#|   Figure 4. Year effects (a, b) and season effects (c, d) on the composition, as multipliers relative to
+#|   the geometric mean across bins, from the non-spatial model (a, c) and the spatial model
+#|   (b, d). Points are medians and bars 95% intervals.
+(Fx_plot(mods_nonspatial, grp = 'Year', grid = NULL) |
+   Fx_plot(mods_spatial, grp = 'Year', grid = NULL)) /
+  (Fx_plot(mods_nonspatial, grp = 'Season', grid = NULL) |
+     Fx_plot(mods_spatial, grp = 'Season', grid = NULL)) +
+  plot_annotation(tag_levels = "a")
 ```
 
 ## Scale Compositions to Catch
@@ -336,7 +356,12 @@ scaled_comp_nonspatial <- scale_comps(
 
 ## Compare Scaled Compositions to Truth
 
-```{r compare-compositions, fig.dim=c(12,7)}
+Figure 5 shows the scaled annual compositions of both models against the true composition.
+
+```{r compare-compositions, fig.dim=c(12, 12)}
+#| fig.cap: >
+#|   Figure 5. Annual compositions of the catch from the spatial model (a) and the non-spatial model (b).
+#|   Black points and bars are medians and 95% intervals, and skyblue points the true composition.
 # True compositions by year
 true_comp_year <- true_catch_by_bin |>
   group_by(Year, bin) |>
@@ -347,68 +372,84 @@ scaled_comp_spatial_yr <- scaled_comp_spatial |>
   group_by(Year, bin, .draw) |>
   summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
 
-scaled_comp_plot(
+p_truth_spatial <- scaled_comp_plot(
   scaled_comp = scaled_comp_spatial_yr,
   grps = 'Year',
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
-  cvar = 'tcatch'
-) + ggtitle("Spatial model vs true compositions (by year)")
+  cvar = 'tcatch',
+  comp_label = "True"
+)
 
 # Non-spatial model (aggregate across seasons)
 scaled_comp_nonspatial_yr <- scaled_comp_nonspatial |>
   group_by(Year, bin, .draw) |>
   summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
 
-scaled_comp_plot(
+p_truth_nonspatial <- scaled_comp_plot(
   scaled_comp = scaled_comp_nonspatial_yr,
   grps = 'Year',
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
-  cvar = 'tcatch'
-) + ggtitle("Non-spatial model vs true compositions (by year)")
+  cvar = 'tcatch',
+  comp_label = "True"
+)
+
+p_truth_spatial / p_truth_nonspatial + plot_annotation(tag_levels = "a")
 ```
 
 ## Evaluate Model Performance
 
-```{r evaluate-performance, fig.dim=c(12,7)}
+Figure 6 shows both models compared with the true and raw sample compositions.
+
+```{r evaluate-performance, fig.dim=c(12, 18)}
+#| fig.cap: >
+#|   Figure 6. Annual compositions from the spatial model (a), relative error of the spatial model and of
+#|   the raw samples against the true composition (b), and annual compositions from the
+#|   non-spatial model (c). The true composition is skyblue and the raw sample composition orange.
+#|   Black points and bars are medians and 95% intervals.
 # Raw (biased) samples
 raw_comp <- input_data |>
   group_by(Year, bin) |>
   summarise(tcatch = sum(tot_by_bin), .groups = "drop")
 
-# Spatial model comparison
-scaled_comp_plot(
+p_eval_spatial <- scaled_comp_plot(
   scaled_comp = scaled_comp_spatial_yr,
   grps = 'Year',
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
   comp_are2 = raw_comp,
-  cvar = 'tcatch'
-) + ggtitle("Blue = True, Orange = Raw samples, Black = Spatial model")
+  cvar = 'tcatch',
+  comp_label = "True",
+  comp2_label = "Raw samples"
+)
 
-scaled_comp_comp(
+p_eval_error <- scaled_comp_comp(
   scaled_comp = scaled_comp_spatial_yr,
   grps = 'Year',
   scaled = TRUE,
   comp_are = true_comp_year,
   comp_are2 = raw_comp,
   cvar = 'tcatch'
-) + ggtitle("Spatial model vs raw samples (by year)")
+)
 
-# Non-spatial model comparison
-scaled_comp_plot(
+p_eval_nonspatial <- scaled_comp_plot(
   scaled_comp = scaled_comp_nonspatial_yr,
   grps = 'Year',
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
   comp_are2 = raw_comp,
-  cvar = 'tcatch'
-) + ggtitle("Blue = True, Orange = Raw samples, Black = Non-spatial model")
+  cvar = 'tcatch',
+  comp_label = "True",
+  comp2_label = "Raw samples"
+)
+
+p_eval_spatial / p_eval_error / p_eval_nonspatial +
+  plot_layout(heights = c(1, 0.3, 1)) + plot_annotation(tag_levels = "a")
 ```
 
 ## Model Diagnostics
@@ -419,13 +460,245 @@ tidy(mods_spatial$model, "ran_pars")
 
 The spatial model can better account for the non-representative sampling by modeling the underlying spatial structure in the data.
 
+## Scenario Comparison
+
+The spatial model reduced the error of the annual compositions relative to the non-spatial model
+in the simulation above, and a part of the error remained. This section compares the two models
+in ten scenarios to separate the error that the spatial model removed from the error that it did
+not. The scenario code is in `scenario_helpers.R` and `run_scenarios.R`, and the results are
+stored in `scenario_results.csv`.
+
+### Scenario Design
+
+Each scenario used the simulation code above with one or more changes (Table 1). The changes were
+in the sampling footprint (fixed in the north-east corner, moving from the north-east to the
+south-west over the years, or uniform with no seasonal shift), the range of the simulated spatial
+field, a west-to-east gradient in log(L50), the number of fish per sample, and the width of the
+length bins. All scenarios had 250 locations, 10 years, four seasons and 50 samples per year.
+Each scenario was simulated once with the same seeds. Absolute errors are therefore comparable
+within a scenario, and between scenarios they also reflect the differing realised fields.
+
+Each scenario was fitted with the non-spatial model (year as fixed effect, season as nuisance
+random effect) and with a spatial model that had bin-specific spatial fields and no
+spatio-temporal fields (`fit_model(spatiotemporal = FALSE)`), because the simulated field is
+constant over time. Scenario A also included
+the model with spatio-temporal fields from `fit_model()`. Compositions were scaled to the true
+catch of all 250 locations by catch weighting, as above, with 100 simulation draws.
+
+The error was the mean absolute error (MAE) of the annual proportions, averaged over years and
+bins, relative to the true catch composition of the full fishery. The error was split into a
+component that was constant across years (the mean error of each bin over years) and a
+year-varying component (the remainder). A constant error shifts all years equally and does not
+change trends. The year-varying component includes sampling variation. The two components do not
+sum to the MAE, because each is a mean of absolute values.
+
+```{r scenario-data, include = FALSE}
+scen_env <- new.env()
+sys.source("scenario_helpers.R", envir = scen_env)
+res <- read.csv("scenario_results.csv")
+design <- purrr::map_dfr(scen_env$scenario_specs, function(s) {
+  tibble(
+    Scenario = s$name, Description = s$label,
+    Footprint = if (isTRUE(s$smp$loc_bias == 0)) "uniform" else s$smp$footprint,
+    `Field range` = s$range, Gradient = s$trend,
+    `Fish per sample` = if (is.null(s$smp$n_per)) 100 else s$smp$n_per,
+    `Bin width` = if (is.null(s$bin_width)) 1 else s$bin_width
+  )
+})
+wide <- res |>
+  filter(method %in% c("raw", "nonspatial", "spatial_only")) |>
+  select(scenario, n_bins, n_locs_sampled, field_year1, field_lastyear, field_domain,
+         method, MAE, const, varying) |>
+  pivot_wider(names_from = method, values_from = c(MAE, const, varying)) |>
+  mutate(red_MAE = 1 - MAE_spatial_only / MAE_nonspatial,
+         red_const = 1 - const_spatial_only / const_nonspatial,
+         red_var = 1 - varying_spatial_only / varying_nonspatial) |>
+  arrange(match(scenario, design$Scenario))
+get <- function(s, col) wide[[col]][wide$scenario == s]
+f4 <- function(x) formatC(x, digits = 4, format = "f")
+f3 <- function(x) formatC(x, digits = 3, format = "f")
+pct <- function(x) paste0(round(100 * x), "%")
+pct1 <- function(x) paste0(round(100 * x, 1), "%")
+# largest difference between the mean field at the sampled locations and the domain mean
+field_gap <- function(s) {
+  max(abs(c(get(s, "field_year1"), get(s, "field_lastyear")) - get(s, "field_domain")))
+}
+ten <- wide$n_bins == 10
+full_A <- res |> filter(scenario == "A", method == "full")
+sp_A <- res |> filter(scenario == "A", method == "spatial_only")
+st_sd <- tidy(mods_spatial$model, "ran_pars") |>
+  filter(term == "sigma_Z") |>
+  pull(estimate) |>
+  nth(2)
+```
+
+```{r scenario-table-design, echo = FALSE}
+design |>
+  left_join(wide |> select(Scenario = scenario, n_locs_sampled, field_year1, field_lastyear,
+                           field_domain), by = "Scenario") |>
+  mutate(across(starts_with("field_"), ~ round(.x, 2))) |>
+  rename(`Locations sampled` = n_locs_sampled, `Field, year 1` = field_year1,
+         `Field, year 10` = field_lastyear, `Field, domain` = field_domain) |>
+  knitr::kable(caption = paste(
+    "Table 1. Scenario settings and realised sampling. The field columns give the mean simulated",
+    "effect on log(L50) at the sampled locations in the first and last year and over all 250",
+    "locations. The field range is the range of the exponential covariance, and the gradient is",
+    "the plus or minus change in log(L50) across the domain."))
+```
+
+### Scenario Results
+
+```{r scenario-table-results, echo = FALSE}
+wide |>
+  left_join(design |> select(Scenario, Description), by = c("scenario" = "Scenario")) |>
+  transmute(Scenario = scenario, Description, Bins = n_bins, Raw = round(MAE_raw, 4),
+            `Non-spatial` = round(MAE_nonspatial, 4), Spatial = round(MAE_spatial_only, 4),
+            `Reduction` = pct(red_MAE)) |>
+  knitr::kable(caption = paste(
+    "Table 2. MAE of the annual proportions for the raw samples, the non-spatial model and the",
+    "spatial-only model, and the reduction from the non-spatial to the spatial model.",
+    "Scenario F had 6 bins instead of 10, so its MAE is not comparable with the other scenarios."))
+```
+
+The non-spatial model reproduced the raw sample compositions (Table 2). Its MAE differed from the
+MAE of the raw samples by at most `r f4(max(abs(wide$MAE_raw - wide$MAE_nonspatial)))` in every
+scenario, because the year-by-bin fixed effects estimated the annual composition of the samples.
+
+The spatial model had a lower MAE than the non-spatial model in every scenario, by
+`r pct(min(wide$red_MAE))` (scenario `r wide$scenario[which.min(wide$red_MAE)]`) to
+`r pct(max(wide$red_MAE))` (scenario `r wide$scenario[which.max(wide$red_MAE)]`). The constant
+component was lower by `r pct(min(wide$red_const))` to `r pct(max(wide$red_const))`
+(Figure 7a), and the reduction was larger than that of the year-varying component in all
+scenarios except `r paste(wide$scenario[wide$red_const <= wide$red_var], collapse = ", ")`. The
+year-varying component was lower by `r pct1(min(wide$red_var))` to `r pct1(max(wide$red_var))`
+(Figure 7b). It was
+`r f4(min(wide$varying_nonspatial[ten]))` to `r f4(max(wide$varying_nonspatial[ten]))` for the
+non-spatial model and `r f4(min(wide$varying_spatial_only[ten]))` to
+`r f4(max(wide$varying_spatial_only[ten]))` for the spatial model in the scenarios with 10 bins.
+
+Figure 7 shows the scenario comparison.
+
+```{r scenario-figure, echo = FALSE, fig.width = 9, fig.height = 4.8}
+#| fig.cap: >
+#|   Figure 7. Constant-over-years error (a) and year-varying error (b) of the annual
+#|   compositions for the non-spatial model (skyblue) and the spatial-only model (orange) in each
+#|   scenario. Scenario F had 6 bins and is not comparable in magnitude with the others.
+library(cowplot)
+library(patchwork)
+fig_data <- res |>
+  filter(method %in% c("nonspatial", "spatial_only")) |>
+  left_join(design |> select(Scenario, Description), by = c("scenario" = "Scenario")) |>
+  mutate(method = factor(method, c("nonspatial", "spatial_only"), c("Non-spatial", "Spatial")),
+         scen = factor(paste0(scenario, "  ", Description),
+                       levels = rev(paste0(design$Scenario, "  ", design$Description))))
+fig_panel <- function(col, xlab) {
+  ggplot(fig_data, aes(x = .data[[col]], y = scen)) +
+    geom_line(aes(group = scen), colour = "grey60", linewidth = 0.6) +
+    geom_point(aes(colour = method), size = 2.8) +
+    scale_colour_manual(values = c("Non-spatial" = "skyblue", "Spatial" = "orange"), name = NULL) +
+    scale_x_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.05))) +
+    labs(x = xlab, y = NULL) +
+    theme_compom(font_size = 11)
+}
+(fig_panel("const", "Constant-over-years error (MAE)") +
+    (fig_panel("varying", "Year-varying error (MAE)") +
+       theme(axis.text.y = element_blank(), plot.margin = margin(5.5, 5.5, 5.5, 16)))) +
+  plot_layout(guides = "collect") + plot_annotation(tag_levels = "a") &
+  theme(legend.position = "bottom")
+```
+
+```{r weighting-check}
+stratum <- true_catch_by_bin |>
+  group_by(loc_id, Year, Season) |>
+  mutate(p = tcatch / sum(tcatch), catch_total = sum(tcatch)) |>
+  ungroup()
+annual_prop <- function(weight) {
+  stratum |>
+    mutate(v = p * weight) |>
+    group_by(Year, bin) |>
+    summarise(v = sum(v), .groups = "drop") |>
+    group_by(Year) |>
+    mutate(v = v / sum(v)) |>
+    ungroup()
+}
+weighting_mae <- mean(abs(annual_prop(stratum$catch_total)$v - annual_prop(1)$v))
+size_cor <- stratum |>
+  group_by(loc_id, Year, Season) |>
+  summarise(mean_bin = sum(bin * p), catch_total = first(catch_total), .groups = "drop") |>
+  summarise(r = cor(mean_bin, catch_total)) |>
+  pull(r)
+```
+
+Uniform sampling (scenarios D and H3) left a constant error of
+`r f4(get("D", "const_nonspatial"))` and `r f4(get("H3", "const_nonspatial"))` in the non-spatial
+model. This was lower than with the footprint in A (`r f4(get("A", "const_nonspatial"))`) and H1
+(`r f4(get("H1", "const_nonspatial"))`) and was not zero, so a part of the constant error did not
+depend on the sampling footprint. A likely contributor was catch weighting. The annual
+composition with equal weight for every stratum differs from the catch-weighted composition even
+without sampling and without a model. In the simulated world of scenario A, the two compositions
+differed by an MAE of `r f4(weighting_mae)` (chunk above), and the stratum catch was correlated
+with the mean size of the stratum (correlation `r f3(size_cor)`), because a stratum with larger
+fish had a lower selected abundance. This was computed for the world of scenario A only.
+
+A sample average weights strata by the number of samples and not by catch. The non-spatial model
+predicts one composition per year and season, so the correlation between catch and size across
+the strata of a year and season is not represented. The spatial model predicted each stratum
+separately and weighted the predictions by catch in `scale_comps()`. It lowered the constant
+error in D to `r f4(get("D", "const_spatial_only"))` and in H3 to
+`r f4(get("H3", "const_spatial_only"))`. The contribution of the weighting was not tested
+separately in D and H3.
+
+The moving footprint changed the mean simulated field at the sampled locations from
+`r f3(get("H2", "field_year1"))` in the first year to `r f3(get("H2", "field_lastyear"))` in the
+last year with the gradient (H2), against a domain mean of `r f3(get("H2", "field_domain"))`. The
+fixed footprint with the gradient (H1) sampled a field of `r f3(get("H1", "field_year1"))` in the
+first year and `r f3(get("H1", "field_lastyear"))` in the last year. The raw MAE was lower with
+the moving footprint than with the fixed footprint, `r f4(get("B", "MAE_raw"))` against
+`r f4(get("A", "MAE_raw"))` without the gradient (B and A) and `r f4(get("H2", "MAE_raw"))` against
+`r f4(get("H1", "MAE_raw"))` with it (H2 and H1). The moving footprint sampled
+`r get("B", "n_locs_sampled")` locations instead of `r get("A", "n_locs_sampled")`. The year-varying
+component of the non-spatial model was lower with the moving footprint
+(`r f4(get("B", "varying_nonspatial"))` in B against `r f4(get("A", "varying_nonspatial"))` in A,
+and `r f4(get("H2", "varying_nonspatial"))` in H2 against `r f4(get("H1", "varying_nonspatial"))`
+in H1). The reduction by the spatial model was `r pct(get("B", "red_MAE"))` in B against
+`r pct(get("A", "red_MAE"))` in A, and `r pct(get("H2", "red_MAE"))` in H2 against
+`r pct(get("H1", "red_MAE"))` in H1.
+
+With 300 fish per sample (G), the MAE of the non-spatial model was
+`r f4(get("G", "MAE_nonspatial"))` against `r f4(get("A", "MAE_nonspatial"))` with 100 fish (A),
+and its constant component was `r f4(get("G", "const_nonspatial"))` against
+`r f4(get("A", "const_nonspatial"))` in A. The MAE of the spatial model fell from
+`r f4(get("A", "MAE_spatial_only"))` to `r f4(get("G", "MAE_spatial_only"))`, a reduction of
+`r pct(get("G", "red_MAE"))` relative to the non-spatial model. With wider bins (F), the reduction
+was `r pct(get("F", "red_MAE"))`, against `r pct(get("A", "red_MAE"))` in A.
+
+In the scenarios with a field range of 30 (E and C), the non-spatial MAE was
+`r f4(get("E", "MAE_nonspatial"))` and `r f4(get("C", "MAE_nonspatial"))`, with constant components
+of `r f4(get("E", "const_nonspatial"))` and `r f4(get("C", "const_nonspatial"))`. The spatial model
+reduced the MAE by `r pct(get("E", "red_MAE"))` and `r pct(get("C", "red_MAE"))`. The mean field
+at the sampled locations differed from the domain mean by at most `r f3(field_gap("E"))` in E and
+`r f3(field_gap("C"))` in C (Table 1), against `r f3(field_gap("A"))` in A.
+
+In scenario A, the model with spatio-temporal fields and the spatial-only model had an MAE of
+`r f4(full_A$MAE)` and `r f4(sp_A$MAE)` and a constant component of `r f4(full_A$const)` and
+`r f4(sp_A$const)`. The estimated spatio-temporal standard deviation of the model fitted above
+was `r formatC(st_sd, format = "e", digits = 1)`, and the simulated field was constant over time.
+
+The Hessian of the spatial-only fit was positive definite in all scenarios. `sanity()` reported at
+least one problem in `r sum(!res$sanity_ok[res$method == "spatial_only"])` of the
+`r sum(res$method == "spatial_only")` spatial-only fits. The errors were not checked against fits
+with additional optimisation steps. Each scenario was a single realisation, so the reductions
+described these simulated worlds and not an expected value. Scenarios with different field ranges
+also had different realised fields, and their errors differed for that reason in addition to the
+change in the design.
+
 ## Oceanographic Influence on Compositions
 
 Environmental covariates such as sea surface temperature (SST) can drive
 spatial and temporal shifts in fish size compositions independently of the
 year and season effects of primary interest. A recurring oceanographic cycle
-such as El Niño — warm SST every ~5 years — shifts fish size availability:
-warm years have larger fish more available; cold years have smaller fish.
+such as El Niño shifts fish size availability. Warm SST occurs about every 5 years. In warm
+years larger fish are more available, and in cold years smaller fish are.
 
 Including SST as a smooth spline (`spl = "by_factor"`) separates the
 oceanographic signal from the year fixed effects. `scale_comps()` can then
@@ -560,9 +833,12 @@ sanity(mods_sst_enso$model)
 
 ### Year Effects After Accounting for SST
 
+Figure 8 shows the year effects after accounting for the SST spline.
+
 ```{r sst-fx-plot, fig.dim=c(12, 5)}
-Fx_plot(mods_sst_enso, grp = "Year") +
-  ggtitle("Year-effect multipliers after accounting for ENSO SST spline")
+#| fig.cap: >
+#|   Figure 8. Year effects on the composition (multipliers) after accounting for the ENSO SST spline.
+Fx_plot(mods_sst_enso, grp = "Year")
 ```
 
 ### Scale Compositions — Retaining vs Removing ENSO Signal
@@ -615,7 +891,13 @@ scaled_enso_without <- suppressWarnings(scale_comps(
 
 ### Compare Annual Compositions
 
+Figure 9 shows the compositions with the SST effect retained and removed.
+
 ```{r sst-compare, fig.dim=c(12, 10)}
+#| fig.cap: >
+#|   Figure 9. Annual compositions with the SST effect retained, i.e. the observed ENSO cycle (a), and
+#|   with the SST effect removed, i.e. standardised to mean SST = 0 (b). Skyblue points are
+#|   the true composition.
 enso_with_yr <- scaled_enso_with |>
   dplyr::group_by(Year, bin, .draw) |>
   dplyr::summarise(tot_by_bin = sum(tot_by_bin), .groups = "drop")
@@ -626,20 +908,20 @@ enso_without_yr <- scaled_enso_without |>
 
 p_enso_with <- scaled_comp_plot(
   scaled_comp = enso_with_yr, grps = "Year", scaled = TRUE,
-  comp_are    = true_comp_sst_enso, cvar = "tcatch"
-) + ggtitle("SST effect retained (observed ENSO cycle)")
+  comp_are    = true_comp_sst_enso, cvar = "tcatch", comp_label = "True"
+)
 
 p_enso_without <- scaled_comp_plot(
   scaled_comp = enso_without_yr, grps = "Year", scaled = TRUE,
-  comp_are    = true_comp_sst_enso, cvar = "tcatch"
-) + ggtitle("SST effect removed (standardised to mean SST = 0)")
+  comp_are    = true_comp_sst_enso, cvar = "tcatch", comp_label = "True"
+)
 
-cowplot::plot_grid(p_enso_with, p_enso_without, nrow = 2)
+p_enso_with / p_enso_without + plot_annotation(tag_levels = "a")
 ```
 
-With SST retained (top), warm ENSO years (2, 7) show relatively more large
+With SST retained (panel a), warm ENSO years (2, 7) show relatively more large
 fish and cold years (4, 5, 9, 10) show small-fish-dominated compositions,
-matching the simulated truth (blue dots). With SST removed (bottom),
+matching the simulated truth (skyblue points). With SST removed (panel b),
 predictions converge toward the mean-SST composition — the ENSO-driven
 inter-annual variability is standardised out, isolating the residual year
 fixed effects from the oceanographic forcing.

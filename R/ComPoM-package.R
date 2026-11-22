@@ -22,4 +22,18 @@
 #' See \code{vignette("ComPoM")} for the model equations and an example.
 #'
 #' @keywords internal
+#' @import dplyr
+#' @import tidyr
+#' @import ggplot2
+#' @import rlang
+#' @import cowplot
+#' @importFrom tidybayes mean_qi
+#' @importFrom stats quantile setNames
 "_PACKAGE"
+
+# Column names used in tidy evaluation (dplyr, ggplot2) and by the posterior draw helpers
+utils::globalVariables(c(
+  ".", ".draw", ".linpred", ".lower", ".pad", ".pred", ".prediction", ".upper",
+  "bin", "est", "est_c", "hi", "iter", "lo", "lp", "ml", "pred", "prop", "tot",
+  "tot_by_bin"
+))

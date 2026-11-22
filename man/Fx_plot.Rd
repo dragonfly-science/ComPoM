@@ -4,18 +4,31 @@
 \alias{Fx_plot}
 \title{Plot bin-specific effects as multipliers}
 \usage{
-Fx_plot(mod, grp = "Year", form = "~(1|bin:Year)", grid = NULL, cvar = NULL)
+Fx_plot(
+  mod,
+  grp = "Year",
+  form = "~(1|bin:Year)",
+  grid = NULL,
+  cvar = NULL,
+  xlab = "Length bin (cm)"
+)
 }
 \arguments{
 \item{mod}{An object from fit_model}
 
-\item{grp}{group to plot effects for, needs to include cvar if present}
+\item{grp}{Character vector of the variable(s) to plot effects for (e.g.
+\code{"Year"}); must include \code{cvar} if one is used. Facets are by the
+first variable.}
 
 \item{form}{Unused; retained for backwards compatibility.}
 
-\item{grid}{optional plotting with facet grid along two variables (need to be in grp)}
+\item{grid}{Optional character vector of two variables in \code{grp} for a
+\code{facet_grid()} layout (rows, columns) instead of \code{facet_wrap()}.}
 
-\item{cvar}{continuous variable if used in model}
+\item{cvar}{Name of the continuous covariate, if the model has one. It is
+held at its mean.}
+
+\item{xlab}{x-axis label (the bin variable)}
 }
 \value{
 A ggplot of median multipliers and intervals per bin, faceted by
@@ -29,4 +42,10 @@ proportions. Each proportion is then divided by the geometric mean of that
 bin's proportions across levels of \code{grp} and draws. A multiplier above 1
 indicates that the bin is relatively more frequent in that level than on
 average.
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+                 iter = 300, warmup = 100, thin = 2)
+Fx_plot(fit, grp = "Year")
 }

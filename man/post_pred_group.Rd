@@ -9,9 +9,10 @@ post_pred_group(mod, grp = NULL, xlab = "Length (cm)")
 \arguments{
 \item{mod}{An object from fit_model}
 
-\item{grp}{group to do PPC over}
+\item{grp}{Name(s) of the grouping variable(s) in the model data to check
+over (e.g. \code{"Year"}). \code{NULL} pools all strata.}
 
-\item{xlab}{label for composition plot}
+\item{xlab}{x-axis label (the bin variable)}
 }
 \value{
 A ggplot with predicted medians and intervals (black) and observed
@@ -23,4 +24,13 @@ simulated (sdmTMB) counts, summed within levels of \code{grp}. Predicted
 totals are rescaled to the observed total within each group and draw, so
 the check is on the composition rather than on the total.
 Requires a fit from \code{fit_model(..., add_preds = TRUE)}.
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+                 iter = 300, warmup = 100, thin = 2, add_preds = TRUE)
+post_pred_group(fit, grp = "Year", xlab = "Length (cm)")
+}
+\seealso{
+\code{fit_model()}
 }

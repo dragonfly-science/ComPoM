@@ -9,3 +9,16 @@
 ^R/.*\.bak$
 ^vignettes/.*\.bak$
 ^vignettes/.*\.html$
+^LICENSE\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^codecov\.yml$
+^CLAUDE\.md$
+^vignettes/.*\.(RData|rda|rds)$
+^vignettes/FAL_PS_ex\.Rmd$
+^vignettes/stan_setup\.r$
+^vignettes/articles$
+^data-raw$
+^CONTRIBUTING\.md$
+^Rplots\.pdf$

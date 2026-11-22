@@ -27,7 +27,9 @@ sim_dat <- data_prep(
 
 # ── 3a. Fit a minimal brms model (1 chain, 200 posterior draws) ───────────────
 #        ffx_form = primary effect; re_form = nuisance RE to be dropped at scale
-sim_fit_brms <- suppressMessages(
+# The brms fit needs rstan (Suggests) and a C++ toolchain. If it is unavailable, the
+# fixture is NULL and brms tests are skipped with skip_if_no_brms().
+sim_fit_brms <- if (!requireNamespace("rstan", quietly = TRUE)) NULL else suppressMessages(
   suppressWarnings(
     fit_model(
       ffx_form     = "year",
@@ -68,24 +70,43 @@ sim_fit_tmb <- suppressMessages(
 )
 
 # ── 3c. Fit a minimal sdmTMB spatial model ────────────────────────────────────
-group_coords <- tibble::tribble(
-  ~year,        ~area, ~season, ~x,  ~y,
-  factor(2020), "A",   "S1",    0,   0,
-  factor(2020), "A",   "S2",    0,   0,
-  factor(2020), "B",   "S1",   10,   0,
-  factor(2020), "B",   "S2",   10,   0,
-  factor(2021), "A",   "S1",    0,  10,
-  factor(2021), "A",   "S2",    0,  10,
-  factor(2021), "B",   "S1",   10,  10,
-  factor(2021), "B",   "S2",   10,  10
-) |>
-  mutate(area = factor(area), season = factor(season))
+# Strata are sampled at distinct random locations in every year. With one
+# bin-specific spatio-temporal field per bin and year, a design with few repeated
+# locations (e.g. 4 locations x 2 years) is not identifiable and the Hessian is
+# not positive definite, which makes simulate()/predict(nsim) fail.
+set.seed(1)
+sim_strata_spatial <- expand.grid(year = factor(2020:2022), k = 1:10) |>
+  mutate(
+    x      = runif(n(), 0, 100),
+    y      = runif(n(), 0, 100),
+    area   = factor(ifelse(x < 50, "A", "B")),
+    season = factor(sample(c("S1", "S2"), n(), replace = TRUE)),
+    loc    = factor(row_number())
+  )
 
-sim_dat_spatial <- sim_dat |>
-  left_join(group_coords, by = c("year", "area", "season"))
+# Spatial gradient, year trend and season effect that differ by bin. Counts with no such
+# signal give boundary estimates (field SDs -> 0 or Inf) and a non-positive-definite
+# joint precision matrix.
+sim_comp_spatial <- merge(sim_strata_spatial, data.frame(bin = c(10, 20, 30, 40))) |>
+  mutate(
+    b     = as.integer(factor(bin)),
+    eta   = log(40) + 0.02 * (x - 50) * (b - 2.5) + 0.02 * (y - 50) * (2.5 - b) / 2 +
+            0.3 * (as.integer(year) - 2) * (b - 2.5) / 2 +
+            0.4 * (season == "S2") * (b - 2.5) / 1.5,
+    count = rpois(n(), exp(eta))
+  )
+
+# x and y are factors after data_prep(); convert back to numeric for the mesh
+sim_dat_spatial <- data_prep(
+  comp              = sim_comp_spatial,
+  vars_for_grouping = c("year", "area", "season", "loc", "x", "y"),
+  bin_lab           = "bin",
+  count_var         = "count"
+) |>
+  mutate(x = as.numeric(as.character(x)), y = as.numeric(as.character(y)))
 
 sim_mesh <- suppressMessages(
-  make_mesh(sim_dat_spatial, xy_cols = c("x", "y"), cutoff = 3)
+  sdmTMB::make_mesh(sim_dat_spatial, xy_cols = c("x", "y"), cutoff = 40)
 )
 
 sim_fit_tmb_spatial <- suppressMessages(
@@ -116,13 +137,10 @@ sim_scale_df <- expand.grid(
 ) |>
   mutate(catch = rep(c(100, 150, 200, 250), 2))
 
-sim_scale_df_spatial <- sim_scale_df |>
-  left_join(
-    tibble::tibble(
-      year = factor(c(2020, 2021, 2020, 2021)),
-      area = factor(c("A", "A", "B", "B")),
-      x    = c(0, 0, 10, 10),
-      y    = c(0, 10, 0, 10)
-    ),
-    by = c("year", "area")
-  )
+sim_scale_df_spatial <- sim_strata_spatial |>
+  dplyr::select(year, area, season, x, y) |>
+  mutate(catch = rep(c(100, 150, 200, 250, 120), length.out = n()))
+
+skip_if_no_brms <- function() {
+  testthat::skip_if(is.null(sim_fit_brms), "rstan is not installed")
+}

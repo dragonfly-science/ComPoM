@@ -23,11 +23,13 @@ get_sc <- function(fit, scale_df) {
 # ══════════════════════════════════════════════════════════════════════════════
 
 test_that("post_pred_group returns a ggplot [brms]", {
+  skip_if_no_brms()
   p <- suppressWarnings(post_pred_group(sim_fit_brms, grp = "year"))
   expect_s3_class(p, "ggplot")
 })
 
 test_that("post_pred_group facets by group [brms]", {
+  skip_if_no_brms()
   p <- suppressWarnings(post_pred_group(sim_fit_brms, grp = "year"))
   expect_true(inherits(p$facet, "FacetWrap"))
 })
@@ -57,16 +59,19 @@ test_that("post_pred_group facets by group [TMB spatial]", {
 # ══════════════════════════════════════════════════════════════════════════════
 
 test_that("Fx_plot returns a ggplot [brms]", {
+  skip_if_no_brms()
   p <- suppressWarnings(Fx_plot(sim_fit_brms, grp = "year", form = "~(1|bin:year)"))
   expect_s3_class(p, "ggplot")
 })
 
 test_that("Fx_plot y-axis is 'Multiplier' [brms]", {
+  skip_if_no_brms()
   p <- suppressWarnings(Fx_plot(sim_fit_brms, grp = "year", form = "~(1|bin:year)"))
   expect_equal(p$labels$y, "Multiplier")
 })
 
 test_that("Fx_plot works for a non-fixed-effect group [brms]", {
+  skip_if_no_brms()
   # year is held at its mode, leaving factor(year) with one level in newdata
   p <- suppressWarnings(Fx_plot(sim_fit_brms, grp = "season"))
   expect_s3_class(p, "ggplot")
@@ -97,11 +102,13 @@ test_that("Fx_plot y-axis is 'Multiplier' [TMB spatial]", {
 # ══════════════════════════════════════════════════════════════════════════════
 
 test_that("scale_comps returns a data frame [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   expect_s3_class(sc, "data.frame")
 })
 
 test_that("scale_comps contains expected columns [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   expect_true(all(c("tot_by_bin", ".draw", "bin") %in% names(sc)))
 })
@@ -159,6 +166,7 @@ test_that("catch weighting errors when a nuisance variable is missing [TMB]", {
 })
 
 test_that("catch weighting errors when a nuisance variable is missing [brms]", {
+  skip_if_no_brms()
   expect_error(
     scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_brms,
                 grps = c("year", "area")),
@@ -194,6 +202,7 @@ test_that("CPUE scaling keeps the stratum columns in the output [TMB non-spatial
 })
 
 test_that("CPUE scaling runs [brms]", {
+  skip_if_no_brms()
   sc <- suppressWarnings(
     scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_brms,
                 grps = c("year", "area"), remove_nuisance = TRUE)
@@ -256,12 +265,14 @@ test_that("scale_comps remove_nuisance contains expected columns [TMB spatial]",
 # ══════════════════════════════════════════════════════════════════════════════
 
 test_that("scaled_comp_plot returns ggplot — proportions [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   p  <- suppressWarnings(scaled_comp_plot(sc, grps = c("year", "area"), scaled = TRUE))
   expect_s3_class(p, "ggplot")
 })
 
 test_that("scaled_comp_plot returns ggplot — counts [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   p  <- suppressWarnings(scaled_comp_plot(sc, grps = c("year", "area"), scaled = FALSE))
   expect_s3_class(p, "ggplot")
@@ -296,6 +307,7 @@ test_that("scaled_comp_plot returns ggplot — counts [TMB spatial]", {
 # ══════════════════════════════════════════════════════════════════════════════
 
 test_that("scaled_ridge_plot returns a ggplot [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   p  <- suppressWarnings(
     scaled_ridge_plot(sc, grps = c("year", "area"), plot_y = "year")
@@ -304,6 +316,7 @@ test_that("scaled_ridge_plot returns a ggplot [brms]", {
 })
 
 test_that("scaled_ridge_plot errors without plot_y [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   expect_error(
     scaled_ridge_plot(sc, grps = c("year", "area")),
@@ -312,6 +325,7 @@ test_that("scaled_ridge_plot errors without plot_y [brms]", {
 })
 
 test_that("scaled_ridge_plot facets when plot_facet is supplied [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   p  <- suppressWarnings(
     scaled_ridge_plot(sc, grps = c("year", "area"), plot_y = "year", plot_facet = "area")
@@ -321,6 +335,7 @@ test_that("scaled_ridge_plot facets when plot_facet is supplied [brms]", {
 })
 
 test_that("scaled_ridge_plot bin_range subsets bins [brms]", {
+  skip_if_no_brms()
   sc <- get_sc(sim_fit_brms, sim_scale_df)
   p  <- suppressWarnings(
     scaled_ridge_plot(sc, grps = c("year", "area"), plot_y = "year", bin_range = c(20, 40))
@@ -344,4 +359,17 @@ test_that("scaled_ridge_plot returns a ggplot [TMB spatial]", {
     scaled_ridge_plot(sc, grps = c("year", "area"), plot_y = "year")
   )
   expect_s3_class(p, "ggplot")
+})
+
+test_that("theme_compom and legend labels in scaled_comp_plot", {
+  expect_s3_class(theme_compom(), "theme")
+  sc <- scale_comps(sim_scale_df, "catch", sim_fit_tmb, grps = c("year", "season"))
+  ref <- dplyr::rename(sim_comp, tcatch = count)
+  p <- scaled_comp_plot(sc, grps = "year", comp_are = ref, comp_label = "True")
+  b <- ggplot2::ggplot_build(p)
+  expect_true("True" %in% b$plot$scales$get_scales("colour")$get_labels())
+})
+
+test_that("post_pred_group plot builds", {
+  expect_no_error(ggplot2::ggplot_build(post_pred_group(sim_fit_tmb_spatial, grp = "year")))
 })

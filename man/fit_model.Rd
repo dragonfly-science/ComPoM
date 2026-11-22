@@ -11,10 +11,10 @@ fit_model(
   spl = "2D",
   knots = "c(5,10)",
   data = NULL,
-  dist = "poisson()",
+  dist = "poisson",
   chains = 4,
-  threads = 16,
-  cores = 32,
+  threads = NULL,
+  cores = min(chains, parallel::detectCores()),
   backend = "brms",
   brms_backend = "rstan",
   iter = 1000,
@@ -28,6 +28,7 @@ fit_model(
   time = NULL,
   share_spatial_sd = TRUE,
   share_spatiotemporal_sd = TRUE,
+  spatiotemporal = TRUE,
   coords = c("x", "y"),
   priors = NULL,
   newton_loops = 1
@@ -45,19 +46,23 @@ intercepts. \code{NULL} = none.}
 \code{spl}.}
 
 \item{spl}{Smooth type for \code{cvars}: \code{"2D"}, \code{"by_factor"} or
-\code{"by"}; see \code{parse_form()}.}
+\code{"by"}; see \code{parse_form()}. \code{"2D"} is unreliable with
+\code{backend = "TMB"} (non-positive-definite Hessian); use
+\code{"by_factor"} there.}
 
 \item{knots}{Basis dimension(s) for the \code{cvars} smooth, as a character
 string (e.g. \code{"4"} or \code{"c(5,10)"} for \code{spl = "2D"}).}
 
 \item{data}{Prepared data frame from \code{data_prep()}.}
 
-\item{dist}{Response distribution passed to \code{brms::brm()} as
-\code{family} (brms backend only; the TMB backend always uses
+\item{dist}{Response family passed to \code{brms::brm()} as \code{family}:
+a family name (default \code{"poisson"}) or family object such as
+\code{poisson()} (brms backend only; the TMB backend always uses
 \code{poisson()}).}
 
 \item{chains, cores, threads}{Number of MCMC chains, cores and within-chain
-threads (brms backend only).}
+threads (brms backend only). By default, one core is used per chain (up
+to the number of available cores) and no within-chain threading.}
 
 \item{backend}{the backend used for model fitting: \code{"brms"} or
 \code{"TMB"}.}
@@ -83,6 +88,11 @@ required by \code{post_pred_group()}. Can be slow.}
 \item{share_spatial_sd}{Share spatial SD across bins (TMB backend only)}
 
 \item{share_spatiotemporal_sd}{Share spatiotemporal SD across bins (TMB backend only)}
+
+\item{spatiotemporal}{Include spatio-temporal fields (one per bin and time
+step) in addition to the spatial fields (TMB backend with a \code{mesh}
+only). \code{FALSE} fits spatial fields only; \code{time} is still
+required, as it is used for prediction.}
 
 \item{coords}{Character vector of coordinate column names (TMB backend only)}
 
@@ -115,12 +125,32 @@ proportions follow a multinomial-logit model (see
 \details{
 With \code{backend = "TMB"} and a \code{mesh}, the model adds one spatial
 Gaussian random field per bin and one spatio-temporal field per bin and
-time step (set up with \code{sdmTMB::make_category_svc()}).
+time step (set up with \code{sdmTMB::make_category_svc()}). Set
+\code{spatiotemporal = FALSE} to fit the spatial fields only.
 
 With \code{backend = "brms"}, fixed effects receive a
 \code{student_t(10, 0, 1)} prior. With \code{backend = "TMB"}, uncertainty
 in downstream functions is obtained from \code{nsim} draws from the
 approximate joint sampling distribution of the parameters.
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+
+# maximum likelihood fit: Year as effect of interest, Season and Vessel as
+# nuisance random effects
+fit <- fit_model(
+  ffx_form = "Year", re_form = "Season + Vessel",
+  data = dat, backend = "TMB", iter = 300, warmup = 100, thin = 2
+)
+class(fit)
+
+\donttest{
+# Bayesian fit with brms (compiles a Stan model; slow)
+fit_b <- fit_model(
+  ffx_form = "Year", re_form = "Season + Vessel", data = dat,
+  backend = "brms", chains = 2, iter = 400, warmup = 200, thin = 1
+)
+}
 }
 \seealso{
 \code{data_prep()}, \code{scale_comps()}, \code{Fx_plot()},

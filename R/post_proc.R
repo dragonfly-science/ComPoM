@@ -7,27 +7,33 @@
 #' Requires a fit from \code{fit_model(..., add_preds = TRUE)}.
 #'
 #' @param mod An object from fit_model
-#' @param grp group to do PPC over
-#' @param xlab label for composition plot
+#' @param grp Name(s) of the grouping variable(s) in the model data to check
+#'   over (e.g. \code{"Year"}). \code{NULL} pools all strata.
+#' @param xlab x-axis label (the bin variable)
 #' @return A ggplot with predicted medians and intervals (black) and observed
 #'   counts (blue), faceted by \code{grp}.
 #'
-#' @import cowplot
-#' @import ggplot2
+#' @seealso \code{fit_model()}
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+#'                  iter = 300, warmup = 100, thin = 2, add_preds = TRUE)
+#' post_pred_group(fit, grp = "Year", xlab = "Length (cm)")
 #' @export
 #'
 post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 
   pds <- mod$preds
-  if(!is.null(grp)) grps <- sym(grp)
+  if (is.null(pds))
+    stop("No predictive draws: refit with `fit_model(..., add_preds = TRUE)`")
+  grps <- if (!is.null(grp)) syms(grp) else list()
 
-  #browser()
   pps <- pds  %>%
-    group_by(!!grps,bin, .draw) %>%
-    summarise(tot = sum(tot_by_bin), .pred = sum(.prediction)) %>%
-    group_by(!!grps, .draw) %>%
+    group_by(!!!grps, bin, .draw) %>%
+    summarise(tot = sum(tot_by_bin), .pred = sum(.prediction), .groups = "drop_last") %>%
+    group_by(!!!grps, .draw) %>%
     mutate( .pred = (.pred/sum(.pred))*sum(tot)) %>%
-    group_by(!!grps,bin, tot) %>%
+    group_by(!!!grps, bin, tot) %>%
     median_qi(.pred)
 
   p <- ggplot(pps) +
@@ -35,10 +41,10 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
     geom_point(aes(x=bin,y=tot), col='skyblue') +
     xlab(xlab) +
     ylab('Prediction') +
-    theme_cowplot() +
+    theme_compom() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
 
-  if(!is.null(grp)) p <- p+facet_wrap(vars(!!grps),scales = 'free_y')
+  if(!is.null(grp)) p <- p+facet_wrap(vars(!!!grps),scales = 'free_y')
 
   return(p)
 }
@@ -54,19 +60,29 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
 #' average.
 #'
 #' @param mod An object from fit_model
-#' @param grp group to plot effects for, needs to include cvar if present
+#' @param grp Character vector of the variable(s) to plot effects for (e.g.
+#'   \code{"Year"}); must include \code{cvar} if one is used. Facets are by the
+#'   first variable.
 #' @param form Unused; retained for backwards compatibility.
-#' @param grid optional plotting with facet grid along two variables (need to be in grp)
-#' @param cvar continuous variable if used in model
+#' @param grid Optional character vector of two variables in \code{grp} for a
+#'   \code{facet_grid()} layout (rows, columns) instead of \code{facet_wrap()}.
+#' @param cvar Name of the continuous covariate, if the model has one. It is
+#'   held at its mean.
+#' @param xlab x-axis label (the bin variable)
 #' @return A ggplot of median multipliers and intervals per bin, faceted by
 #'   the first variable in \code{grp} (or by \code{grid}).
 #'
-#' @import cowplot
-#' @import dplyr
-#' @importFrom posterior draws_df
+#' @importFrom tidybayes add_linpred_draws median_qi
+#' @importFrom stats predict
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+#'                  iter = 300, warmup = 100, thin = 2)
+#' Fx_plot(fit, grp = "Year")
 #' @export
 #'
-Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL){
+Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
+                    xlab = 'Length bin (cm)'){
 
   if(!is.null(cvar)) grps <- syms(grp[(!grp %in% cvar)]) else grps <- syms(grp)
 
@@ -98,7 +114,7 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
     {if(!is.null(cvar)) mutate(., !!cvar:=mean(mod$data[[cvar]])) else .} %>%
     complete(nesting(!!!syms(grp),bin),fill=list(n=100))
 
-  if(class(mod$model)=='brmsfit'){
+  if(inherits(mod$model, 'brmsfit')){
 
     # brms re-evaluates factor(var) in the formula on newdata, which fails when a
     # factor held at its mode has a single level (e.g. Year when grp = "Season").
@@ -127,7 +143,7 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
       dplyr::filter(!.pad) %>%
       dplyr::select(-.pad)
 
-  } else if(class(mod$model)=='sdmTMB'){
+  } else if(inherits(mod$model, 'sdmTMB')){
 
     # For spatial models, add coordinate columns using mean coordinates
     if(mod$spatial_varying && !is.null(mod$coords)){
@@ -173,9 +189,9 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
 
   p <- ggplot(preda)  + geom_hline(yintercept = 1,linetype=2,alpha=0.5) +
     geom_pointrange(aes(x=bin,y=pred,ymin=.lower,ymax=.upper)) +
-    xlab('Length bin (cm)') +
+    xlab(xlab) +
     ylab('Multiplier') +
-    theme_cowplot() +
+    theme_compom() +
     theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
   #browser()
   if(is.null(grid))  p <- p+facet_wrap(facets = vars(!!grps[[1]]),scales = 'free_y')
@@ -188,7 +204,8 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
 #'
 #' Predicts the composition for each stratum in \code{scale_df} from a fitted
 #' model and multiplies the predicted proportions by the stratum weight
-#' (\code{predvar}, e.g. catch or predicted CPUE). Strata are the unique combinations of \code{grps} (plus
+#' (\code{predvar}, e.g. catch or predicted CPUE). Strata are the unique combinations of
+#' \code{grps} (plus
 #' the coordinates for spatial models). The result is a set of draws of
 #' numbers-at-bin per stratum, which can be summed over any subset of
 #' \code{grps} and normalised to obtain weighted compositions (e.g. with
@@ -235,8 +252,9 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
 #'   \code{ffx_form} variables and, for catch weighting, the \code{re_form}
 #'   variables.
 #' @param fit A \code{ComPoM} object from \code{fit_model()}
-#' @param iters Number of posterior draws (brms only; default uses all stored draws)
-#' @param pgrid Reserved for future use
+#' @param iters Number of posterior draws (brms only; default uses all stored
+#'   draws). For sdmTMB fits the number of draws is set by \code{fit_model()}.
+#' @param pgrid Not used; reserved for future use.
 #' @param remove_nuisance Logical. \code{FALSE} (default) selects catch
 #'   weighting, with nuisance random effects evaluated at each stratum's level.
 #'   \code{TRUE} selects CPUE-based scaling, with nuisance random effects
@@ -245,7 +263,24 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL)
 #'   (\code{tot_by_bin}) per stratum and bin. The weight per stratum (sum of
 #'   \code{predvar}) is in \code{n}.
 #'
-#' @import cowplot
+#' @importFrom tidybayes add_predicted_draws
+#' @importFrom stats predict
+#' @seealso \code{scaled_comp_plot()}, \code{scaled_ridge_plot()}
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+#'                  iter = 300, warmup = 100, thin = 2)
+#'
+#' # catch weighting: composition of the total catch of the fleet
+#' sc <- scale_comps(ex_catch, predvar = "catch", fit = fit,
+#'                   grps = c("Year", "Season", "Vessel"))
+#' head(sc)
+#' scaled_comp_plot(sc, grps = "Year")
+#'
+#' # CPUE-based scaling: nuisance effects removed; one weight per year
+#' cpue <- data.frame(Year = factor(2015:2020), cpue = 1)
+#' sc_pop <- scale_comps(cpue, predvar = "cpue", fit = fit, grps = "Year",
+#'                       remove_nuisance = TRUE)
 #' @export
 #'
 scale_comps <- function(scale_df,
@@ -421,14 +456,32 @@ scale_comps <- function(scale_df,
 #' @param grps grouping variables to aggregate to (e.g. \code{"Year"})
 #' @param scaled If \code{TRUE}, plot proportions; if \code{FALSE}, plot
 #'   catch-at-bin.
-#' @param scales passed to \code{facet_wrap()}/\code{facet_grid()}
+#' @param scales Passed to \code{facet_wrap()}/\code{facet_grid()}. Panels are
+#'   a \code{facet_wrap()} by \code{grps} when it has one element, and a
+#'   \code{facet_grid()} with the first element in rows and the remaining
+#'   elements in columns otherwise.
 #' @param comp_are,comp_are2 Optional data frames with \code{grps}, \code{bin}
-#'   and \code{cvar}, overlaid as blue and orange points respectively.
+#'   and \code{cvar}, overlaid as blue and orange points respectively. Counts
+#'   are converted to proportions within \code{grps} when \code{scaled = TRUE}.
 #' @param cvar Column in \code{comp_are}/\code{comp_are2} holding the counts
 #'   or catch per bin.
-#' @return A ggplot.
+#' @param xlab x-axis label (the bin variable)
+#' @param comp_label,comp2_label Legend labels for the points from
+#'   \code{comp_are} (skyblue) and \code{comp_are2} (orange).
+#' @return A ggplot with the mean and 95\% quantile interval of the
+#'   composition (or catch-at-bin) per bin.
 #'
-#' @import cowplot
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+#'                  iter = 300, warmup = 100, thin = 2)
+#' sc <- scale_comps(ex_catch, "catch", fit, grps = c("Year", "Season", "Vessel"))
+#'
+#' scaled_comp_plot(sc, grps = "Year")
+#'
+#' # overlay the raw sample composition
+#' raw <- dplyr::rename(ex_comp, bin = length)
+#' scaled_comp_plot(sc, grps = "Year", comp_are = raw, cvar = "count")
 #' @export
 #'
 scaled_comp_plot <- function(scaled_comp=NULL,
@@ -437,13 +490,16 @@ scaled_comp_plot <- function(scaled_comp=NULL,
                              scales = "free_y",
                              comp_are = NULL,
                              comp_are2 = NULL,
-                             cvar='tcatch'){
+                             cvar='tcatch',
+                             xlab = 'Length bin (cm)',
+                             comp_label = 'Reference',
+                             comp2_label = 'Reference 2'){
 
   if(scaled == T) {
 
     preda <- scaled_comp %>%
       group_by(across(all_of(grps) ), bin, .draw) %>%
-      summarise(tot = sum(tot_by_bin)) %>%
+      summarise(tot = sum(tot_by_bin), .groups = "drop_last") %>%
       group_by(across(all_of(grps) ), .draw) %>%
       mutate(prop = tot/sum(tot)) %>%
       group_by(across(all_of(grps) ), bin) %>%
@@ -503,12 +559,19 @@ scaled_comp_plot <- function(scaled_comp=NULL,
 
   p <- ggplot( preda ) +
     geom_pointrange(aes(x=bin,y=prop,ymin=.lower,ymax=.upper)) +
-    {if(!is.null(comp_are)) geom_point(aes(x=bin,y=prop), col='skyblue',data=comp)} +
-    {if(!is.null(comp_are2)) geom_point(aes(x=bin,y=prop), col='orange',data=comp2)} +
-    xlab('Length bin (cm)') +
+    {if(!is.null(comp_are)) geom_point(aes(x=bin,y=prop,colour=comp_label), data=comp)} +
+    {if(!is.null(comp_are2)) geom_point(aes(x=bin,y=prop,colour=comp2_label), data=comp2)} +
+    scale_colour_manual(
+      values = c(setNames('skyblue', comp_label)[!is.null(comp_are)],
+                 setNames('orange', comp2_label)[!is.null(comp_are2)]),
+      breaks = c(comp_label, comp2_label)[c(!is.null(comp_are), !is.null(comp_are2))],
+      name = NULL) +
+    scale_x_continuous(breaks = int_breaks) +
+    xlab(xlab) +
     ylab('Prediction') +
-    theme_cowplot() +
-    theme(axis.text.x = element_text(angle=45, hjust=1,size = 8))
+    theme_compom() +
+    theme(axis.text.x = element_text(angle=45, hjust=1,size = 8),
+          legend.position = 'bottom')
 
   if(length(grps)==1) p <- p+facet_wrap(facets = vars(!!as.symbol(grps)),scales = scales,drop = T,ncol = 4)
   if(length(grps)>=2) p <- p+facet_grid(rows = vars(!!as.symbol(grps[1])),cols = vars(!!!syms(grps[2:length(grps)])),scales = scales)
@@ -518,15 +581,32 @@ scaled_comp_plot <- function(scaled_comp=NULL,
 
 
 #' Plot scaled compositions as ridgeline plot
-#' @param scaled_comp data frame from \code{scale_comps()}
-#' @param grps character vector of grouping variables used in \code{scale_comps()}
-#' @param plot_y variable name (string) to stack on the y-axis (e.g. \code{"Year"})
-#' @param plot_facet optional variable name (string) to facet by. \code{NULL} = no facet.
-#' @param scales passed to \code{facet_wrap()}, default \code{"free_y"}
-#' @param bin_range optional numeric vector \code{c(min, max)} to restrict plotted bins
+#'
+#' Sums the draws from \code{scale_comps()} over strata within levels of
+#' \code{grps}, converts them to proportions and plots the median composition
+#' of each level as a ridgeline, stacked along \code{plot_y}.
+#'
+#' @param scaled_comp Data frame from \code{scale_comps()}.
+#' @param grps Character vector of grouping variables to aggregate to; must
+#'   contain \code{plot_y} (and \code{plot_facet}, if used).
+#' @param plot_y Variable name (string) to stack on the y-axis (e.g.
+#'   \code{"Year"}).
+#' @param plot_facet Optional variable name (string) to facet by. \code{NULL} =
+#'   no facet.
+#' @param scales Passed to \code{facet_wrap()}, default \code{"free_y"}.
+#' @param bin_range Optional numeric vector \code{c(min, max)} to restrict
+#'   plotted bins.
+#' @param xlab x-axis label (the bin variable)
+#' @return A ggplot.
 #'
 #' @import cowplot
-#' @import ggridges
+#' @importFrom ggridges geom_ridgeline
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+#'                  iter = 300, warmup = 100, thin = 2)
+#' sc <- scale_comps(ex_catch, "catch", fit, grps = c("Year", "Season", "Vessel"))
+#' scaled_ridge_plot(sc, grps = "Year", plot_y = "Year")
 #' @export
 #'
 scaled_ridge_plot <- function(scaled_comp = NULL,
@@ -534,7 +614,8 @@ scaled_ridge_plot <- function(scaled_comp = NULL,
                               plot_y      = NULL,
                               plot_facet  = NULL,
                               scales      = "free_y",
-                              bin_range   = NULL) {
+                              bin_range   = NULL,
+                              xlab        = "Length bin (cm)") {
 
   if (is.null(plot_y)) stop("`plot_y` must be supplied as a column name string")
 
@@ -562,14 +643,14 @@ scaled_ridge_plot <- function(scaled_comp = NULL,
   ) +
     ggridges::geom_ridgeline(
       scale     = 8,
-      fill      = "steelblue",
+      fill      = "skyblue",
       alpha     = 0.6,
       color     = "grey30",
       linewidth = 0.3
     ) +
-    ggplot2::xlab("Length bin (cm)") +
+    ggplot2::xlab(xlab) +
     ggplot2::ylab(plot_y) +
-    ggplot2::theme_bw()
+    theme_compom()
 
   if (!is.null(plot_facet)) {
     p <- p + ggplot2::facet_wrap(
@@ -604,8 +685,14 @@ scaled_ridge_plot <- function(scaled_comp = NULL,
 #'   Defaults to the first level of the first RE variable.
 #' @param n_grid Integer. Number of covariate values in the prediction grid.
 #'   Default 50.
+#' @return A ggplot of the centred smooth effect (log scale) per bin.
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip", "sst"), "length", "count")
+#' dat$sst <- as.numeric(as.character(dat$sst))
+#' fit <- fit_model("Year", "Season", cvars = "sst", spl = "by_factor", knots = "4",
+#'                  data = dat, backend = "TMB", iter = 300, warmup = 100, thin = 2)
+#' cvar_smooth_plot(fit, "sst")
 #' @export
-#' @import ggplot2
 cvar_smooth_plot <- function(fit,
                              cvar    = NULL,
                              ref_ffx = NULL,
@@ -744,16 +831,15 @@ cvar_smooth_plot <- function(fit,
 
   ggplot2::ggplot(plot_df, ggplot2::aes(x = .data[[cvar]], y = est_c)) +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi),
-                         fill = "steelblue", alpha = 0.25) +
-    ggplot2::geom_line(colour = "steelblue", linewidth = 0.8) +
+                         fill = "skyblue", alpha = 0.25) +
+    ggplot2::geom_line(colour = "skyblue", linewidth = 0.8) +
     ggplot2::geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50") +
     ggplot2::facet_wrap(~bin, labeller = ggplot2::label_both, scales = "free_y") +
     ggplot2::labs(
       x     = cvar,
-      y     = "Multiplier (response scale, centred)",
-      title = paste0("Marginal smooth effects by bin  -  ", cvar)
+      y     = "Multiplier (response scale, centred)"
     ) +
-    ggplot2::theme_bw(base_size = 10)
+    theme_compom()
 }
 
 
@@ -773,8 +859,20 @@ cvar_smooth_plot <- function(fit,
 #' @param lon_step Numeric. Longitude grid resolution. Default 5.
 #' @param lat_step Numeric. Latitude grid resolution. Default 5.
 #' @param ncol Integer. Number of facet columns. Default 4.
+#' @return A ggplot with one tile map per bin.
+#' @examples
+#' \donttest{
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip", "x", "y"),
+#'                  "length", "count")
+#' dat$x <- as.numeric(as.character(dat$x))
+#' dat$y <- as.numeric(as.character(dat$y))
+#' mesh <- sdmTMB::make_mesh(dat, c("x", "y"), cutoff = 25)
+#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+#'                  mesh = mesh, time = "Year", coords = c("x", "y"),
+#'                  iter = 300, warmup = 100, thin = 2)
+#' spatial_field_plot(fit, lon_step = 10, lat_step = 10)
+#' }
 #' @export
-#' @import ggplot2
 spatial_field_plot <- function(fit,
                                cvar     = NULL,
                                ref_ffx  = NULL,
@@ -875,16 +973,19 @@ spatial_field_plot <- function(fit,
                                fill = est_c)) +
     ggplot2::geom_tile(width = lon_step, height = lat_step) +
     ggplot2::facet_wrap(~bin, labeller = ggplot2::label_both, ncol = ncol) +
-    ggplot2::scale_fill_distiller(
-      palette = "RdBu", limits = c(-lim, lim),
+    ggplot2::scale_fill_viridis_c(
+      option = "cividis", limits = c(-lim, lim),
       name    = "Spatial\ndeviation\n(log scale)"
     ) +
     ggplot2::coord_equal() +
     ggplot2::labs(
       x     = lon_col,
-      y     = lat_col,
-      title = "Spatial field by bin (deviation from bin mean)"
+      y     = lat_col
     ) +
-    ggplot2::theme_bw(base_size = 10) +
+    theme_compom() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
 }
+
+# Axis breaks at whole numbers (bins are lengths or ages, not fractions)
+int_breaks <- function(lims) unique(round(pretty(lims)))
+

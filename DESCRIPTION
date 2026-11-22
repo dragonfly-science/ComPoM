@@ -1,9 +1,13 @@
 Package: ComPoM
 Type: Package
 Title: Poisson-Multinomial Models to Standardise and Scale Compositions
-Version: 0.2.0
-Author: Philipp Neubauer, D'Arcy Webber
-Maintainer: Philipp Neubauer <philipp@dragonfly.co.nz>
+Version: 0.3.0
+Authors@R: c(
+    person("Philipp", "Neubauer", , "philipp@dragonfly.co.nz", role = c("aut", "cre", "cph")),
+    person("D'Arcy", "Webber", role = "aut"))
+URL: https://github.com/dragonfly-science/ComPoM,
+    https://dragonfly-science.github.io/ComPoM/
+BugReports: https://github.com/dragonfly-science/ComPoM/issues
 Description: Fits Poisson-multinomial models to compositional count data, such
     as length or age frequencies from fisheries observer or market sampling, in
     order to standardise compositions for non-representative sampling and scale
@@ -22,30 +26,38 @@ Description: Fits Poisson-multinomial models to compositional count data, such
     uncertainty from posterior or simulation draws. Plotting functions show
     estimated effects, posterior predictive checks, smooth effects, spatial
     fields, and scaled compositions.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Suggests:
-    knitr,
-    rmarkdown,
-    rstan,
-    testthat (>= 3.0.0)
-VignetteBuilder: knitr
+Depends:
+    R (>= 4.1.0)
 Imports:
     brms,
+    cowplot,
     dplyr,
-    tidyr,
     ggplot2,
     ggridges,
-    rlang,
-    stringr,
-    recipes,
-    sdmTMB,
-    tidybayes,
-    cowplot,
     parallel,
-    posterior,
     purrr,
-    tibble
+    rlang,
+    sdmTMB,
+    stats,
+    tibble,
+    tidybayes,
+    tidyr,
+    utils
+Suggests:
+    covr,
+    fmesher,
+    knitr,
+    MASS,
+    patchwork,
+    rmarkdown,
+    rstan,
+    sf,
+    terra,
+    testthat (>= 3.0.0),
+    tidyverse
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1

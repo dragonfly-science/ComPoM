@@ -11,10 +11,15 @@
 #' Any variable later used in \code{fit_model()} (fixed effects, nuisance
 #' random effects, continuous covariates, coordinates, time) must be included
 #' here, otherwise it is aggregated away.
-#' @param comp A compositional dataset with columns for counts (can be names differently) per bin (can be named differently), and all `vars_for_grouping`
-#' @param vars_for_grouping A character vector of variables used for grouping the compositional dataframe
-#' @param bin_lab A string with the column label for the bins if not "bin"
-#' @param count_var A string with the column label for the counts by bins if not "count"
+#' @param comp A data frame with one row per observation (or per stratum and
+#'   bin), with a column of counts, a column of bins and all
+#'   \code{vars_for_grouping}.
+#' @param vars_for_grouping Character vector of the variables that define a
+#'   stratum (e.g. \code{c("Year", "Season", "Vessel")}).
+#' @param bin_lab Name of the column holding the bins (length, age, etc.).
+#'   Default \code{"bin"}. The column is renamed to \code{bin} in the output.
+#' @param count_var Name of the column holding the counts. Default
+#'   \code{"count"}.
 #' @param min_n Integer. Minimum total count per grouping stratum. Strata with
 #'   fewer than \code{min_n} total fish are dropped before fitting. Useful for
 #'   removing sparse early years that would create all-zero design matrix
@@ -26,11 +31,20 @@
 #' @return A grouped data frame with one row per stratum and bin, containing
 #'   \code{vars_for_grouping}, \code{bin}, the count per bin
 #'   (\code{tot_by_bin}) and the stratum total (\code{n}).
+#' @seealso \code{fit_model()}
+#' @examples
+#' dat <- data_prep(
+#'   ex_comp,
+#'   vars_for_grouping = c("Year", "Season", "Vessel", "trip"),
+#'   bin_lab = "length",
+#'   count_var = "count"
+#' )
+#' head(dat)
+#'
+#' # merge 10 cm bins into 20 cm bins
+#' head(data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count",
+#'                bin_width = 20))
 #' @export
-#' @import dplyr
-#' @import tidyr
-#' @import rlang
-
 data_prep <- function(
     comp = NULL,
     vars_for_grouping = NULL,
@@ -57,7 +71,7 @@ data_prep <- function(
              fill = list(tot_by_bin = 0)) |>
     group_by(across(all_of(vars_for_grouping))) |>
     mutate(n = sum(tot_by_bin)) |>
-    rename(bin = bin_lab) |>
+    rename(bin = dplyr::all_of(bin_lab)) |>
     filter(n >= min_n)
 }
 
@@ -75,7 +89,11 @@ data_prep <- function(
 #' \describe{
 #'   \item{\code{"2D"}}{\code{t2(cvar, cbin, k = knots)}, a tensor-product
 #'     smooth over the covariate and the numeric bin value. Requires numeric
-#'     bins (e.g. length).}
+#'     bins (e.g. length). With the \code{"TMB"} backend this smooth gave a
+#'     non-positive-definite Hessian in all simulations tried, because its
+#'     marginal bin component is collinear with the bin-specific intercepts
+#'     (the numeric bin value has only as many distinct values as there are
+#'     bins). Use \code{"by_factor"} with that backend.}
 #'   \item{\code{"by_factor"}}{\code{s(cvar, by = bin, k = knots)}, a separate
 #'     1D smooth of the covariate for each bin. Also applicable to
 #'     non-ordered categories (e.g. species).}
@@ -93,16 +111,25 @@ data_prep <- function(
 #'   \code{(1|bin:Season)} IID random intercepts. \code{scale_comps()}
 #'   evaluates them at each stratum's level (\code{remove_nuisance = FALSE})
 #'   or removes them (\code{remove_nuisance = TRUE}).
-#' @param cvars Continuous variable to be fitted as 2D spline with bin
-#' @param knots knots (1D or 2D) for cvar spline; as character for now
-#' @param spl 1D spline over cvar per bin, or 2D spline over bins and cvar; as character for now
-#' @param coords Character vector of coordinate column names to preserve (TMB backend only)
-#' @param time Time column name to preserve (TMB backend only)
+#' @param cvars Character vector of continuous covariates to be fitted as
+#'   smooths with bin (see Details). \code{NULL} = none.
+#' @param knots Basis dimension of the smooths, as a character string: a single
+#'   number (e.g. \code{"4"}) for \code{spl = "by_factor"} or \code{"by"},
+#'   or \code{"c(5,10)"} (covariate, bin) for \code{spl = "2D"}.
+#' @param spl Smooth type: \code{"2D"}, \code{"by_factor"} or \code{"by"}
+#'   (see Details).
+#' @param coords Character vector of coordinate column names that are kept
+#'   numeric (spatial TMB models only)
+#' @param time Name of the time column that is kept numeric/unchanged (TMB
+#'   backend only)
 #' @return A list with the model formula (\code{form}), the model data with
 #'   grouping variables converted to factors (\code{data}), and the names of
 #'   the nuisance random-effect variables (\code{re_vars}).
-#' @import stringr
-#' @import recipes
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#' pf <- parse_form(dat, backend = "TMB", ffx_form = "Year", re_form = "Season + Vessel")
+#' pf$form
+#' pf$re_vars
 #' @export
 #'
 parse_form <- function(data,
@@ -119,9 +146,7 @@ parse_form <- function(data,
   # ── fixed-effect part: factor(var):bin interactions ─────────────────────────
   ffx_terms <- NULL
   if (!is.null(ffx_form) && nchar(trimws(ffx_form)) > 0) {
-    ffx_parts <- stringr::str_remove_all(
-      stringr::str_split(ffx_form, '\\+')[[1]], pattern = ' '
-    )
+    ffx_parts <- gsub(' ', '', strsplit(ffx_form, '+', fixed = TRUE)[[1]])
     ffx_terms <- paste0('factor(', ffx_parts, '):bin')
   }
 
@@ -129,9 +154,7 @@ parse_form <- function(data,
   re_terms <- NULL
   re_vars  <- NULL
   if (!is.null(re_form) && nchar(trimws(re_form)) > 0) {
-    re_vars  <- stringr::str_remove_all(
-      stringr::str_split(re_form, '\\+')[[1]], pattern = ' '
-    )
+    re_vars  <- gsub(' ', '', strsplit(re_form, '+', fixed = TRUE)[[1]])
     re_terms <- paste0('(1|bin:', re_vars, ')')
   }
 
@@ -174,7 +197,7 @@ parse_form <- function(data,
     TMB  = as.formula(paste("tot_by_bin~", newform))
   )
 
-  print(form)
+  message("Model formula: ", paste(trimws(deparse(form)), collapse = " "))
 
   # ── factor conversion: preserve coords, time, cvars ─────────────────────────
   exclude_pattern <- paste(c('.*_by_.*', '^n$', cvars, if (!is.null(cvars)) '^cbin$'),
@@ -229,7 +252,8 @@ parse_form <- function(data,
 #'
 #' With \code{backend = "TMB"} and a \code{mesh}, the model adds one spatial
 #' Gaussian random field per bin and one spatio-temporal field per bin and
-#' time step (set up with \code{sdmTMB::make_category_svc()}).
+#' time step (set up with \code{sdmTMB::make_category_svc()}). Set
+#' \code{spatiotemporal = FALSE} to fit the spatial fields only.
 #'
 #' With \code{backend = "brms"}, fixed effects receive a
 #' \code{student_t(10, 0, 1)} prior. With \code{backend = "TMB"}, uncertainty
@@ -242,8 +266,9 @@ parse_form <- function(data,
 #'   e.g. \code{"Season + Gear"}. These become \code{(1|bin:var)} IID
 #'   intercepts. \code{NULL} = none.
 #' @param data Prepared data frame from \code{data_prep()}.
-#' @param dist Response distribution passed to \code{brms::brm()} as
-#'   \code{family} (brms backend only; the TMB backend always uses
+#' @param dist Response family passed to \code{brms::brm()} as \code{family}:
+#'   a family name (default \code{"poisson"}) or family object such as
+#'   \code{poisson()} (brms backend only; the TMB backend always uses
 #'   \code{poisson()}).
 #' @param backend the backend used for model fitting: \code{"brms"} or
 #'   \code{"TMB"}.
@@ -252,9 +277,12 @@ parse_form <- function(data,
 #' @param knots Basis dimension(s) for the \code{cvars} smooth, as a character
 #'   string (e.g. \code{"4"} or \code{"c(5,10)"} for \code{spl = "2D"}).
 #' @param spl Smooth type for \code{cvars}: \code{"2D"}, \code{"by_factor"} or
-#'   \code{"by"}; see \code{parse_form()}.
+#'   \code{"by"}; see \code{parse_form()}. \code{"2D"} is unreliable with
+#'   \code{backend = "TMB"} (non-positive-definite Hessian); use
+#'   \code{"by_factor"} there.
 #' @param chains,cores,threads Number of MCMC chains, cores and within-chain
-#'   threads (brms backend only).
+#'   threads (brms backend only). By default, one core is used per chain (up
+#'   to the number of available cores) and no within-chain threading.
 #' @param brms_backend Stan interface used by brms (\code{"rstan"} or
 #'   \code{"cmdstanr"}).
 #' @param iter,warmup,thin MCMC iterations, warm-up iterations and thinning
@@ -267,6 +295,10 @@ parse_form <- function(data,
 #' @param mesh An sdmTMB mesh object created with make_mesh() (TMB backend only)
 #' @param time Column name for time (year) variable (TMB backend only)
 #' @param share_spatial_sd Share spatial SD across bins (TMB backend only)
+#' @param spatiotemporal Include spatio-temporal fields (one per bin and time
+#'   step) in addition to the spatial fields (TMB backend with a \code{mesh}
+#'   only). \code{FALSE} fits spatial fields only; \code{time} is still
+#'   required, as it is used for prediction.
 #' @param share_spatiotemporal_sd Share spatiotemporal SD across bins (TMB backend only)
 #' @param coords Character vector of coordinate column names (TMB backend only)
 #' @param priors An \code{sdmTMBpriors()} object for regularisation (TMB
@@ -285,10 +317,29 @@ parse_form <- function(data,
 #'   \code{cvars}).
 #' @seealso \code{data_prep()}, \code{scale_comps()}, \code{Fx_plot()},
 #'   \code{vignette("ComPoM")}
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#'
+#' # maximum likelihood fit: Year as effect of interest, Season and Vessel as
+#' # nuisance random effects
+#' fit <- fit_model(
+#'   ffx_form = "Year", re_form = "Season + Vessel",
+#'   data = dat, backend = "TMB", iter = 300, warmup = 100, thin = 2
+#' )
+#' class(fit)
+#'
+#' \donttest{
+#' # Bayesian fit with brms (compiles a Stan model; slow)
+#' fit_b <- fit_model(
+#'   ffx_form = "Year", re_form = "Season + Vessel", data = dat,
+#'   backend = "brms", chains = 2, iter = 400, warmup = 200, thin = 1
+#' )
+#' }
 #' @export
-#' @import brms
-#' @import sdmTMB
-#' @import tidybayes
+#' @importFrom brms bf brm set_prior rhat
+#' @importFrom sdmTMB sdmTMB sdmTMBcontrol sdmTMBpriors make_category_svc
+#' @importFrom tidybayes add_predicted_draws
+#' @importFrom stats as.formula model.matrix poisson simulate
 #'
 fit_model <- function(ffx_form,
                       re_form  = NULL,
@@ -296,10 +347,10 @@ fit_model <- function(ffx_form,
                       spl      = '2D',
                       knots    = 'c(5,10)',
                       data     = NULL,
-                      dist     = 'poisson()',
+                      dist     = 'poisson',
                       chains   = 4,
-                      threads  = 16,
-                      cores    = 32,
+                      threads  = NULL,
+                      cores    = min(chains, parallel::detectCores()),
                       backend  = 'brms',
                       brms_backend = 'rstan',
                       iter     = 1000,
@@ -313,6 +364,7 @@ fit_model <- function(ffx_form,
                       time     = NULL,
                       share_spatial_sd = TRUE,
                       share_spatiotemporal_sd = TRUE,
+                      spatiotemporal = TRUE,
                       coords   = c("x", "y"),
                       priors   = NULL,
                       newton_loops = 1) {
@@ -353,7 +405,7 @@ fit_model <- function(ffx_form,
                refresh      = refresh,
                control      = list(max_treedepth = mtd, adapt_delta = ad)
     )
-    cat('Converged: ', all(brms::rhat(mod) < 1.05))
+    message('Converged (all Rhat < 1.05): ', all(brms::rhat(mod) < 1.05))
 
   } else if (backend == 'TMB') {
 
@@ -368,8 +420,19 @@ fit_model <- function(ffx_form,
         share_spatiotemporal_sd = share_spatiotemporal_sd
       )
 
+      svc_formula <- svc_setup$svc_formula
+      svc_map     <- svc_setup$svc_map
+      if (!spatiotemporal) {
+        # keep the spatial terms only; ln_tau_Z has one element per remaining term
+        sp_cols     <- svc_setup$info$spatial_terms
+        svc_formula <- stats::as.formula(
+          paste0("~ 0 + `", paste(sp_cols, collapse = "` + `"), "`"))
+        svc_map <- list(ln_tau_Z = factor(
+          if (share_spatial_sd) rep(1, length(sp_cols)) else seq_along(sp_cols)))
+      }
+
       control_sdmTMB <- sdmTMBcontrol(
-        map          = svc_setup$svc_map,
+        map          = svc_map,
         parallel     = parallel::detectCores(),
         multiphase   = TRUE,
         newton_loops = 0,
@@ -386,7 +449,7 @@ fit_model <- function(ffx_form,
         spatial          = "off",
         spatiotemporal   = "off",
         time             = time,
-        spatial_varying  = svc_setup$svc_formula,
+        spatial_varying  = svc_formula,
         control          = control_sdmTMB
       )
     } else {
@@ -404,6 +467,12 @@ fit_model <- function(ffx_form,
       )
     }
   }
+
+  if (backend == 'TMB' && !isTRUE(mod$sd_report$pdHess))
+    warning("The Hessian of the sdmTMB fit is not positive definite. Estimates, ",
+            "simulated draws and downstream predictions are unreliable. Simplify ",
+            "the model (e.g. fewer nuisance effects, a coarser mesh, or more data per ",
+            "bin) and check sdmTMB::sanity(fit$model).", call. = FALSE)
 
   if (add_preds)
     pp_draws <- switch(backend,

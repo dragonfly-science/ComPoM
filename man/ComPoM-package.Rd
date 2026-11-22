@@ -28,4 +28,23 @@ The workflow consists of four steps:
 
 See \code{vignette("ComPoM")} for the model equations and an example.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/dragonfly-science/ComPoM}
+  \item \url{https://dragonfly-science.github.io/ComPoM/}
+  \item Report bugs at \url{https://github.com/dragonfly-science/ComPoM/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Philipp Neubauer \email{philipp@dragonfly.co.nz} [copyright holder]
+
+Authors:
+\itemize{
+  \item Philipp Neubauer \email{philipp@dragonfly.co.nz} [copyright holder]
+  \item D'Arcy Webber
+}
+
+}
 \keyword{internal}

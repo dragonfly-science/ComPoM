@@ -10,22 +10,41 @@ scaled_ridge_plot(
   plot_y = NULL,
   plot_facet = NULL,
   scales = "free_y",
-  bin_range = NULL
+  bin_range = NULL,
+  xlab = "Length bin (cm)"
 )
 }
 \arguments{
-\item{scaled_comp}{data frame from \code{scale_comps()}}
+\item{scaled_comp}{Data frame from \code{scale_comps()}.}
 
-\item{grps}{character vector of grouping variables used in \code{scale_comps()}}
+\item{grps}{Character vector of grouping variables to aggregate to; must
+contain \code{plot_y} (and \code{plot_facet}, if used).}
 
-\item{plot_y}{variable name (string) to stack on the y-axis (e.g. \code{"Year"})}
+\item{plot_y}{Variable name (string) to stack on the y-axis (e.g.
+\code{"Year"}).}
 
-\item{plot_facet}{optional variable name (string) to facet by. \code{NULL} = no facet.}
+\item{plot_facet}{Optional variable name (string) to facet by. \code{NULL} =
+no facet.}
 
-\item{scales}{passed to \code{facet_wrap()}, default \code{"free_y"}}
+\item{scales}{Passed to \code{facet_wrap()}, default \code{"free_y"}.}
 
-\item{bin_range}{optional numeric vector \code{c(min, max)} to restrict plotted bins}
+\item{bin_range}{Optional numeric vector \code{c(min, max)} to restrict
+plotted bins.}
+
+\item{xlab}{x-axis label (the bin variable)}
+}
+\value{
+A ggplot.
 }
 \description{
-Plot scaled compositions as ridgeline plot
+Sums the draws from \code{scale_comps()} over strata within levels of
+\code{grps}, converts them to proportions and plots the median composition
+of each level as a ridgeline, stacked along \code{plot_y}.
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+                 iter = 300, warmup = 100, thin = 2)
+sc <- scale_comps(ex_catch, "catch", fit, grps = c("Year", "Season", "Vessel"))
+scaled_ridge_plot(sc, grps = "Year", plot_y = "Year")
 }

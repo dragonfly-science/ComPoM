@@ -11,7 +11,10 @@ scaled_comp_plot(
   scales = "free_y",
   comp_are = NULL,
   comp_are2 = NULL,
-  cvar = "tcatch"
+  cvar = "tcatch",
+  xlab = "Length bin (cm)",
+  comp_label = "Reference",
+  comp2_label = "Reference 2"
 )
 }
 \arguments{
@@ -22,20 +25,42 @@ scaled_comp_plot(
 \item{scaled}{If \code{TRUE}, plot proportions; if \code{FALSE}, plot
 catch-at-bin.}
 
-\item{scales}{passed to \code{facet_wrap()}/\code{facet_grid()}}
+\item{scales}{Passed to \code{facet_wrap()}/\code{facet_grid()}. Panels are
+a \code{facet_wrap()} by \code{grps} when it has one element, and a
+\code{facet_grid()} with the first element in rows and the remaining
+elements in columns otherwise.}
 
 \item{comp_are, comp_are2}{Optional data frames with \code{grps}, \code{bin}
-and \code{cvar}, overlaid as blue and orange points respectively.}
+and \code{cvar}, overlaid as blue and orange points respectively. Counts
+are converted to proportions within \code{grps} when \code{scaled = TRUE}.}
 
 \item{cvar}{Column in \code{comp_are}/\code{comp_are2} holding the counts
 or catch per bin.}
+
+\item{xlab}{x-axis label (the bin variable)}
+
+\item{comp_label, comp2_label}{Legend labels for the points from
+\code{comp_are} (skyblue) and \code{comp_are2} (orange).}
 }
 \value{
-A ggplot.
+A ggplot with the mean and 95\% quantile interval of the
+  composition (or catch-at-bin) per bin.
 }
 \description{
 Sums the draws from \code{scale_comps()} over all strata within levels of
 \code{grps} and plots the resulting compositions (as proportions or as
 catch-at-bin) with uncertainty intervals. Optional reference compositions
 (e.g. raw samples or a known truth) can be overlaid.
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+                 iter = 300, warmup = 100, thin = 2)
+sc <- scale_comps(ex_catch, "catch", fit, grps = c("Year", "Season", "Vessel"))
+
+scaled_comp_plot(sc, grps = "Year")
+
+# overlay the raw sample composition
+raw <- dplyr::rename(ex_comp, bin = length)
+scaled_comp_plot(sc, grps = "Year", comp_are = raw, cvar = "count")
 }

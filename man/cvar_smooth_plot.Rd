@@ -23,6 +23,9 @@ Defaults to the first level of the first RE variable.}
 \item{n_grid}{Integer. Number of covariate values in the prediction grid.
 Default 50.}
 }
+\value{
+A ggplot of the centred smooth effect (log scale) per bin.
+}
 \description{
 Plots the centred smooth effect of a continuous covariate with 95\%
 confidence intervals for each bin level. Works for both sdmTMB and brms
@@ -30,4 +33,11 @@ backends, and for both \code{spl = "by_factor"} (\code{s(cvar, by=bin)})
 and \code{spl = "2D"} (\code{t2(cvar, cbin)}) spline types.
 Fixed effects and IID random effects are marginalised out so only the
 covariate smooth contribution is shown.
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip", "sst"), "length", "count")
+dat$sst <- as.numeric(as.character(dat$sst))
+fit <- fit_model("Year", "Season", cvars = "sst", spl = "by_factor", knots = "4",
+                 data = dat, backend = "TMB", iter = 300, warmup = 100, thin = 2)
+cvar_smooth_plot(fit, "sst")
 }

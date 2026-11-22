@@ -32,8 +32,24 @@ each fixed-effect variable detected from the model formula.}
 
 \item{ncol}{Integer. Number of facet columns. Default 4.}
 }
+\value{
+A ggplot with one tile map per bin.
+}
 \description{
 Produces a faceted tile map showing the spatial random field contribution
 per bin, centred by subtracting each bin mean so the map shows spatial
 deviation from the average availability of that bin size class.
+}
+\examples{
+\donttest{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip", "x", "y"),
+                 "length", "count")
+dat$x <- as.numeric(as.character(dat$x))
+dat$y <- as.numeric(as.character(dat$y))
+mesh <- sdmTMB::make_mesh(dat, c("x", "y"), cutoff = 25)
+fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+                 mesh = mesh, time = "Year", coords = c("x", "y"),
+                 iter = 300, warmup = 100, thin = 2)
+spatial_field_plot(fit, lon_step = 10, lat_step = 10)
+}
 }

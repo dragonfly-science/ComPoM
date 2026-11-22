@@ -1,0 +1,55 @@
+# Renders every vignette with the package as installed from the checkout, to catch vignettes
+# that no longer run against the code. The vignettes fit models, so this is slow (~20 minutes).
+on:
+  push:
+    branches: [main, master]
+    paths: ['R/**', 'vignettes/**', 'DESCRIPTION']
+  pull_request:
+    paths: ['R/**', 'vignettes/**', 'DESCRIPTION']
+  workflow_dispatch:
+  schedule:
+    - cron: '0 23 * * 0'
+
+name: vignettes
+
+permissions: read-all
+
+concurrency:
+  group: vignettes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vignettes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rmarkdown, any::rstan, any::BH, any::RcppEigen, local::.
+          needs: build
+
+      - name: Render vignettes
+        working-directory: vignettes
+        run: |
+          for (v in c("ComPoM", "vessel_bias_simulation", "spatial_bias_simulation")) {
+            message("Rendering ", v)
+            rmarkdown::render(paste0(v, ".Rmd"), output_dir = tempdir(),
+                              intermediates_dir = tempdir(), knit_root_dir = getwd())
+          }
+        shell: Rscript {0}
+
+      - name: Smoke test the scenario script
+        working-directory: vignettes
+        run: Rscript run_scenarios.R
+        env:
+          SCENARIO_SMOKE: "1"

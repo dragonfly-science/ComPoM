@@ -1,0 +1,13 @@
+bibentry(
+  "Manual",
+  title  = "ComPoM: Poisson-Multinomial Models to Standardise and Scale Compositions",
+  author = c(person("Philipp", "Neubauer"), person("D'Arcy", "Webber")),
+  year   = "2026",
+  note   = "R package version 0.3.0",
+  url    = "https://github.com/dragonfly-science/ComPoM",
+  textVersion = paste(
+    "Neubauer P, Webber D (2026). ComPoM: Poisson-Multinomial Models to Standardise and",
+    "Scale Compositions. R package version 0.3.0.",
+    "https://github.com/dragonfly-science/ComPoM"
+  )
+)

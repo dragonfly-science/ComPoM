@@ -1,5 +1,8 @@
 *.html
 *.R
+!scenario_helpers.R
+!run_scenarios.R
 
 /.quarto/
 **/*.quarto_ipynb
+!vignette_helpers.R

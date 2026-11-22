@@ -1,28 +1,54 @@
-# R CMD check on push/PR. Vignettes are not built here: the simulation and data
-# vignettes need local data files and extra packages (tidyverse, here, terra,
-# fmesher, cmdstanr) and take long to run. The test suite compiles small brms
-# models with rstan, so a run takes several minutes.
+# R CMD check on several platforms, plus a check that man/ and NAMESPACE are current.
+# Vignettes are built by the vignettes workflow, not here (the spatial vignette takes ~10 min).
+# The test suite compiles small brms models with rstan, so a run takes several minutes.
 on:
   push:
     branches: [main, master]
   pull_request:
   workflow_dispatch:
+  schedule:
+    # weekly (Sunday 11 PM UTC), to catch breaking changes in brms, sdmTMB and tidyverse packages
+    - cron: '0 23 * * 0'
 
 name: R-CMD-check
 
 permissions: read-all
 
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   R-CMD-check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    # macOS and Windows compile Stan models with less tested toolchains; they report
+    # but do not fail the workflow
+    continue-on-error: ${{ matrix.config.experimental }}
+    timeout-minutes: 90
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: ubuntu-latest,  r: 'release', experimental: false}
+          - {os: ubuntu-latest,  r: 'oldrel-1', experimental: false}
+          - {os: macos-latest,   r: 'release', experimental: true}
+          - {os: windows-latest, r: 'release', experimental: true}
+
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+
     steps:
       - uses: actions/checkout@v4
 
+      - uses: r-lib/actions/setup-pandoc@v2
+
       - uses: r-lib/actions/setup-r@v2
         with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
@@ -36,7 +62,34 @@ jobs:
         with:
           args: 'c("--no-manual", "--ignore-vignettes")'
           build_args: 'c("--no-build-vignettes")'
-          # Fail on errors only for now; the package still raises NOTEs/WARNINGs
-          # (e.g. undeclared global variables from tidy evaluation).
+          # Fail on errors only for now; tighten to "warning" once the NOTEs are gone.
           error-on: '"error"'
           upload-snapshots: true
+
+  documentation:
+    runs-on: ubuntu-latest
+    name: man/ and NAMESPACE are current
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::roxygen2
+          needs: check
+
+      - name: Regenerate documentation
+        run: roxygen2::roxygenise()
+        shell: Rscript {0}
+
+      - name: Fail if documentation changed
+        run: |
+          git diff --exit-code -- man NAMESPACE DESCRIPTION || {
+            echo "::error::man/, NAMESPACE or DESCRIPTION are out of date. Run devtools::document() and commit the result."
+            exit 1
+          }

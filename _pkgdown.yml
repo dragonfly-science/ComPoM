@@ -1,0 +1,46 @@
+url: https://dragonfly-science.github.io/ComPoM/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left:  [intro, reference, articles, news]
+    right: [search, github]
+
+development:
+  mode: release
+
+articles:
+  - title: Getting started
+    navbar: ~
+    contents:
+      - ComPoM
+  - title: Simulation studies
+    navbar: ~
+    contents:
+      - vessel_bias_simulation
+      - spatial_bias_simulation
+
+reference:
+  - title: Workflow
+    desc: Prepare data, fit the model and scale the predictions to catch.
+    contents:
+      - data_prep
+      - fit_model
+      - scale_comps
+      - parse_form
+  - title: Diagnostics and effects
+    contents:
+      - post_pred_group
+      - Fx_plot
+      - cvar_smooth_plot
+      - spatial_field_plot
+      - theme_compom
+  - title: Scaled compositions
+    contents:
+      - scaled_comp_plot
+      - scaled_ridge_plot
+  - title: Data
+    contents:
+      - ex_data

@@ -27,9 +27,10 @@ stratum, containing \code{grps}, \code{predvar}, any \code{cvars}, and
 \code{ffx_form} variables and, for catch weighting, the \code{re_form}
 variables.}
 
-\item{iters}{Number of posterior draws (brms only; default uses all stored draws)}
+\item{iters}{Number of posterior draws (brms only; default uses all stored
+draws). For sdmTMB fits the number of draws is set by \code{fit_model()}.}
 
-\item{pgrid}{Reserved for future use}
+\item{pgrid}{Not used; reserved for future use.}
 
 \item{remove_nuisance}{Logical. \code{FALSE} (default) selects catch
 weighting, with nuisance random effects evaluated at each stratum's level.
@@ -44,7 +45,8 @@ A data frame of draws (\code{.draw}) with predicted numbers-at-bin
 \description{
 Predicts the composition for each stratum in \code{scale_df} from a fitted
 model and multiplies the predicted proportions by the stratum weight
-(\code{predvar}, e.g. catch or predicted CPUE). Strata are the unique combinations of \code{grps} (plus
+(\code{predvar}, e.g. catch or predicted CPUE). Strata are the unique combinations of
+\code{grps} (plus
 the coordinates for spatial models). The result is a set of draws of
 numbers-at-bin per stratum, which can be summed over any subset of
 \code{grps} and normalised to obtain weighted compositions (e.g. with
@@ -83,4 +85,23 @@ posterior draw of a randomly chosen fitted level
 (\code{sample_new_levels = "uncertainty"}). sdmTMB predicts such rows at
 the population level of all nuisance random effects, and a warning is
 issued.
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+                 iter = 300, warmup = 100, thin = 2)
+
+# catch weighting: composition of the total catch of the fleet
+sc <- scale_comps(ex_catch, predvar = "catch", fit = fit,
+                  grps = c("Year", "Season", "Vessel"))
+head(sc)
+scaled_comp_plot(sc, grps = "Year")
+
+# CPUE-based scaling: nuisance effects removed; one weight per year
+cpue <- data.frame(Year = factor(2015:2020), cpue = 1)
+sc_pop <- scale_comps(cpue, predvar = "cpue", fit = fit, grps = "Year",
+                      remove_nuisance = TRUE)
+}
+\seealso{
+\code{scaled_comp_plot()}, \code{scaled_ridge_plot()}
 }

@@ -51,7 +51,7 @@ library(tidyverse)
 library(ComPoM)
 library(sdmTMB)
 
-source(here::here("R/helpers.R"))
+source("vignette_helpers.R")
 
 clo <- function(x) x / sum(x)
 
@@ -77,7 +77,11 @@ L95 <- 0.75
 Each vessel has a persistent selectivity offset drawn from a normal
 distribution — some vessels catch larger fish, others smaller.
 
+Figure 1 shows the simulated vessel offsets.
+
 ```{r simulate-fleet, fig.width=6, fig.height=4}
+#| fig.cap: >
+#|   Figure 1. Simulated vessel-specific offsets of log(L50).
 set.seed(42)
 
 vessels <- tibble(
@@ -86,12 +90,9 @@ vessels <- tibble(
 )
 
 ggplot(vessels, aes(x = vessel_id, y = vessel_effect)) +
-  geom_col() +
-  theme_minimal() +
-  labs(
-    title = "Vessel-specific selectivity offsets",
-    x = "Vessel", y = "Effect on log(L50)"
-  )
+  geom_col(fill = "skyblue") +
+  scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 5)]) +
+  labs(x = "Vessel", y = "Effect on log(L50)")
 ```
 
 ## Simulate Temporal and Seasonal Effects
@@ -145,9 +146,13 @@ Sampling is biased in two ways:
 - **Vessel bias**: a handful of vessels (the top 8) are sampled much more
   frequently than the rest.
 - **Seasonal shift**: early years oversample season 1; late years oversample
-  season 4 — mimicking a programme that changes its coverage over time.
+  season 4. This mimics a programme that changes its coverage over time.
+
+Figure 2 shows the number of trips sampled per vessel.
 
 ```{r simulate-sampling, fig.width=7, fig.height=5}
+#| fig.cap: >
+#|   Figure 2. Number of trips sampled per vessel.
 # Vessel sampling weights — top 8 vessels get 5x the weight
 vessel_weights <- rep(1, n_vessels)
 vessel_weights[1:8] <- 5
@@ -200,28 +205,24 @@ sampling_summary <- long_form_sims |>
   count(vessel_id, name = "n_trips")
 
 ggplot(sampling_summary, aes(x = vessel_id, y = n_trips)) +
-  geom_col() +
-  theme_minimal() +
-  labs(
-    title = "Number of sampled trips per vessel",
-    x = "Vessel", y = "Trips sampled"
-  )
+  geom_col(fill = "skyblue") +
+  scale_x_discrete(breaks = function(x) x[seq(1, length(x), by = 5)]) +
+  labs(x = "Vessel", y = "Trips sampled")
 ```
 
+Figure 3 shows the number of samples per season in each year.
+
 ```{r sampling-by-season, fig.width=7, fig.height=4}
+#| fig.cap: >
+#|   Figure 3. Number of samples per season in each year.
 season_summary <- long_form_sims |>
   distinct(samp_id, Year, Season) |>
   count(Year, Season)
 
-ggplot(season_summary, aes(x = Season, y = n, fill = Season)) +
-  geom_col() +
+ggplot(season_summary, aes(x = Season, y = n)) +
+  geom_col(fill = "skyblue") +
   facet_wrap(~Year, nrow = 1) +
-  theme_minimal() +
-  theme(legend.position = "none") +
-  labs(
-    title = "Samples per season across years",
-    x = "Season", y = "Samples"
-  )
+  labs(x = "Season", y = "Samples")
 ```
 
 ## Prepare Data
@@ -269,20 +270,18 @@ mod_brms <- fit_model(
 
 ## Effects Plots
 
-```{r effects-year, fig.dim=c(10, 6)}
-Fx_plot(mod_tmb, grp = "Year", grid = NULL) +
-  ggtitle("Year effects (sdmTMB)")
+Figure 4 shows the year and season effects from both models.
 
-Fx_plot(mod_brms, grp = "Year", grid = NULL) +
-  ggtitle("Year effects (brms)")
-```
-
-```{r effects-season, fig.dim=c(10, 5)}
-Fx_plot(mod_tmb, grp = "Season", grid = NULL) +
-  ggtitle("Season effects (sdmTMB)")
-
-Fx_plot(mod_brms, grp = "Season", grid = NULL) +
-  ggtitle("Season effects (brms)")
+```{r effects, fig.dim=c(14, 12)}
+#| fig.cap: >
+#|   Figure 4. Year effects (a, b) and season effects (c, d) on the composition, as multipliers relative to
+#|   the geometric mean across bins, from the sdmTMB model (a, c) and the brms model (b, d).
+#|   Points are medians and bars 95% intervals.
+(Fx_plot(mod_tmb, grp = "Year", grid = NULL) |
+   Fx_plot(mod_brms, grp = "Year", grid = NULL)) /
+  (Fx_plot(mod_tmb, grp = "Season", grid = NULL) |
+     Fx_plot(mod_brms, grp = "Season", grid = NULL)) +
+  plot_annotation(tag_levels = "a")
 ```
 
 ## Scale Compositions to Catch
@@ -325,26 +324,33 @@ scaled_brms_yr <- scaled_brms |>
 
 ## Compare Scaled Compositions to Truth
 
-```{r compare-truth-tmb, fig.dim=c(10, 7)}
-scaled_comp_plot(
+Figure 5 shows the scaled annual compositions against the true composition.
+
+```{r compare-truth, fig.dim=c(10, 14)}
+#| fig.cap: >
+#|   Figure 5. Annual compositions of the catch from the sdmTMB model (a) and the brms model (b). Black
+#|   points and bars are medians and 95% intervals, and skyblue points the true composition.
+p_truth_tmb <- scaled_comp_plot(
   scaled_comp = scaled_tmb_yr,
   grps = "Year",
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
-  cvar = "tcatch"
-) + ggtitle("sdmTMB vs true compositions (by year)")
-```
+  cvar = "tcatch",
+  comp_label = "True"
+)
 
-```{r compare-truth-brms, fig.dim=c(10, 7)}
-scaled_comp_plot(
+p_truth_brms <- scaled_comp_plot(
   scaled_comp = scaled_brms_yr,
   grps = "Year",
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
-  cvar = "tcatch"
-) + ggtitle("brms vs true compositions (by year)")
+  cvar = "tcatch",
+  comp_label = "True"
+)
+
+p_truth_tmb / p_truth_brms + plot_annotation(tag_levels = "a")
 ```
 
 ## Evaluate Against Raw Samples
@@ -355,61 +361,78 @@ raw_comp <- input_data |>
   summarise(tcatch = sum(tot_by_bin), .groups = "drop")
 ```
 
-```{r compare-raw-tmb, fig.dim=c(10, 7)}
-scaled_comp_plot(
+Figure 6 shows the scaled compositions together with the true and raw sample compositions.
+
+```{r compare-raw, fig.dim=c(10, 14)}
+#| fig.cap: >
+#|   Figure 6. Annual compositions from the sdmTMB model (a) and the brms model (b), with the true
+#|   composition (skyblue) and the raw sample composition (orange). Black points and bars are
+#|   medians and 95% intervals.
+p_raw_tmb <- scaled_comp_plot(
   scaled_comp = scaled_tmb_yr,
   grps = "Year",
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
   comp_are2 = raw_comp,
-  cvar = "tcatch"
-) + ggtitle("Blue = True, Orange = Raw, Black = sdmTMB")
-```
+  cvar = "tcatch",
+  comp_label = "True",
+  comp2_label = "Raw samples"
+)
 
-```{r compare-raw-brms, fig.dim=c(10, 7)}
-scaled_comp_plot(
+p_raw_brms <- scaled_comp_plot(
   scaled_comp = scaled_brms_yr,
   grps = "Year",
   scaled = TRUE,
   scales = "free_y",
   comp_are = true_comp_year,
   comp_are2 = raw_comp,
-  cvar = "tcatch"
-) + ggtitle("Blue = True, Orange = Raw, Black = brms")
+  cvar = "tcatch",
+  comp_label = "True",
+  comp2_label = "Raw samples"
+)
+
+p_raw_tmb / p_raw_brms + plot_annotation(tag_levels = "a")
 ```
 
 ## Ridgeline Plots of Scaled Compositions
 
-Ridgeline plots display how the modelled size composition shifts across years,
-making temporal trends easier to read than a grid of point-range panels.
+Ridgeline plots show the modelled size composition by year.
 `scaled_ridge_plot()` takes the output of `scale_comps()` directly; `plot_y`
 sets the variable stacked on the y-axis and `plot_facet` optionally splits the
 display across a second variable (here, not needed as we are already aggregated
 to annual).
 
-```{r ridge-tmb, fig.dim=c(8, 7)}
+Figure 7 shows the annual compositions as ridgelines.
+
+```{r ridge, fig.dim=c(12, 7)}
+#| fig.cap: >
+#|   Figure 7. Annual size compositions (ridgelines) from the sdmTMB model (a) and the brms model (b).
 library(ggridges)
 
-scaled_ridge_plot(
+p_ridge_tmb <- scaled_ridge_plot(
   scaled_comp = scaled_tmb_yr,
   grps        = "Year",
   plot_y      = "Year"
-) + ggtitle("sdmTMB — annual size compositions (ridgeline)")
-```
+)
 
-```{r ridge-brms, fig.dim=c(8, 7)}
-scaled_ridge_plot(
+p_ridge_brms <- scaled_ridge_plot(
   scaled_comp = scaled_brms_yr,
   grps        = "Year",
   plot_y      = "Year"
-) + ggtitle("brms — annual size compositions (ridgeline)")
+)
+
+(p_ridge_tmb | p_ridge_brms) + plot_annotation(tag_levels = "a")
 ```
 
 If you have a second grouping variable (e.g. season within year) you can pass
 it to `plot_facet` to produce a faceted ridgeline display:
 
+Figure 8 shows the sdmTMB compositions by season.
+
 ```{r ridge-tmb-season, fig.dim=c(10, 8)}
+#| fig.cap: >
+#|   Figure 8. Annual size compositions (ridgelines) from the sdmTMB model by season.
 # Re-aggregate retaining Season
 scaled_tmb_yr_season <- scaled_tmb |>
   dplyr::group_by(Year, Season, bin, .draw) |>
@@ -420,31 +443,36 @@ scaled_ridge_plot(
   grps        = c("Year", "Season"),
   plot_y      = "Year",
   plot_facet  = "Season"
-) + ggtitle("sdmTMB — annual compositions faceted by season")
+)
 ```
 
 ## Relative Error Comparison
 
-```{r relative-error-tmb, fig.dim=c(8, 5)}
-scaled_comp_comp(
+Figure 9 shows the relative error of the models and of the raw samples.
+
+```{r relative-error, fig.dim=c(10, 5)}
+#| fig.cap: >
+#|   Figure 9. Relative error of the annual proportions from the sdmTMB model (a) and the brms model (b),
+#|   compared with the relative error of the raw samples, against the true composition.
+p_err_tmb <- scaled_comp_comp(
   scaled_comp = scaled_tmb_yr,
   grps = "Year",
   scaled = TRUE,
   comp_are = true_comp_year,
   comp_are2 = raw_comp,
   cvar = "tcatch"
-) + ggtitle("sdmTMB model vs raw samples — relative error")
-```
+)
 
-```{r relative-error-brms, fig.dim=c(8, 5)}
-scaled_comp_comp(
+p_err_brms <- scaled_comp_comp(
   scaled_comp = scaled_brms_yr,
   grps = "Year",
   scaled = TRUE,
   comp_are = true_comp_year,
   comp_are2 = raw_comp,
   cvar = "tcatch"
-) + ggtitle("brms model vs raw samples — relative error")
+)
+
+(p_err_tmb | p_err_brms) + plot_annotation(tag_levels = "a")
 ```
 
 Both the Bayesian and the frequentist model recovered the true fleet-wide

@@ -31,15 +31,21 @@ by \code{+}, e.g. \code{"Season + Gear"}. These become
 evaluates them at each stratum's level (\code{remove_nuisance = FALSE})
 or removes them (\code{remove_nuisance = TRUE}).}
 
-\item{cvars}{Continuous variable to be fitted as 2D spline with bin}
+\item{cvars}{Character vector of continuous covariates to be fitted as
+smooths with bin (see Details). \code{NULL} = none.}
 
-\item{spl}{1D spline over cvar per bin, or 2D spline over bins and cvar; as character for now}
+\item{spl}{Smooth type: \code{"2D"}, \code{"by_factor"} or \code{"by"}
+(see Details).}
 
-\item{knots}{knots (1D or 2D) for cvar spline; as character for now}
+\item{knots}{Basis dimension of the smooths, as a character string: a single
+number (e.g. \code{"4"}) for \code{spl = "by_factor"} or \code{"by"},
+or \code{"c(5,10)"} (covariate, bin) for \code{spl = "2D"}.}
 
-\item{coords}{Character vector of coordinate column names to preserve (TMB backend only)}
+\item{coords}{Character vector of coordinate column names that are kept
+numeric (spatial TMB models only)}
 
-\item{time}{Time column name to preserve (TMB backend only)}
+\item{time}{Name of the time column that is kept numeric/unchanged (TMB
+backend only)}
 }
 \value{
 A list with the model formula (\code{form}), the model data with
@@ -60,11 +66,21 @@ according to \code{spl}:
 \describe{
   \item{\code{"2D"}}{\code{t2(cvar, cbin, k = knots)}, a tensor-product
     smooth over the covariate and the numeric bin value. Requires numeric
-    bins (e.g. length).}
+    bins (e.g. length). With the \code{"TMB"} backend this smooth gave a
+    non-positive-definite Hessian in all simulations tried, because its
+    marginal bin component is collinear with the bin-specific intercepts
+    (the numeric bin value has only as many distinct values as there are
+    bins). Use \code{"by_factor"} with that backend.}
   \item{\code{"by_factor"}}{\code{s(cvar, by = bin, k = knots)}, a separate
     1D smooth of the covariate for each bin. Also applicable to
     non-ordered categories (e.g. species).}
   \item{\code{"by"}}{Legacy option. Separate \code{t2()} smooths for each
     non-reference bin via bin dummy columns.}
 }
+}
+\examples{
+dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+pf <- parse_form(dat, backend = "TMB", ffx_form = "Year", re_form = "Season + Vessel")
+pf$form
+pf$re_vars
 }

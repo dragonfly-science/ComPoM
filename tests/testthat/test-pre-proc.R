@@ -87,6 +87,7 @@ test_that("parse_form converts grouping columns to factors", {
 # ── fit_model stores re_vars ──────────────────────────────────────────────────
 
 test_that("fit_model stores re_vars in ComPoM object [brms]", {
+  skip_if_no_brms()
   expect_equal(sim_fit_brms$re_vars, "season")
 })
 
@@ -108,4 +109,35 @@ test_that("fit_model re_vars is NULL when re_form not supplied [brms]", {
     )
   ))
   expect_null(fit_no_re$re_vars)
+})
+
+# ── data_prep options ─────────────────────────────────────────────────────────
+
+test_that("data_prep fills bins that are absent in a stratum with zero counts", {
+  comp <- data.frame(g = c("a", "a", "b"), bin = c(1, 2, 1), count = c(5, 3, 4))
+  out  <- data_prep(comp, "g", "bin", "count")
+  expect_equal(nrow(out), 4L)
+  expect_equal(out$tot_by_bin[out$g == "b" & out$bin == 2], 0)
+  expect_equal(unique(out$n[out$g == "b"]), 4)
+})
+
+test_that("data_prep min_n drops sparse strata", {
+  comp <- data.frame(g = c("a", "a", "b"), bin = c(1, 2, 1), count = c(5, 3, 4))
+  out  <- data_prep(comp, "g", "bin", "count", min_n = 5)
+  expect_equal(unique(as.character(out$g)), "a")
+})
+
+test_that("data_prep bin_width merges bins to their lower edge", {
+  comp <- data.frame(g = "a", bin = c(10, 15, 20, 25), count = c(1, 2, 3, 4))
+  out  <- data_prep(comp, "g", "bin", "count", bin_width = 10)
+  expect_equal(sort(out$bin), c(10, 20))
+  expect_equal(out$tot_by_bin[out$bin == 10], 3)
+  expect_equal(out$tot_by_bin[out$bin == 20], 7)
+})
+
+test_that("data_prep accepts custom bin and count column names", {
+  comp <- data.frame(g = "a", len = c(1, 2), num = c(5, 6))
+  out  <- data_prep(comp, "g", "len", "num")
+  expect_true(all(c("bin", "tot_by_bin", "n") %in% names(out)))
+  expect_equal(unique(out$n), 11)
 })

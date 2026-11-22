@@ -302,14 +302,13 @@ fit_ns <- fit_model(
 ```
 
 The equivalent brms fit uses the same call with `backend = "brms"` and the MCMC settings. The
-call below also includes a nuisance random effect for vessel, which the simulated data did not
-contain.
+chunk below was not evaluated, because it compiles and samples a Stan model.
 
 ```{r fit-brms, eval = FALSE}
 fit_brms <- fit_model(
-  ffx_form = "Year", re_form = "Season + Vessel", data = dat, dist = poisson(),
-  backend = "brms", brms_backend = "cmdstanr",
-  chains = 4, cores = 4, threads = 1, iter = 1000, warmup = 500, thin = 2
+  ffx_form = "Year", re_form = "Season", data = dat, dist = "poisson",
+  backend = "brms", brms_backend = "rstan",   # or "cmdstanr"
+  chains = 4, cores = 4, iter = 1000, warmup = 500, thin = 2
 )
 ```
 
@@ -318,7 +317,7 @@ The observed counts fell within the prediction intervals in most bins and years.
 
 ```{r ppc}
 #| fig.cap: >
-#|   Figure 1. Observed counts (blue) and predicted medians with 95% intervals (black) by
+#|   Figure 1. Observed counts (skyblue) and predicted medians with 95% intervals (black) by
 #|   length bin and year, from the non-spatial model.
 post_pred_group(fit_ns, grp = "Year")
 ```
@@ -355,6 +354,7 @@ fit_sp <- fit_model(
   mesh     = mesh,
   time     = "Year",
   coords   = c("x", "y"),
+  spatiotemporal = FALSE,
   iter     = 300,
   warmup   = 100,
   thin     = 1
@@ -364,14 +364,13 @@ tidy(fit_sp$model, "ran_pars")
 AIC(fit_ns$model, fit_sp$model)
 ```
 
-The simulation contained a persistent spatial gradient but no spatio-temporal variation. The
-estimated spatio-temporal standard deviation (second `sigma_Z`) was close to zero, and
-`sdmTMB::sanity()` flagged this parameter, together with gradients of several fixed effects. A
-model with only spatial fields would be the appropriate simplification in this case. This option
-is not currently available in `fit_model()`, which always adds spatio-temporal fields when a mesh
-is supplied. Figure 3 shows the predicted spatial deviations. Small fish were relatively more
-frequent in the west and large fish in the east, consistent with the simulated increase of the
-selectivity-at-length with $x$.
+The simulation contained a persistent spatial gradient but no spatio-temporal variation, so the
+model was fitted with spatial fields only (`spatiotemporal = FALSE`). The estimated standard
+deviation of the spatial fields (shared across bins, `sigma_Z`) was 0.21 and the range was 135
+distance units. The AIC was 8836 for the non-spatial model and 8603 for the spatial model. Figure 3
+shows the predicted spatial deviations. Small fish were relatively more frequent in the west and
+large fish in the east, consistent with the simulated increase of the selectivity-at-length
+with $x$.
 
 ```{r field, fig.height = 5.5}
 #| fig.cap: >
@@ -382,8 +381,7 @@ spatial_field_plot(
   ref_ffx  = list(Year = "1"),
   lon_step = 10,
   lat_step = 10
-) +
-  labs(title = NULL)
+)
 ```
 
 ## Scaled compositions
@@ -437,13 +435,15 @@ raw <- comp |> mutate(tcatch = count)
 ```{r scaled-plot, fig.height = 5}
 #| fig.cap: >
 #|   Figure 4. Annual catch-weighted compositions from the spatial model (black, mean and 95%
-#|   interval), true compositions (blue) and raw sampled compositions (orange).
+#|   interval), true compositions (skyblue) and raw sampled compositions (orange).
 scaled_comp_plot(
   scaled_sp,
   grps      = "Year",
   comp_are  = truth,
   comp_are2 = raw,
-  cvar      = "tcatch"
+  cvar      = "tcatch",
+  comp_label  = "True",
+  comp2_label = "Raw samples"
 )
 ```
 

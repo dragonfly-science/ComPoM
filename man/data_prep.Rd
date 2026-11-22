@@ -14,13 +14,18 @@ data_prep(
 )
 }
 \arguments{
-\item{comp}{A compositional dataset with columns for counts (can be names differently) per bin (can be named differently), and all `vars_for_grouping`}
+\item{comp}{A data frame with one row per observation (or per stratum and
+bin), with a column of counts, a column of bins and all
+\code{vars_for_grouping}.}
 
-\item{vars_for_grouping}{A character vector of variables used for grouping the compositional dataframe}
+\item{vars_for_grouping}{Character vector of the variables that define a
+stratum (e.g. \code{c("Year", "Season", "Vessel")}).}
 
-\item{bin_lab}{A string with the column label for the bins if not "bin"}
+\item{bin_lab}{Name of the column holding the bins (length, age, etc.).
+Default \code{"bin"}. The column is renamed to \code{bin} in the output.}
 
-\item{count_var}{A string with the column label for the counts by bins if not "count"}
+\item{count_var}{Name of the column holding the counts. Default
+\code{"count"}.}
 
 \item{min_n}{Integer. Minimum total count per grouping stratum. Strata with
 fewer than \code{min_n} total fish are dropped before fitting. Useful for
@@ -50,4 +55,20 @@ Strata are defined by the unique combinations of \code{vars_for_grouping}.
 Any variable later used in \code{fit_model()} (fixed effects, nuisance
 random effects, continuous covariates, coordinates, time) must be included
 here, otherwise it is aggregated away.
+}
+\examples{
+dat <- data_prep(
+  ex_comp,
+  vars_for_grouping = c("Year", "Season", "Vessel", "trip"),
+  bin_lab = "length",
+  count_var = "count"
+)
+head(dat)
+
+# merge 10 cm bins into 20 cm bins
+head(data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count",
+               bin_width = 20))
+}
+\seealso{
+\code{fit_model()}
 }
