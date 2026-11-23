@@ -28,8 +28,10 @@ sim_dat <- data_prep(
 # ── 3a. Fit a minimal brms model (1 chain, 200 posterior draws) ───────────────
 #        ffx_form = primary effect; re_form = nuisance RE to be dropped at scale
 # The brms fit needs rstan (Suggests) and a C++ toolchain. If it is unavailable, the
-# fixture is NULL and brms tests are skipped with skip_if_no_brms().
-sim_fit_brms <- if (!requireNamespace("rstan", quietly = TRUE)) NULL else suppressMessages(
+# fixture is NULL and brms tests are skipped with skip_if_no_brms(). The fit is also
+# skipped when the Stan model cannot be compiled (e.g. rstan's sink() error under testthat on
+# Windows), so that a failure in the compiler does not abort the whole test run.
+sim_fit_brms <- if (!requireNamespace("rstan", quietly = TRUE)) NULL else tryCatch(suppressMessages(
   suppressWarnings(
     fit_model(
       ffx_form     = "year",
@@ -48,7 +50,10 @@ sim_fit_brms <- if (!requireNamespace("rstan", quietly = TRUE)) NULL else suppre
       add_preds    = TRUE
     )
   )
-)
+), error = function(e) {
+  message("brms fixture not available: ", conditionMessage(e))
+  NULL
+})
 
 # keep old alias so existing tests still pass
 sim_fit <- sim_fit_brms
@@ -142,7 +147,7 @@ sim_scale_df_spatial <- sim_strata_spatial |>
   mutate(catch = rep(c(100, 150, 200, 250, 120), length.out = n()))
 
 skip_if_no_brms <- function() {
-  testthat::skip_if(is.null(sim_fit_brms), "rstan is not installed")
+  testthat::skip_if(is.null(sim_fit_brms), "rstan is not installed or the Stan model did not compile")
 }
 
 # two fixed-effect terms (year, area) and a nuisance random effect (season)

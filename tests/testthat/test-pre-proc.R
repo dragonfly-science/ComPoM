@@ -96,6 +96,7 @@ test_that("fit_model stores re_vars in ComPoM object [TMB non-spatial]", {
 })
 
 test_that("fit_model re_vars is NULL when re_form not supplied [brms]", {
+  skip_if_no_brms()
   fit_no_re <- suppressMessages(suppressWarnings(
     fit_model(
       ffx_form     = "year",
