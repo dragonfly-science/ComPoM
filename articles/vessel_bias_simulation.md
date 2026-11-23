@@ -305,7 +305,7 @@ medians and bars 95% intervals.
 ## Scale Compositions to Catch
 
 Predictions from each model were scaled to the true catch by year,
-season and vessel (catch weighting, `remove_nuisance = FALSE`) and then
+season and vessel (catch weighting, `mode = "catch"`) and then
 aggregated to annual compositions. Catch weighting evaluates the
 nuisance random effects (season and vessel) at the level of each
 stratum, so both variables must be in `grps`. The result estimates the

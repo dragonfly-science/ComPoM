@@ -47,8 +47,8 @@ parse_form(
   e.g. `"Season + Gear"`. These become `(1|bin:Season)` IID random
   intercepts.
   [`scale_comps()`](https://dragonfly-science.github.io/ComPoM/reference/scale_comps.md)
-  evaluates them at each stratum's level (`remove_nuisance = FALSE`) or
-  removes them (`remove_nuisance = TRUE`).
+  evaluates them at each stratum's level (`mode = "catch"`) or sets them
+  to the population level (`mode = "index"`).
 
 - cvars:
 
@@ -117,7 +117,7 @@ pf <- parse_form(dat, backend = "TMB", ffx_form = "Year", re_form = "Season + Ve
 pf$form
 #> tot_by_bin ~ 0 + bin + factor(Year):bin + (1 | bin:Season) + 
 #>     (1 | bin:Vessel)
-#> <environment: 0x5fff790d3b58>
+#> <environment: 0x60a3dfec1270>
 pf$re_vars
 #> [1] "Season" "Vessel"
 ```

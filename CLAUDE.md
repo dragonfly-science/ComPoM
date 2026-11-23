@@ -74,13 +74,15 @@ Pipeline, all in `R/`:
   `vignettes/vignette_helpers.R`, not in the package.
 
 [`scale_comps()`](https://dragonfly-science.github.io/ComPoM/reference/scale_comps.md)
-modes: `remove_nuisance = FALSE` is catch weighting (all terms,
-including `re_form` random effects, at stratum levels). `TRUE` is
-CPUE-based scaling (`re_form` effects removed; fixed effects, smooths
-and spatial fields retained; covariates standardised at reference values
-in `scale_df`). The retained-terms split in CPUE mode is provisional and
-likely to be revisited, so raise user control over which terms are kept
-rather than treating it as settled.
+modes: `mode = "catch"` is catch weighting (all terms, including
+`re_form` random effects, at stratum levels, weighted by catch).
+`mode = "index"` predicts the population that a CPUE index describes.
+Terms in `catchability` and the `re_form` random effects are set to
+references, and all other terms are predicted at the values in `grid`
+(one row per time step, or per cell and time step for spatial fits),
+weighted by `weight`. Every `ffx_form`/`cvars` term must be in
+`catchability` or in `grid`. `remove_nuisance = TRUE` is a deprecated
+alias. The design is in `dev/scale-comps-index-mode-plan.md`.
 
 For spatial models, `scale_df` must contain the coordinates, and the
 time column must have the same class (e.g. factor) as in the model data.

@@ -1,12 +1,9 @@
-# Scale predicted compositions to catch
+# Scale predicted compositions to catch or to an index population
 
-Predicts the composition for each stratum in `scale_df` from a fitted
-model and multiplies the predicted proportions by the stratum weight
-(`predvar`, e.g. catch or predicted CPUE). Strata are the unique
-combinations of `grps` (plus the coordinates for spatial models). The
-result is a set of draws of numbers-at-bin per stratum, which can be
-summed over any subset of `grps` and normalised to obtain weighted
-compositions (e.g. with
+Predicts numbers-at-bin from a fitted model and weights the predictions.
+The result is a set of draws of numbers-at-bin per stratum (or grid
+cell), which can be summed over any subset of `grps` and normalised to
+obtain compositions (e.g. with
 [`scaled_comp_plot()`](https://dragonfly-science.github.io/ComPoM/reference/scaled_comp_plot.md)).
 
 ## Usage
@@ -19,7 +16,13 @@ scale_comps(
   grps = NULL,
   iters = NULL,
   pgrid = NULL,
-  remove_nuisance = FALSE
+  remove_nuisance = FALSE,
+  mode = c("catch", "index"),
+  catchability = NULL,
+  density = NULL,
+  reference = NULL,
+  grid = NULL,
+  weight = NULL
 )
 ```
 
@@ -27,9 +30,9 @@ scale_comps(
 
 - scale_df:
 
-  data frame used for scaling, with one or more rows per stratum,
-  containing `grps`, `predvar`, any `cvars`, and (spatial fits) the
-  coordinate and time columns.
+  data frame used for catch weighting, with one or more rows per
+  stratum, containing `grps`, `predvar`, any `cvars`, and (spatial fits)
+  the coordinate and time columns.
 
 - predvar:
 
@@ -42,9 +45,10 @@ scale_comps(
 
 - grps:
 
-  Grouping variables defining the scaling strata. Must include the
-  `ffx_form` variables and, for catch weighting, the `re_form`
-  variables.
+  Grouping variables defining the strata (catch mode) or the output time
+  steps and other prediction variables (index mode). Must include the
+  `ffx_form` variables (except catchability terms) and, for catch
+  weighting, the `re_form` variables.
 
 - iters:
 
@@ -58,47 +62,89 @@ scale_comps(
 
 - remove_nuisance:
 
-  Logical. `FALSE` (default) selects catch weighting, with nuisance
-  random effects evaluated at each stratum's level. `TRUE` selects
-  CPUE-based scaling, with nuisance random effects removed.
+  Deprecated. `FALSE` is `mode = "catch"`. `TRUE` is `mode = "index"`
+  with the random effects as catchability terms, `scale_df` as `grid`
+  and `predvar` as `weight`.
+
+- mode:
+
+  `"catch"` or `"index"`; see Details.
+
+- catchability:
+
+  Character vector of model terms that are catchability covariates, set
+  to a reference (index mode).
+
+- density:
+
+  Optional character vector of terms declared as density terms (index
+  mode). They must be columns of `grid`. Random effects listed here are
+  kept.
+
+- reference:
+
+  Named list of reference values for catchability terms, e.g.
+  `list(Gear = "trawl", sst = 15)`.
+
+- grid:
+
+  Prediction grid for `mode = "index"`; see Details. Defaults to
+  `scale_df`.
+
+- weight:
+
+  Column of `grid` with the weight of each row (index mode). `NULL`
+  gives equal weights.
 
 ## Value
 
 A data frame of draws (`.draw`) with predicted numbers-at-bin
-(`tot_by_bin`) per stratum and bin. The weight per stratum (sum of
-`predvar`) is in `n`.
+(`tot_by_bin`) per stratum or cell and bin. The weight per row (sum of
+the weight column) is in `n`.
 
 ## Details
 
-The two settings of `remove_nuisance` correspond to two uses:
+`mode` selects between two uses.
 
-- Catch weighting (`remove_nuisance = FALSE`, default):
+- `"catch"` (default):
 
-  The aim is the composition of the total catch of the full fleet. All
-  model terms are evaluated at the values of each stratum in `scale_df`,
-  including the nuisance random effects (`re_form`). Every nuisance
-  variable must therefore be in `grps`. `predvar` is the catch.
+  The composition of the catch. Each stratum in `scale_df` is predicted
+  at its own level of every model term, including the nuisance random
+  effects (`re_form`) and continuous covariates, and the prediction is
+  weighted by the catch of the stratum (`predvar`). Every fixed-effect
+  and nuisance variable must therefore be in `grps`.
 
-- CPUE-based scaling (`remove_nuisance = TRUE`):
+- `"index"`:
 
-  The aim is a composition representative of the population,
-  standardised for variables that affect the local availability of sizes
-  to the sampling (e.g. fleet, season). Nuisance random effects are
-  removed (population level); fixed effects, smooths and spatial fields
-  are retained. `predvar` is typically predicted CPUE or abundance per
-  stratum.
+  The composition of the population that a CPUE index describes,
+  predicted as a CPUE analysis would predict the index. Catchability
+  terms (`catchability`) are set to a reference. All other terms are
+  predicted at the values in `grid`. For non-spatial models, `grid` has
+  one row per index time step (e.g. Year). For spatial models, `grid`
+  has one row per cell and time step, with the coordinates, the time
+  column and the density covariates. Cells are weighted by `weight`
+  (equal weights if `NULL`), which can come from a separate CPUE or
+  abundance model.
 
-In both cases:
+In index mode, every fixed-effect variable and continuous covariate of
+the model is either listed in `catchability` or is a column of `grid`.
+The function stops otherwise, so that the role of each term is chosen by
+the user. Random effects (`re_form`) are catchability terms unless they
+are listed in `density`, in which case they are evaluated at the values
+in `grid`. With the TMB backend, either all or none of the random
+effects can be kept.
 
-- Fixed effects (`ffx_form`) are evaluated at the levels in `scale_df`;
-  these variables must therefore be in `grps`.
+Reference values for catchability terms are the most frequent level
+(factors) or the mean (continuous covariates) in the fitted data, unless
+given in `reference`. Random effects are set to the population level.
+
+In both modes:
 
 - Continuous covariates (`cvars`) are evaluated at their mean within
-  each stratum of `scale_df`. Setting them to a reference value in
-  `scale_df` standardises the compositions to that value.
+  each stratum or cell of the data frame supplied.
 
 - Spatial and spatio-temporal fields (spatial sdmTMB fits) are evaluated
-  at the coordinates in `scale_df`.
+  at the coordinates in the data frame supplied.
 
 Nuisance levels that were not in the fitted data (e.g. unsampled
 vessels) are handled differently by the backends. brms uses, in each
@@ -136,8 +182,8 @@ head(sc)
 scaled_comp_plot(sc, grps = "Year")
 
 
-# CPUE-based scaling: nuisance effects removed; one weight per year
-cpue <- data.frame(Year = factor(2015:2020), cpue = 1)
-sc_pop <- scale_comps(cpue, predvar = "cpue", fit = fit, grps = "Year",
-                      remove_nuisance = TRUE)
+# index population: Season and Vessel are catchability terms; one cell per year
+sc_pop <- scale_comps(fit = fit, mode = "index", grps = "Year",
+                      grid = data.frame(Year = factor(2015:2020)))
+scaled_comp_plot(sc_pop, grps = "Year")
 ```

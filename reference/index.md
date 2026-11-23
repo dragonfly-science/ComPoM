@@ -9,7 +9,7 @@ Prepare data, fit the model and scale the predictions to catch.
 - [`fit_model()`](https://dragonfly-science.github.io/ComPoM/reference/fit_model.md)
   : Fit the Poisson-multinomial model
 - [`scale_comps()`](https://dragonfly-science.github.io/ComPoM/reference/scale_comps.md)
-  : Scale predicted compositions to catch
+  : Scale predicted compositions to catch or to an index population
 - [`parse_form()`](https://dragonfly-science.github.io/ComPoM/reference/parse_form.md)
   : Parse a formula
 

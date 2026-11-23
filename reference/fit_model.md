@@ -170,7 +170,8 @@ An object of class `ComPoM`: a list with the fitted model (`model`, a
 `brmsfit` or `sdmTMB` object), the model data (`data`), the number of
 draws used downstream (`nsim`), posterior predictive draws (`preds`, or
 `NULL`), and the settings needed by the post-processing functions
-(`mesh`, `spatial_varying`, `time`, `coords`, `re_vars`, `cvars`).
+(`mesh`, `spatial_varying`, `time`, `coords`, `ffx_vars`, `re_vars`,
+`cvars`).
 
 ## Details
 

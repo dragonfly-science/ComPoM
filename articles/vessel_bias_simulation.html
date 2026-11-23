@@ -356,12 +356,11 @@ medians and bars 95% intervals.
 <h2 id="scale-compositions-to-catch">Scale Compositions to Catch<a class="anchor" aria-label="anchor" href="#scale-compositions-to-catch"></a>
 </h2>
 <p>Predictions from each model were scaled to the true catch by year,
-season and vessel (catch weighting,
-<code>remove_nuisance = FALSE</code>) and then aggregated to annual
-compositions. Catch weighting evaluates the nuisance random effects
-(season and vessel) at the level of each stratum, so both variables must
-be in <code>grps</code>. The result estimates the composition of the
-total catch of the fleet.</p>
+season and vessel (catch weighting, <code>mode = "catch"</code>) and
+then aggregated to annual compositions. Catch weighting evaluates the
+nuisance random effects (season and vessel) at the level of each
+stratum, so both variables must be in <code>grps</code>. The result
+estimates the composition of the total catch of the fleet.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Scaling data: total catch by year, season and vessel (full fleet)</span></span>
 <span><span class="va">scale_df</span> <span class="op">&lt;-</span> <span class="va">true_catch_by_bin</span> <span class="op">|&gt;</span></span>

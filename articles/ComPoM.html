@@ -314,30 +314,37 @@ which equals
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
 when the predicted proportions sum to one.</p>
 <p><code><a href="../reference/scale_comps.html">scale_comps()</a></code> supports two uses, selected by
-<code>remove_nuisance</code>.</p>
+<code>mode</code>.</p>
 <ul>
-<li>Catch weighting (<code>remove_nuisance = FALSE</code>, default)
-estimates the composition of the total catch of the full fleet. The
-strata are all combinations of the model variables in the catch records
-(e.g. year, season, vessel and location), and
+<li>Catch weighting (<code>mode = "catch"</code>, default) estimates the
+composition of the total catch of the full fleet. The strata are all
+combinations of the model variables in the catch records (e.g. year,
+season, vessel and location), and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
 is the catch. All model terms, including the nuisance random effects,
 are evaluated at the values of each stratum. Every nuisance variable
 must therefore be in <code>grps</code>.</li>
-<li>CPUE-based scaling (<code>remove_nuisance = TRUE</code>) estimates a
-composition representative of the population.
+<li>Index mode (<code>mode = "index"</code>) estimates the composition
+of the population that a CPUE index describes, predicted as the index
+would be. Catchability terms, such as fleet or gear, are set to a
+reference (<code>catchability</code>, <code>reference</code>), and
+nuisance random effects to the population level. All other terms are
+predicted at the values in a prediction grid (<code>grid</code>): one
+row per index time step for a non-spatial model, and one row per cell
+and time step for a spatial model, with the coordinates and the density
+covariates.
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
-is a predicted CPUE or abundance per stratum (e.g. per location and
-year). The nuisance random effects are removed, which standardises the
-composition for variables that affect the local availability of sizes to
-the sampling, such as fleet, or season when the composition is to match
-an annual abundance index.</li>
+is a weight per grid row, which can come from a separate CPUE or
+abundance model (<code>weight</code>) and is equal for all rows
+otherwise. Every fixed-effect variable and covariate of the model is
+either a catchability term or a column of the grid, so that the role of
+each term is chosen by the user.</li>
 </ul>
-<p>In both cases, fixed effects are evaluated at the levels in the
-scaling data, and spatial and spatio-temporal fields at the coordinates
-in the scaling data. Continuous covariates are evaluated at their mean
-within each scaling stratum. Setting them to a reference value in the
-scaling data standardises the compositions to that value.</p>
+<p>In both modes, spatial and spatio-temporal fields are evaluated at
+the coordinates in the data frame supplied, and continuous covariates at
+their mean within each stratum or cell. Setting a covariate to a
+reference value in that data frame standardises the compositions to that
+value.</p>
 <p>Nuisance levels that were not in the fitted data, such as unsampled
 vessels, are handled differently by the two backends. brms uses, in each
 draw, the posterior draw of a randomly chosen fitted level

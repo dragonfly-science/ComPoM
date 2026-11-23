@@ -18,6 +18,15 @@
 
 ### Changes
 
+- [`scale_comps()`](https://dragonfly-science.github.io/ComPoM/reference/scale_comps.md)
+  gains `mode = "index"` for the composition of the population that a
+  CPUE index describes. Catchability terms (`catchability`, `reference`)
+  and the `re_form` random effects are set to references, all other
+  terms are predicted on a user-supplied `grid`, and rows are weighted
+  by `weight` (equal if `NULL`). `remove_nuisance` is deprecated.
+  [`fit_model()`](https://dragonfly-science.github.io/ComPoM/reference/fit_model.md)
+  stores the fixed-effect variables in `ffx_vars`.
+
 - [`fit_model()`](https://dragonfly-science.github.io/ComPoM/reference/fit_model.md)
   gains `spatiotemporal` (default `TRUE`). `spatiotemporal = FALSE` fits
   spatial fields only when a `mesh` is supplied.
