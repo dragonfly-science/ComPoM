@@ -5,7 +5,7 @@ which can be summed over any subset of grps and normalised to obtain
 compositions (e.g. with scaled_comp_plot())."><meta property="og:description" content="Predicts numbers-at-bin from a fitted model and weights the predictions.
 The result is a set of draws of numbers-at-bin per stratum (or grid cell),
 which can be summed over any subset of grps and normalised to obtain
-compositions (e.g. with scaled_comp_plot())."></head><body>
+compositions (e.g. with scaled_comp_plot())."><meta property="og:image" content="https://dragonfly-science.github.io/ComPoM/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -13,7 +13,7 @@ compositions (e.g. with scaled_comp_plot())."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ComPoM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,8 +39,7 @@ compositions (e.g. with scaled_comp_plot())."></head><body>
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Scale predicted compositions to catch or to an index population</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Scale predicted compositions to catch or to an index population</h1>
       <small class="dont-index">Source: <a href="https://github.com/dragonfly-science/ComPoM/blob/main/R/post_proc.R" class="external-link"><code>R/post_proc.R</code></a></small>
       <div class="d-none name"><code>scale_comps.Rd</code></div>
     </div>
@@ -63,7 +62,7 @@ compositions (e.g. with <code><a href="scaled_comp_plot.html">scaled_comp_plot()
 <span>  pgrid <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  remove_nuisance <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"catch"</span>, <span class="st">"index"</span><span class="op">)</span>,</span>
-<span>  catchability <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  selectivity <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  density <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reference <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  grid <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -92,7 +91,7 @@ per stratum, containing <code>grps</code>, <code>predvar</code>, any <code>cvars
 <dt id="arg-grps">grps<a class="anchor" aria-label="anchor" href="#arg-grps"></a></dt>
 <dd><p>Grouping variables defining the strata (catch mode) or the
 output time steps and other prediction variables (index mode). Must
-include the <code>ffx_form</code> variables (except catchability terms) and, for
+include the <code>ffx_form</code> variables (except selectivity terms) and, for
 catch weighting, the <code>re_form</code> variables.</p></dd>
 
 
@@ -108,7 +107,7 @@ draws). For sdmTMB fits the number of draws is set by <code><a href="fit_model.h
 <dt id="arg-remove-nuisance">remove_nuisance<a class="anchor" aria-label="anchor" href="#arg-remove-nuisance"></a></dt>
 <dd><p>Deprecated. <code>FALSE</code> is <code>mode = "catch"</code>.
 <code>TRUE</code> is <code>mode = "index"</code> with the random effects as
-catchability terms, <code>scale_df</code> as <code>grid</code> and <code>predvar</code> as
+selectivity terms, <code>scale_df</code> as <code>grid</code> and <code>predvar</code> as
 <code>weight</code>.</p></dd>
 
 
@@ -116,9 +115,11 @@ catchability terms, <code>scale_df</code> as <code>grid</code> and <code>predvar
 <dd><p><code>"catch"</code> or <code>"index"</code>; see Details.</p></dd>
 
 
-<dt id="arg-catchability">catchability<a class="anchor" aria-label="anchor" href="#arg-catchability"></a></dt>
-<dd><p>Character vector of model terms that are catchability
-covariates, set to a reference (index mode).</p></dd>
+<dt id="arg-selectivity">selectivity<a class="anchor" aria-label="anchor" href="#arg-selectivity"></a></dt>
+<dd><p>Character vector of model terms that are selectivity
+covariates, set to a reference (index mode). In catch mode, the listed
+terms are also set to a reference, which gives the prediction without
+them (see <code><a href="influ_comps.html">influ_comps()</a></code>).</p></dd>
 
 
 <dt id="arg-density">density<a class="anchor" aria-label="anchor" href="#arg-density"></a></dt>
@@ -128,7 +129,7 @@ here are kept.</p></dd>
 
 
 <dt id="arg-reference">reference<a class="anchor" aria-label="anchor" href="#arg-reference"></a></dt>
-<dd><p>Named list of reference values for catchability terms, e.g.
+<dd><p>Named list of reference values for selectivity terms, e.g.
 <code>list(Gear = "trawl", sst = 15)</code>.</p></dd>
 
 
@@ -161,7 +162,7 @@ mode). <code>NULL</code> gives equal weights.</p></dd>
   <dt><code>"index"</code></dt>
 <dd><p>The composition of the population that a CPUE index
     describes, predicted as a CPUE analysis would predict the index.
-    Catchability terms (<code>catchability</code>) are set to a reference. All
+    Selectivity terms (<code>selectivity</code>) are set to a reference. All
     other terms are predicted at the values in <code>grid</code>. For non-spatial
     models, <code>grid</code> has one row per index time step (e.g. Year). For
     spatial models, <code>grid</code> has one row per cell and time step, with the
@@ -171,13 +172,13 @@ mode). <code>NULL</code> gives equal weights.</p></dd>
 
 
 </dl><p>In index mode, every fixed-effect variable and continuous covariate of the
-model is either listed in <code>catchability</code> or is a column of <code>grid</code>.
+model is either listed in <code>selectivity</code> or is a column of <code>grid</code>.
 The function stops otherwise, so that the role of each term is chosen by the
-user. Random effects (<code>re_form</code>) are catchability terms unless they are
+user. Random effects (<code>re_form</code>) are selectivity terms unless they are
 listed in <code>density</code>, in which case they are evaluated at the values in
 <code>grid</code>. With the TMB backend, either all or none of the random effects
 can be kept.</p>
-<p>Reference values for catchability terms are the most frequent level (factors)
+<p>Reference values for selectivity terms are the most frequent level (factors)
 or the mean (continuous covariates) in the fitted data, unless given in
 <code>reference</code>. Random effects are set to the population level.</p>
 <p>In both modes:</p><ul><li><p>Continuous covariates (<code>cvars</code>) are evaluated at their mean
@@ -210,16 +211,16 @@ issued.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Year  Season Vessel bin       n  .row iter  tot_by_bin .draw</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V1          436.     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V2          528.     2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V3          357.     3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V4          498.     4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V5          412.     5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V6          436.     6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V1          483.     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V2          442.     2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V3          460.     3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V4          440.     4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V5          573.     5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> 2015  summer V1     10     <span style="text-decoration: underline;">1</span>904     1 V6          428.     6</span>
 <span class="r-in"><span><span class="fu"><a href="scaled_comp_plot.html">scaled_comp_plot</a></span><span class="op">(</span><span class="va">sc</span>, grps <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="scale_comps-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># index population: Season and Vessel are catchability terms; one cell per year</span></span></span>
+<span class="r-in"><span><span class="co"># index population: Season and Vessel are selectivity terms; one cell per year</span></span></span>
 <span class="r-in"><span><span class="va">sc_pop</span> <span class="op">&lt;-</span> <span class="fu">scale_comps</span><span class="op">(</span>fit <span class="op">=</span> <span class="va">fit</span>, mode <span class="op">=</span> <span class="st">"index"</span>, grps <span class="op">=</span> <span class="st">"Year"</span>,</span></span>
 <span class="r-in"><span>                      grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="scaled_comp_plot.html">scaled_comp_plot</a></span><span class="op">(</span><span class="va">sc_pop</span>, grps <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></span>
@@ -231,7 +232,7 @@ issued.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Philipp Neubauer, D’Arcy Webber.</p>
+  <p>Developed by Philipp Neubauer.</p>
 </div>
 
 <div class="pkgdown-footer-right">

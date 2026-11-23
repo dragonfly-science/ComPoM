@@ -12,6 +12,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Poisson-Multinomial Models to Standardise and Scale Compositions">
 <meta name="description" content="Fits Poisson-multinomial models to compositional count data, such as length or age frequencies from fisheries observer or market sampling, in order to standardise compositions for non-representative sampling and scale them to total catch. Counts per bin and sampling stratum are modelled as Poisson with the stratum sample size as offset, and all covariate effects enter as bin-specific terms, so that the implied proportions within a stratum follow a multinomial-logit model. Effects of interest (e.g. year) are fitted as bin-specific fixed effects, nuisance sampling factors (e.g. vessel, season) as bin-specific independent random effects, and continuous covariates (e.g. sea-surface temperature) as smooths over covariate and bin. Models are fitted with brms (Bayesian, via Stan) or sdmTMB (maximum likelihood, via TMB). The sdmTMB backend can add bin-specific spatial and spatio-temporal Gaussian random fields through the SPDE approach. Fitted models are used to predict compositions for strata with known catch, which are then aggregated to catch-weighted compositions with uncertainty from posterior or simulation draws. Plotting functions show estimated effects, posterior predictive checks, smooth effects, spatial fields, and scaled compositions.">
 <meta property="og:description" content="Fits Poisson-multinomial models to compositional count data, such as length or age frequencies from fisheries observer or market sampling, in order to standardise compositions for non-representative sampling and scale them to total catch. Counts per bin and sampling stratum are modelled as Poisson with the stratum sample size as offset, and all covariate effects enter as bin-specific terms, so that the implied proportions within a stratum follow a multinomial-logit model. Effects of interest (e.g. year) are fitted as bin-specific fixed effects, nuisance sampling factors (e.g. vessel, season) as bin-specific independent random effects, and continuous covariates (e.g. sea-surface temperature) as smooths over covariate and bin. Models are fitted with brms (Bayesian, via Stan) or sdmTMB (maximum likelihood, via TMB). The sdmTMB backend can add bin-specific spatial and spatio-temporal Gaussian random fields through the SPDE approach. Fitted models are used to predict compositions for strata with known catch, which are then aggregated to catch-weighted compositions with uncertainty from posterior or simulation draws. Plotting functions show estimated effects, posterior predictive checks, smooth effects, spatial fields, and scaled compositions.">
+<meta property="og:image" content="https://dragonfly-science.github.io/ComPoM/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -21,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ComPoM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,8 +55,10 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="compom">ComPoM<a class="anchor" aria-label="anchor" href="#compom"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="compom-">ComPoM <a class="anchor" aria-label="anchor" href="#compom-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <p>ComPoM fits Poisson-multinomial models to compositional count data (e.g. length or age frequencies from observer sampling) and uses them to standardise compositions for non-representative sampling and scale them to total catch.</p>
@@ -190,7 +193,7 @@
 <span><span class="fu"><a href="reference/scaled_comp_plot.html">scaled_comp_plot</a></span><span class="op">(</span><span class="va">scaled</span>, grps <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 4b. Index population: the composition of the population that a CPUE index describes.</span></span>
-<span><span class="co">#     Season and Vessel are catchability terms (random effects) and are set to the</span></span>
+<span><span class="co">#     Season and Vessel are selectivity terms (random effects) and are set to the</span></span>
 <span><span class="co">#     population level. The grid has one row per index time step (here one per year).</span></span>
 <span><span class="va">scaled_pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scale_comps.html">scale_comps</a></span><span class="op">(</span></span>
 <span>  fit  <span class="op">=</span> <span class="va">fit</span>,</span>
@@ -301,7 +304,6 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Philipp Neubauer <br><small class="roles"> Author, maintainer, copyright holder </small>   </li>
-<li>D'Arcy Webber <br><small class="roles"> Author </small>   </li>
 </ul>
 </div>
 
@@ -312,7 +314,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Philipp Neubauer, D’Arcy Webber.</p>
+  <p>Developed by Philipp Neubauer.</p>
 </div>
 
 <div class="pkgdown-footer-right">

@@ -18,7 +18,7 @@ scale_comps(
   pgrid = NULL,
   remove_nuisance = FALSE,
   mode = c("catch", "index"),
-  catchability = NULL,
+  selectivity = NULL,
   density = NULL,
   reference = NULL,
   grid = NULL,
@@ -47,7 +47,7 @@ scale_comps(
 
   Grouping variables defining the strata (catch mode) or the output time
   steps and other prediction variables (index mode). Must include the
-  `ffx_form` variables (except catchability terms) and, for catch
+  `ffx_form` variables (except selectivity terms) and, for catch
   weighting, the `re_form` variables.
 
 - iters:
@@ -63,17 +63,19 @@ scale_comps(
 - remove_nuisance:
 
   Deprecated. `FALSE` is `mode = "catch"`. `TRUE` is `mode = "index"`
-  with the random effects as catchability terms, `scale_df` as `grid`
-  and `predvar` as `weight`.
+  with the random effects as selectivity terms, `scale_df` as `grid` and
+  `predvar` as `weight`.
 
 - mode:
 
   `"catch"` or `"index"`; see Details.
 
-- catchability:
+- selectivity:
 
-  Character vector of model terms that are catchability covariates, set
-  to a reference (index mode).
+  Character vector of model terms that are selectivity covariates, set
+  to a reference (index mode). In catch mode, the listed terms are also
+  set to a reference, which gives the prediction without them (see
+  [`influ_comps()`](https://dragonfly-science.github.io/ComPoM/reference/influ_comps.md)).
 
 - density:
 
@@ -83,7 +85,7 @@ scale_comps(
 
 - reference:
 
-  Named list of reference values for catchability terms, e.g.
+  Named list of reference values for selectivity terms, e.g.
   `list(Gear = "trawl", sst = 15)`.
 
 - grid:
@@ -117,8 +119,8 @@ the weight column) is in `n`.
 - `"index"`:
 
   The composition of the population that a CPUE index describes,
-  predicted as a CPUE analysis would predict the index. Catchability
-  terms (`catchability`) are set to a reference. All other terms are
+  predicted as a CPUE analysis would predict the index. Selectivity
+  terms (`selectivity`) are set to a reference. All other terms are
   predicted at the values in `grid`. For non-spatial models, `grid` has
   one row per index time step (e.g. Year). For spatial models, `grid`
   has one row per cell and time step, with the coordinates, the time
@@ -127,14 +129,14 @@ the weight column) is in `n`.
   abundance model.
 
 In index mode, every fixed-effect variable and continuous covariate of
-the model is either listed in `catchability` or is a column of `grid`.
+the model is either listed in `selectivity` or is a column of `grid`.
 The function stops otherwise, so that the role of each term is chosen by
-the user. Random effects (`re_form`) are catchability terms unless they
+the user. Random effects (`re_form`) are selectivity terms unless they
 are listed in `density`, in which case they are evaluated at the values
 in `grid`. With the TMB backend, either all or none of the random
 effects can be kept.
 
-Reference values for catchability terms are the most frequent level
+Reference values for selectivity terms are the most frequent level
 (factors) or the mean (continuous covariates) in the fitted data, unless
 given in `reference`. Random effects are set to the population level.
 
@@ -173,16 +175,16 @@ head(sc)
 #> # A tibble: 6 × 9
 #>   Year  Season Vessel bin       n  .row iter  tot_by_bin .draw
 #>   <fct> <fct>  <fct>  <fct> <dbl> <int> <chr>      <dbl> <dbl>
-#> 1 2015  summer V1     10     1904     1 V1          436.     1
-#> 2 2015  summer V1     10     1904     1 V2          528.     2
-#> 3 2015  summer V1     10     1904     1 V3          357.     3
-#> 4 2015  summer V1     10     1904     1 V4          498.     4
-#> 5 2015  summer V1     10     1904     1 V5          412.     5
-#> 6 2015  summer V1     10     1904     1 V6          436.     6
+#> 1 2015  summer V1     10     1904     1 V1          483.     1
+#> 2 2015  summer V1     10     1904     1 V2          442.     2
+#> 3 2015  summer V1     10     1904     1 V3          460.     3
+#> 4 2015  summer V1     10     1904     1 V4          440.     4
+#> 5 2015  summer V1     10     1904     1 V5          573.     5
+#> 6 2015  summer V1     10     1904     1 V6          428.     6
 scaled_comp_plot(sc, grps = "Year")
 
 
-# index population: Season and Vessel are catchability terms; one cell per year
+# index population: Season and Vessel are selectivity terms; one cell per year
 sc_pop <- scale_comps(fit = fit, mode = "index", grps = "Year",
                       grid = data.frame(Year = factor(2015:2020)))
 scaled_comp_plot(sc_pop, grps = "Year")

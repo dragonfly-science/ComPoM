@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ComPoM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,8 +56,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>ComPoM: model description and workflow</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>ComPoM: model description and workflow</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/dragonfly-science/ComPoM/blob/main/vignettes/ComPoM.Rmd" class="external-link"><code>vignettes/ComPoM.Rmd</code></a></small>
@@ -326,8 +325,8 @@ are evaluated at the values of each stratum. Every nuisance variable
 must therefore be in <code>grps</code>.</li>
 <li>Index mode (<code>mode = "index"</code>) estimates the composition
 of the population that a CPUE index describes, predicted as the index
-would be. Catchability terms, such as fleet or gear, are set to a
-reference (<code>catchability</code>, <code>reference</code>), and
+would be. Selectivity terms, such as fleet or gear, are set to a
+reference (<code>selectivity</code>, <code>reference</code>), and
 nuisance random effects to the population level. All other terms are
 predicted at the values in a prediction grid (<code>grid</code>): one
 row per index time step for a non-spatial model, and one row per cell
@@ -337,7 +336,7 @@ covariates.
 is a weight per grid row, which can come from a separate CPUE or
 abundance model (<code>weight</code>) and is equal for all rows
 otherwise. Every fixed-effect variable and covariate of the model is
-either a catchability term or a column of the grid, so that the role of
+either a selectivity term or a column of the grid, so that the role of
 each term is chosen by the user.</li>
 </ul>
 <p>In both modes, spatial and spatio-temporal fields are evaluated at
@@ -778,7 +777,7 @@ Statistical Society, Series B 73(4), 423–498.</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Philipp Neubauer, D’Arcy Webber.</p>
+  <p>Developed by Philipp Neubauer.</p>
 </div>
 
 <div class="pkgdown-footer-right">

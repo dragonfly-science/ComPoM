@@ -53,5 +53,3 @@ holder\]
 Authors:
 
 - Philipp Neubauer <philipp@dragonfly.co.nz> \[copyright holder\]
-
-- D'Arcy Webber

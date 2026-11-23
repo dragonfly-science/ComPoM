@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ComPoM</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,8 +56,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Correcting for spatially biased sampling in compositional data</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Correcting for spatially biased sampling in compositional data</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/dragonfly-science/ComPoM/blob/main/vignettes/spatial_bias_simulation.Rmd" class="external-link"><code>vignettes/spatial_bias_simulation.Rmd</code></a></small>
@@ -338,223 +337,223 @@ sampled locations (points).
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Conditional model:</span></span>
 <span><span class="co">#&gt;      Groups        Name    Variance    Std.Dev. </span></span>
-<span><span class="co">#&gt;  bin:Season (Intercept)        0.00        0.03 </span></span>
+<span><span class="co">#&gt;  bin:Season (Intercept)        0.00        0.00 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Conditional model:</span></span>
 <span><span class="co">#&gt;                      coef.est coef.se</span></span>
-<span><span class="co">#&gt; bin1                    -3.07    0.08</span></span>
+<span><span class="co">#&gt; bin1                    -3.09    0.07</span></span>
 <span><span class="co">#&gt; bin2                    -2.69    0.07</span></span>
-<span><span class="co">#&gt; bin3                    -2.32    0.06</span></span>
-<span><span class="co">#&gt; bin4                    -2.26    0.06</span></span>
-<span><span class="co">#&gt; bin5                    -2.14    0.06</span></span>
-<span><span class="co">#&gt; bin6                    -2.08    0.06</span></span>
-<span><span class="co">#&gt; bin7                    -2.10    0.06</span></span>
-<span><span class="co">#&gt; bin8                    -2.20    0.06</span></span>
+<span><span class="co">#&gt; bin3                    -2.35    0.06</span></span>
+<span><span class="co">#&gt; bin4                    -2.23    0.06</span></span>
+<span><span class="co">#&gt; bin5                    -2.15    0.05</span></span>
+<span><span class="co">#&gt; bin6                    -2.05    0.05</span></span>
+<span><span class="co">#&gt; bin7                    -2.08    0.05</span></span>
+<span><span class="co">#&gt; bin8                    -2.20    0.05</span></span>
 <span><span class="co">#&gt; bin9                    -2.29    0.06</span></span>
-<span><span class="co">#&gt; bin10                   -2.45    0.06</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)2      -0.15    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)2      -0.07    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)2      -0.02    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)2       0.05    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)2      -0.03    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)2       0.05    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)2      -0.01    0.06</span></span>
+<span><span class="co">#&gt; bin10                   -2.46    0.06</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)2      -0.15    0.10</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)2      -0.02    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)2       0.02    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)2       0.03    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)2      -0.02    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)2       0.06    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)2      -0.02    0.06</span></span>
 <span><span class="co">#&gt; bin8:factor(Year)2       0.02    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)2       0.02    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)2      0.01    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)3       0.15    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)3      -0.02    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)3      -0.04    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)3       0.03    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)3      -0.04    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)3      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)3      -0.05    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)3       0.04    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)2       0.00    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)2     -0.01    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)3       0.11    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)3      -0.10    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)3      -0.03    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)3      -0.01    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)3       0.02    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)3       0.00    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)3      -0.06    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)3       0.07    0.06</span></span>
 <span><span class="co">#&gt; bin9:factor(Year)3      -0.05    0.07</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)3      0.07    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)4       0.17    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)4      -0.01    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)4      -0.12    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)4       0.02    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)4       0.04    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)4      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)4      -0.08    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)4      -0.04    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)4       0.03    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)3      0.08    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)4       0.18    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)4       0.01    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)4      -0.04    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)4       0.00    0.07</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)4       0.07    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)4      -0.02    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)4      -0.12    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)4      -0.06    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)4       0.00    0.06</span></span>
 <span><span class="co">#&gt; bin10:factor(Year)4      0.08    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)5       0.09    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)5       0.06    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)5      -0.07    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)5       0.03    0.07</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)5       0.11    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)5      -0.02    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)5      -0.03    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)5       0.01    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)5      -0.04    0.07</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)5     -0.08    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)6       0.00    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)6      -0.01    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)6      -0.05    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)6       0.05    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)6      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)6      -0.08    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)6       0.02    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)6       0.03    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)6       0.03    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)6      0.02    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)7      -0.12    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)7      -0.08    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)7       0.04    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)5       0.12    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)5       0.03    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)5       0.00    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)5      -0.02    0.07</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)5       0.16    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)5      -0.03    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)5      -0.08    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)5      -0.01    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)5      -0.06    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)5     -0.05    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)6      -0.03    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)6       0.02    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)6       0.02    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)6       0.06    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)6      -0.02    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)6      -0.05    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)6      -0.02    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)6       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)6      -0.03    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)6      0.05    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)7      -0.08    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)7      -0.11    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)7       0.07    0.07</span></span>
 <span><span class="co">#&gt; bin4:factor(Year)7       0.00    0.07</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)7       0.07    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)7       0.04    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)7      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)7       0.01    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)7       0.02    0.07</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)7     -0.06    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)8      -0.38    0.10</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)8       0.00    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)8       0.03    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)8       0.16    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)8       0.15    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)8      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)8      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)8       0.00    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)8      -0.12    0.07</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)8     -0.12    0.07</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)7       0.04    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)7      -0.01    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)7      -0.04    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)7       0.04    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)7       0.05    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)7     -0.03    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)8      -0.46    0.11</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)8      -0.08    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)8       0.13    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)8       0.13    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)8       0.14    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)8       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)8       0.02    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)8       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)8      -0.14    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)8     -0.13    0.07</span></span>
 <span><span class="co">#&gt; bin1:factor(Year)9      -0.31    0.10</span></span>
 <span><span class="co">#&gt; bin2:factor(Year)9      -0.11    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)9       0.03    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)9       0.11    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)9       0.15    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)9       0.06    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)9       0.00    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)9      -0.07    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)9      -0.03    0.07</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)9     -0.09    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)10     -0.37    0.10</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)10     -0.07    0.09</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)10      0.03    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)10      0.23    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)10      0.15    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)10      0.09    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)10     -0.06    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)10     -0.05    0.07</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)10     -0.23    0.07</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)10    -0.07    0.07</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)9       0.09    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)9       0.07    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)9       0.16    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)9       0.07    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)9      -0.04    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)9      -0.08    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)9      -0.08    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)9     -0.04    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)10     -0.40    0.10</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)10     -0.07    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)10      0.09    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)10      0.21    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)10      0.19    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)10      0.06    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)10     -0.05    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)10     -0.06    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)10     -0.28    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)10    -0.09    0.07</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Matérn range: 10.35</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin1): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin2): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin3): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin4): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin5): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin6): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin7): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin8): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin9): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (bin10): 0.19</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin1`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin2`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin3`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin4`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin5`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin6`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin7`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin8`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin9`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin10`): 0.00</span></span>
-<span><span class="co">#&gt; ML criterion at convergence: 11363.120</span></span>
+<span><span class="co">#&gt; Matérn range: 10.47</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin1): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin2): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin3): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin4): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin5): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin6): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin7): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin8): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin9): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (bin10): 0.18</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin1`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin2`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin3`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin4`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin5`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin6`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin7`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin8`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin9`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)1:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)2:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)3:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)4:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)5:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)6:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)7:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)8:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)9:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; Spatially varying coefficient SD (`factor(Year)10:bin10`): 0.03</span></span>
+<span><span class="co">#&gt; ML criterion at convergence: 11372.529</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; See ?tidy.sdmTMB to extract these values as a data frame.</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -590,107 +589,107 @@ sampled locations (points).
 <span><span class="co">#&gt; Conditional model:</span></span>
 <span><span class="co">#&gt;                      coef.est coef.se</span></span>
 <span><span class="co">#&gt; bin1                    -2.96    0.06</span></span>
-<span><span class="co">#&gt; bin2                    -2.71    0.05</span></span>
-<span><span class="co">#&gt; bin3                    -2.37    0.05</span></span>
-<span><span class="co">#&gt; bin4                    -2.25    0.04</span></span>
-<span><span class="co">#&gt; bin5                    -2.16    0.04</span></span>
+<span><span class="co">#&gt; bin2                    -2.68    0.05</span></span>
+<span><span class="co">#&gt; bin3                    -2.41    0.05</span></span>
+<span><span class="co">#&gt; bin4                    -2.24    0.04</span></span>
+<span><span class="co">#&gt; bin5                    -2.18    0.04</span></span>
 <span><span class="co">#&gt; bin6                    -2.07    0.04</span></span>
-<span><span class="co">#&gt; bin7                    -2.06    0.04</span></span>
+<span><span class="co">#&gt; bin7                    -2.04    0.04</span></span>
 <span><span class="co">#&gt; bin8                    -2.16    0.04</span></span>
-<span><span class="co">#&gt; bin9                    -2.24    0.04</span></span>
-<span><span class="co">#&gt; bin10                   -2.37    0.05</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)2      -0.11    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)2      -0.03    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)2      -0.02    0.07</span></span>
+<span><span class="co">#&gt; bin9                    -2.23    0.04</span></span>
+<span><span class="co">#&gt; bin10                   -2.38    0.05</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)2      -0.15    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)2      -0.01    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)2       0.01    0.07</span></span>
 <span><span class="co">#&gt; bin4:factor(Year)2       0.05    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)2      -0.04    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)2       0.06    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)2      -0.03    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)2       0.07    0.06</span></span>
 <span><span class="co">#&gt; bin7:factor(Year)2      -0.05    0.06</span></span>
 <span><span class="co">#&gt; bin8:factor(Year)2       0.02    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)2       0.01    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)2      0.04    0.06</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)3       0.11    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)3       0.02    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)3      -0.01    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)3       0.04    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)3      -0.02    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)2       0.00    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)2      0.01    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)3       0.07    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)3      -0.07    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)3       0.00    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)3       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)3       0.03    0.06</span></span>
 <span><span class="co">#&gt; bin6:factor(Year)3      -0.01    0.06</span></span>
 <span><span class="co">#&gt; bin7:factor(Year)3      -0.08    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)3       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)3       0.04    0.06</span></span>
 <span><span class="co">#&gt; bin9:factor(Year)3      -0.05    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)3      0.06    0.06</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)4       0.16    0.08</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)4       0.01    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)4      -0.11    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)3      0.07    0.06</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)4       0.19    0.08</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)4       0.03    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)4      -0.03    0.07</span></span>
 <span><span class="co">#&gt; bin4:factor(Year)4      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)4       0.04    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)4      -0.02    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)4      -0.09    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)4      -0.03    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)4       0.03    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)4      0.09    0.06</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)5       0.13    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)5       0.12    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)5      -0.05    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)5       0.02    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)5       0.08    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)5      -0.05    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)5      -0.07    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)5       0.00    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)5      -0.03    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)5     -0.07    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)6       0.01    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)6       0.01    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)6      -0.08    0.07</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)6       0.03    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)6      -0.02    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)6      -0.09    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)6       0.01    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)6       0.03    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)6       0.03    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)6      0.08    0.06</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)7      -0.10    0.09</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)7      -0.02    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)7       0.05    0.06</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)7       0.00    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)7       0.05    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)7       0.01    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)7      -0.04    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)7       0.01    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)7       0.01    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)7     -0.04    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)8      -0.43    0.10</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)8       0.04    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)8       0.06    0.06</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)8       0.18    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)8       0.16    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)8      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)8      -0.05    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)4       0.06    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)4      -0.03    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)4      -0.14    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)4      -0.05    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)4       0.02    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)4      0.08    0.06</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)5       0.17    0.08</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)5       0.08    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)5       0.02    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)5      -0.01    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)5       0.13    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)5      -0.06    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)5      -0.12    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)5      -0.02    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)5      -0.05    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)5     -0.05    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)6       0.00    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)6       0.02    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)6      -0.01    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)6       0.07    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)6      -0.04    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)6      -0.07    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)6      -0.03    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)6       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)6      -0.01    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)6      0.09    0.06</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)7      -0.04    0.09</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)7      -0.08    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)7       0.07    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)7       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)7       0.01    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)7      -0.02    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)7      -0.07    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)7       0.05    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)7       0.06    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)7     -0.02    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)8      -0.52    0.10</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)8      -0.08    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)8       0.13    0.06</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)8       0.17    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)8       0.18    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)8       0.02    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)8      -0.02    0.06</span></span>
 <span><span class="co">#&gt; bin8:factor(Year)8      -0.01    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)8      -0.13    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)8     -0.12    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)9      -0.31    0.10</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)9      -0.08    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)9       0.06    0.06</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)9       0.12    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)9       0.15    0.06</span></span>
-<span><span class="co">#&gt; bin6:factor(Year)9       0.05    0.06</span></span>
-<span><span class="co">#&gt; bin7:factor(Year)9      -0.03    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)9      -0.08    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)9      -0.05    0.06</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)9     -0.08    0.07</span></span>
-<span><span class="co">#&gt; bin1:factor(Year)10     -0.44    0.10</span></span>
-<span><span class="co">#&gt; bin2:factor(Year)10     -0.02    0.08</span></span>
-<span><span class="co">#&gt; bin3:factor(Year)10      0.08    0.06</span></span>
-<span><span class="co">#&gt; bin4:factor(Year)10      0.23    0.06</span></span>
-<span><span class="co">#&gt; bin5:factor(Year)10      0.16    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)8      -0.14    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)8     -0.15    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)9      -0.32    0.10</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)9      -0.10    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)9       0.11    0.07</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)9       0.09    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)9       0.17    0.06</span></span>
+<span><span class="co">#&gt; bin6:factor(Year)9       0.07    0.06</span></span>
+<span><span class="co">#&gt; bin7:factor(Year)9      -0.06    0.06</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)9      -0.09    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)9      -0.08    0.06</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)9     -0.04    0.07</span></span>
+<span><span class="co">#&gt; bin1:factor(Year)10     -0.49    0.10</span></span>
+<span><span class="co">#&gt; bin2:factor(Year)10     -0.09    0.08</span></span>
+<span><span class="co">#&gt; bin3:factor(Year)10      0.13    0.06</span></span>
+<span><span class="co">#&gt; bin4:factor(Year)10      0.24    0.06</span></span>
+<span><span class="co">#&gt; bin5:factor(Year)10      0.20    0.06</span></span>
 <span><span class="co">#&gt; bin6:factor(Year)10      0.09    0.06</span></span>
 <span><span class="co">#&gt; bin7:factor(Year)10     -0.05    0.06</span></span>
-<span><span class="co">#&gt; bin8:factor(Year)10     -0.07    0.06</span></span>
-<span><span class="co">#&gt; bin9:factor(Year)10     -0.27    0.07</span></span>
-<span><span class="co">#&gt; bin10:factor(Year)10    -0.09    0.07</span></span>
+<span><span class="co">#&gt; bin8:factor(Year)10     -0.08    0.06</span></span>
+<span><span class="co">#&gt; bin9:factor(Year)10     -0.29    0.07</span></span>
+<span><span class="co">#&gt; bin10:factor(Year)10    -0.12    0.07</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ML criterion at convergence: 11707.319</span></span>
+<span><span class="co">#&gt; ML criterion at convergence: 11691.592</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; See ?tidy.sdmTMB to extract these values as a data frame.</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -701,9 +700,9 @@ sampled locations (points).
 </h2>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">mods_spatial</span><span class="op">$</span><span class="va">model</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 22934.24</span></span>
+<span><span class="co">#&gt; [1] 22953.06</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">mods_nonspatial</span><span class="op">$</span><span class="va">model</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 23616.64</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 23585.18</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="effects-plots">Effects Plots<a class="anchor" aria-label="anchor" href="#effects-plots"></a>
@@ -873,12 +872,12 @@ points and bars are medians and 95% intervals.
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">mods_spatial</span><span class="op">$</span><span class="va">model</span>, <span class="st">"ran_pars"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 6</span></span></span>
-<span><span class="co">#&gt;   group_name term             estimate std.error  conf.low conf.high</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #BB0000;">NA</span>         range           10.3        1.31    8.07<span style="color: #949494;">e</span>+  0 1.33<span style="color: #949494;">e</span>+  1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #BB0000;">NA</span>         sigma_Z          0.193      0.009<span style="text-decoration: underline;">88</span> 1.75<span style="color: #949494;">e</span><span style="color: #BB0000;">-  1</span> 2.14<span style="color: #949494;">e</span><span style="color: #BB0000;">-  1</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #BB0000;">NA</span>         sigma_Z          0.000<span style="text-decoration: underline;">132</span>   0.016<span style="text-decoration: underline;">3</span>  5.65<span style="color: #949494;">e</span><span style="color: #BB0000;">-110</span> 3.08<span style="color: #949494;">e</span>+101</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> bin:Season sd__(Intercept)  0.028<span style="text-decoration: underline;">7</span>    <span style="color: #BB0000;">NA</span>       1.44<span style="color: #949494;">e</span><span style="color: #BB0000;">-  2</span> 5.74<span style="color: #949494;">e</span><span style="color: #BB0000;">-  2</span></span></span></code></pre></div>
+<span><span class="co">#&gt;   group_name term              estimate std.error conf.low conf.high</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #BB0000;">NA</span>         range           10.5         1.35     8.13       13.5  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #BB0000;">NA</span>         sigma_Z          0.183       0.009<span style="text-decoration: underline;">64</span>  0.165       0.203</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #BB0000;">NA</span>         sigma_Z          0.030<span style="text-decoration: underline;">9</span>      0.027<span style="text-decoration: underline;">9</span>   0.005<span style="text-decoration: underline;">26</span>     0.181</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> bin:Season sd__(Intercept)  0.000<span style="text-decoration: underline;">027</span>9  <span style="color: #BB0000;">NA</span>        0         <span style="color: #BB0000;">Inf</span></span></span></code></pre></div>
 <p>The spatial model can better account for the non-representative
 sampling by modeling the underlying spatial structure in the data.</p>
 </div>
@@ -1255,7 +1254,7 @@ weight for every stratum differs from the catch-weighted composition
 even without sampling and without a model. In the simulated world of
 scenario A, the two compositions differed by an MAE of 0.0060 (chunk
 above), and the stratum catch was correlated with the mean size of the
-stratum (correlation -0.628), because a stratum with larger fish had a
+stratum (correlation -0.594), because a stratum with larger fish had a
 lower selected abundance. This was computed for the world of scenario A
 only.</p>
 <p>A sample average weights strata by the number of samples and not by
@@ -1291,7 +1290,7 @@ in E and 0.077 in C (Table 1), against 0.095 in A.</p>
 <p>In scenario A, the model with spatio-temporal fields and the
 spatial-only model had an MAE of 0.0070 and 0.0070 and a constant
 component of 0.0044 and 0.0045. The estimated spatio-temporal standard
-deviation of the model fitted above was 1.3e-04, and the simulated field
+deviation of the model fitted above was 3.1e-02, and the simulated field
 was constant over time.</p>
 <p>The Hessian of the spatial-only fit was positive definite in all
 scenarios. <code><a href="https://sdmTMB.github.io/sdmTMB/reference/sanity.html" class="external-link">sanity()</a></code> reported at least one problem in 9 of
@@ -1404,15 +1403,15 @@ within-year spatial variation.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 3</span></span></span>
 <span><span class="co">#&gt;    Year  prop_large mean_sst</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1          0.053     0   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 2          0.164     1.43</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 3          0.089     0.88</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 4          0.048    -<span style="color: #BB0000;">0.88</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 5          0.051    -<span style="color: #BB0000;">1.43</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1          0.052     0   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 2          0.167     1.43</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 3          0.091     0.88</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 4          0.046    -<span style="color: #BB0000;">0.88</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 5          0.05     -<span style="color: #BB0000;">1.43</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 6          0.052     0   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 7          0.158     1.43</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 7          0.153     1.43</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 8          0.089     0.88</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 9          0.046    -<span style="color: #BB0000;">0.88</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 9          0.047    -<span style="color: #BB0000;">0.88</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10         0.05     -<span style="color: #BB0000;">1.43</span></span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -1493,13 +1492,13 @@ of each stratum. The SST spline is evaluated at the observed quintile
 midpoint and the Season random effect at the stratum’s season.
 <code>Season</code> must therefore be in <code>grps</code>.</p>
 <p><code>mode = "index"</code> sets the Season random effect (a
-catchability term) to the population level, and <code>sst_c = 0</code>
-in the grid evaluates the spline at mean SST. This gives year
-compositions standardised to average oceanographic conditions and to the
-population level of the season effect, removing the ENSO signal. In an
-application the weight would be a predicted CPUE or abundance per
-stratum. Here the simulated catch was used as the weight for both
-settings, so that only the treatment of the model terms differed.</p>
+selectivity term) to the population level, and <code>sst_c = 0</code> in
+the grid evaluates the spline at mean SST. This gives year compositions
+standardised to average oceanographic conditions and to the population
+level of the season effect, removing the ENSO signal. In an application
+the weight would be a predicted CPUE or abundance per stratum. Here the
+simulated catch was used as the weight for both settings, so that only
+the treatment of the model terms differed.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">true_comp_sst_enso</span> <span class="op">&lt;-</span> <span class="va">input_sst_binned_enso</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">bin</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1581,7 +1580,7 @@ forcing.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Philipp Neubauer, D’Arcy Webber.</p>
+  <p>Developed by Philipp Neubauer.</p>
 </div>
 
 <div class="pkgdown-footer-right">

@@ -195,8 +195,8 @@ supports two uses, selected by `mode`.
   stratum. Every nuisance variable must therefore be in `grps`.
 - Index mode (`mode = "index"`) estimates the composition of the
   population that a CPUE index describes, predicted as the index would
-  be. Catchability terms, such as fleet or gear, are set to a reference
-  (`catchability`, `reference`), and nuisance random effects to the
+  be. Selectivity terms, such as fleet or gear, are set to a reference
+  (`selectivity`, `reference`), and nuisance random effects to the
   population level. All other terms are predicted at the values in a
   prediction grid (`grid`): one row per index time step for a
   non-spatial model, and one row per cell and time step for a spatial
@@ -204,7 +204,7 @@ supports two uses, selected by `mode`.
   weight per grid row, which can come from a separate CPUE or abundance
   model (`weight`) and is equal for all rows otherwise. Every
   fixed-effect variable and covariate of the model is either a
-  catchability term or a column of the grid, so that the role of each
+  selectivity term or a column of the grid, so that the role of each
   term is chosen by the user.
 
 In both modes, spatial and spatio-temporal fields are evaluated at the

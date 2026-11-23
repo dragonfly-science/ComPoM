@@ -1,26 +1,35 @@
 # Changelog
 
-## ComPoM 0.3.0
-
-### Fixes
-
-- `fit_model(backend = "brms")` failed with the default `dist`, because
-  the default was the string `"poisson()"`. The default is now
-  `"poisson"`.
-- [`data_prep()`](https://dragonfly-science.github.io/ComPoM/reference/data_prep.md)
-  no longer triggers the tidyselect external-vector deprecation warning.
-- [`post_pred_group()`](https://dragonfly-science.github.io/ComPoM/reference/post_pred_group.md)
-  works with `grp = NULL` and gives an informative error when the fit
-  has no predictive draws (`add_preds = FALSE`).
-- Package load no longer prints import-conflict warnings. Dependencies
-  are imported selectively, and `recipes`, `stringr` and `posterior` are
-  no longer dependencies.
+## ComPoM 0.4.0
 
 ### Changes
 
+- New
+  [`step_comps()`](https://dragonfly-science.github.io/ComPoM/reference/step_comps.md)
+  and
+  [`plot_step_comps()`](https://dragonfly-science.github.io/ComPoM/reference/plot_step_comps.md):
+  refit with terms added one at a time and track a statistic of the
+  annual composition (mean bin by default; `stat = 0.9` for the 90th
+  percentile or a function; see
+  [`comp_quantile()`](https://dragonfly-science.github.io/ComPoM/reference/comp_quantile.md))
+  for the catch and index components. TMB backend only.
+
+- New
+  [`influ_comps()`](https://dragonfly-science.github.io/ComPoM/reference/influ_comps.md)
+  and
+  [`plot_cdi_comps()`](https://dragonfly-science.github.io/ComPoM/reference/plot_cdi_comps.md):
+  the effect of each level on every bin, the distribution of the data
+  over levels by year, and the influence of each term on the annual
+  composition (log ratio by bin).
+  [`plot_cdi_comps()`](https://dragonfly-science.github.io/ComPoM/reference/plot_cdi_comps.md)
+  follows Bentley et al. (2012): levels are shared between the
+  coefficient and distribution panels, and years between the
+  distribution and influence panels. `scale_comps(mode = "catch")`
+  accepts `selectivity` to set terms to a reference.
+
 - [`scale_comps()`](https://dragonfly-science.github.io/ComPoM/reference/scale_comps.md)
   gains `mode = "index"` for the composition of the population that a
-  CPUE index describes. Catchability terms (`catchability`, `reference`)
+  CPUE index describes. Selectivity terms (`selectivity`, `reference`)
   and the `re_form` random effects are set to references, all other
   terms are predicted on a user-supplied `grid`, and rows are weighted
   by `weight` (equal if `NULL`). `remove_nuisance` is deprecated.
@@ -54,28 +63,42 @@
   [`?parse_form`](https://dragonfly-science.github.io/ComPoM/reference/parse_form.md).
   Use `spl = "by_factor"` with `backend = "TMB"`.
 
+## ComPoM 0.3.0
+
+### Fixes
+
+- `fit_model(backend = "brms")` failed with the default `dist`, because
+  the default was the string `"poisson()"`. The default is now
+  `"poisson"`.
+- [`data_prep()`](https://dragonfly-science.github.io/ComPoM/reference/data_prep.md)
+  no longer triggers the tidyselect external-vector deprecation warning.
+- [`post_pred_group()`](https://dragonfly-science.github.io/ComPoM/reference/post_pred_group.md)
+  works with `grp = NULL` and gives an informative error when the fit
+  has no predictive draws (`add_preds = FALSE`).
+- Package load no longer prints import-conflict warnings. Dependencies
+  are imported selectively, and `recipes`, `stringr` and `posterior` are
+  no longer dependencies.
+
+### Changes
+
 - [`fit_model()`](https://dragonfly-science.github.io/ComPoM/reference/fit_model.md)
   defaults `cores` to `min(chains, parallel::detectCores())` and
   `threads` to `NULL` (previously `32` and `16`).
-
 - [`fit_model()`](https://dragonfly-science.github.io/ComPoM/reference/fit_model.md)
   warns when an sdmTMB fit has a Hessian that is not positive definite,
   and reports brms convergence with
   [`message()`](https://rdrr.io/r/base/message.html) instead of
   [`cat()`](https://rdrr.io/r/base/cat.html).
-
 - [`parse_form()`](https://dragonfly-science.github.io/ComPoM/reference/parse_form.md)
   reports the formula with
   [`message()`](https://rdrr.io/r/base/message.html) instead of printing
   it.
-
 - [`Fx_plot()`](https://dragonfly-science.github.io/ComPoM/reference/Fx_plot.md),
   [`scaled_comp_plot()`](https://dragonfly-science.github.io/ComPoM/reference/scaled_comp_plot.md)
   and
   [`scaled_ridge_plot()`](https://dragonfly-science.github.io/ComPoM/reference/scaled_ridge_plot.md)
   gain an `xlab` argument. The default is the previous label,
   `"Length bin (cm)"`.
-
 - `Selectivity()` is no longer part of the package. The simulation
   vignettes define it in `vignettes/vignette_helpers.R`.
 

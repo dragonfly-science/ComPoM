@@ -537,3 +537,102 @@ Both the Bayesian and the frequentist model recovered the true
 fleet-wide compositions with lower relative error than the raw samples.
 The median relative error was about 0.035 for both models and 0.058 for
 the raw samples.
+
+## Influence of Model Terms
+
+The influence functions refit the sdmTMB model and therefore do not
+apply to the brms fit. Figure 10 shows the mean length of the annual
+composition when the terms were added to the model one at a time
+([`step_comps()`](https://dragonfly-science.github.io/ComPoM/reference/step_comps.md)),
+for the catch component (`mode = "catch"`) and for the index component
+(`mode = "index"`). The first step was the model with bin-specific
+intercepts only, which gives the same composition in every year. In the
+index component, season and vessel were selectivity terms and were set
+to the population level.
+
+``` r
+
+index_grid <- dplyr::distinct(scale_df, Year)
+
+steps <- step_comps(
+  mod_tmb,
+  scale_df = scale_df, predvar = "catch",
+  grps = c("Year", "Season", "vessel_id"), by = "Year",
+  grid = index_grid
+)
+plot_step_comps(steps)
+```
+
+![Figure 10. Mean length of the annual composition (with 95% intervals)
+as terms were added to the sdmTMB model, for the catch component (top
+row) and the index component (bottom row). The current step is orange,
+the previous step skyblue and earlier steps
+grey.](vessel_bias_simulation_files/figure-html/step-1.png)
+
+Figure 10. Mean length of the annual composition (with 95% intervals) as
+terms were added to the sdmTMB model, for the catch component (top row)
+and the index component (bottom row). The current step is orange, the
+previous step skyblue and earlier steps grey.
+
+Adding the year effect produced the trend in mean length. Adding season
+changed the mean length by 0.001 on average in the catch component.
+Adding vessel changed it by -0.083 in the catch component and by -0.049
+in the index component.
+
+[`influ_comps()`](https://dragonfly-science.github.io/ComPoM/reference/influ_comps.md)
+summarises the effect of a term on each bin. With the TMB backend, the
+two random effects can only be removed together, so season and vessel
+form one term. Figures 11 and 12 show the levels of vessel and of season
+for that term. In each figure, the top panel shows the effect of each
+level on every length bin, as the log of the multiplier relative to the
+geometric mean over levels. The centre panel shows the share of the
+catch in each level and year, and the right panel shows the influence of
+the term on the annual composition, as the log ratio of the proportion
+in each bin with and without the term. The levels (x) are shared between
+the top and centre panels, and the years (y) between the centre and
+right panels. Cells whose 95% interval includes zero are faded. The
+influence is shown for the catch component. The index component has no
+influence of these terms, because they were set to the population level.
+
+``` r
+
+influence <- influ_comps(
+  mod_tmb,
+  scale_df = scale_df, predvar = "catch",
+  grps = c("Year", "Season", "vessel_id"), by = "Year",
+  grid = index_grid, components = "catch"
+)
+re_term <- names(influence$groups)
+max_infl <- max(abs(dplyr::filter(influence$influence, component == "catch")$mean))
+max_eff <- tapply(abs(influence$effects$effect), influence$effects$var, max)
+```
+
+``` r
+
+plot_cdi_comps(influence, re_term, var = "vessel_id", component = "catch")
+```
+
+![Figure 11. Effect of each vessel on each length bin (top), share of
+the catch by vessel and year (centre) and influence of the random
+effects on the annual composition
+(right).](vessel_bias_simulation_files/figure-html/cdi-vessel-1.png)
+
+Figure 11. Effect of each vessel on each length bin (top), share of the
+catch by vessel and year (centre) and influence of the random effects on
+the annual composition (right).
+
+``` r
+
+plot_cdi_comps(influence, re_term, var = "Season", component = "catch")
+```
+
+![Figure 12. As Figure 11, for
+season.](vessel_bias_simulation_files/figure-html/cdi-season-1.png)
+
+Figure 12. As Figure 11, for season.
+
+The largest absolute effect of a level on a bin was 0.45 for vessel and
+0.00 for season on the log scale. The largest absolute influence of the
+random effects on any bin and year was 0.05 on the log scale. The
+influence was similar in all years, because the shares of the catch by
+vessel and season were similar in all years (centre panels).

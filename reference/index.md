@@ -23,6 +23,25 @@ Prepare data, fit the model and scale the predictions to catch.
   : Plot marginal smooth effects of a continuous covariate by bin
 - [`spatial_field_plot()`](https://dragonfly-science.github.io/ComPoM/reference/spatial_field_plot.md)
   : Plot predicted spatial field by bin
+
+## Influence of model terms
+
+Step and coefficient-distribution-influence plots for compositions.
+
+- [`step_comps()`](https://dragonfly-science.github.io/ComPoM/reference/step_comps.md)
+  : Add model terms one at a time and track a statistic of the
+  composition
+- [`plot_step_comps()`](https://dragonfly-science.github.io/ComPoM/reference/plot_step_comps.md)
+  : Plot the step results
+- [`influ_comps()`](https://dragonfly-science.github.io/ComPoM/reference/influ_comps.md)
+  : Influence of model terms on the composition
+- [`plot_cdi_comps()`](https://dragonfly-science.github.io/ComPoM/reference/plot_cdi_comps.md)
+  : Coefficient, distribution and influence plot for one term
+- [`comp_quantile()`](https://dragonfly-science.github.io/ComPoM/reference/comp_quantile.md)
+  : Statistics of a composition
+
+## Plot theme
+
 - [`theme_compom()`](https://dragonfly-science.github.io/ComPoM/reference/theme_compom.md)
   : ComPoM plot theme
 
