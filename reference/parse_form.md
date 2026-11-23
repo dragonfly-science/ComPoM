@@ -117,7 +117,7 @@ pf <- parse_form(dat, backend = "TMB", ffx_form = "Year", re_form = "Season + Ve
 pf$form
 #> tot_by_bin ~ 0 + bin + factor(Year):bin + (1 | bin:Season) + 
 #>     (1 | bin:Vessel)
-#> <environment: 0x6109f492cbc8>
+#> <environment: 0x5fff790d3b58>
 pf$re_vars
 #> [1] "Season" "Vessel"
 ```
