@@ -5,3 +5,4 @@
 inst/doc
 vignettes/*cache/
 Rplots.pdf
+vignettes/FAL_PS_ex.Rmd

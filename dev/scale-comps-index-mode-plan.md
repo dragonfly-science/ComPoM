@@ -1,6 +1,11 @@
 # Plan: index-population compositions in `scale_comps()`
 
-Status: proposal, not implemented. Written 2026-11-23.
+Status: implemented 2026-11-23 (steps 1 to 5). Decisions taken: catchability fixed effects are set to
+a reference (default: most frequent level, or the mean for covariates; override with `reference`),
+index-mode cells have equal weights unless a `weight` column is given, and roles are given with
+explicit `catchability` and `density` arguments. Averaging over levels of a catchability term is
+not implemented. Recovery tests cover a non-spatial catchability fixed effect and a spatial fit
+with spatially biased sampling. With the TMB backend, either all or none of the random effects can be kept.
 
 ## Background
 
@@ -92,8 +97,8 @@ Proposal: implement (b), with (a) as the default. **Decision needed.**
 
 The long format is unchanged (`.draw`, `bin`, `tot_by_bin`, plus the index axis), so
 `scaled_comp_plot()` and `scaled_ridge_plot()` work as they are. The selectivity of the index fleet
-is the ratio of this population composition to a reference composition. A helper for the ratio
-can follow once the core change works.
+is estimated in the stock assessment model, which takes this composition as input. No helper
+for it is needed in this package.
 
 ## 6. Work breakdown
 
