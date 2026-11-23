@@ -258,10 +258,9 @@ mod_brms <- fit_model(
   data = input_data,
   backend = "brms",
   dist=poisson(),
-  brms_backend = "cmdstanr",
+  brms_backend = "rstan",
   chains = 4,
   cores = 4,
-  threads = 1,
   iter = 1000,
   warmup = 500,
   thin = 2
