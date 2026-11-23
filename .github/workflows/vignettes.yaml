@@ -2,7 +2,7 @@
 # that no longer run against the code. The vignettes fit models, so this is slow (~20 minutes).
 on:
   push:
-    branches: [main, master]
+    branches: [main, dev]
     paths: ['R/**', 'vignettes/**', 'DESCRIPTION']
   pull_request:
     paths: ['R/**', 'vignettes/**', 'DESCRIPTION']
