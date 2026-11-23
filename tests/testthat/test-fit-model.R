@@ -98,3 +98,28 @@ test_that("[TMB] spatiotemporal = FALSE fits spatial fields only", {
                                      grps = c("year", "season", "x", "y")))
   expect_true(all(is.finite(sc$tot_by_bin)))
 })
+
+test_that("backend = 'TMB' accepts poisson and negative binomial families through `dist`", {
+  set.seed(7)
+  d <- expand.grid(year = factor(2020:2023), rep = 1:15, bin = c(10, 20, 30, 40))
+  d$stratum <- interaction(d$year, d$rep)
+  d$count <- rnbinom(nrow(d), mu = 8 + as.integer(factor(d$bin)) * 3, size = 3)
+  dat <- data_prep(d, c("year", "stratum"), "bin", "count")
+  fit_nb <- suppressMessages(suppressWarnings(
+    fit_model("year", data = dat, backend = "TMB", dist = "nbinom2")))
+  expect_equal(fit_nb$model$family$family, "nbinom2")
+  expect_equal(fit_nb$spec$dist, "nbinom2")
+  fit_p <- suppressMessages(suppressWarnings(
+    fit_model("year", data = dat, backend = "TMB", dist = poisson())))
+  expect_equal(fit_p$model$family$family, "poisson")
+  expect_equal(suppressMessages(fit_model("year", data = dat, backend = "TMB"))$model$family$family,
+               "poisson")
+  # overdispersed counts: the negative binomial fits better
+  expect_lt(AIC(fit_nb$model), AIC(fit_p$model))
+})
+
+test_that("unsupported `dist` values are rejected with backend = 'TMB'", {
+  dat <- data_prep(sim_comp, c("year", "area", "season"), "bin", "count")
+  expect_error(fit_model("year", data = dat, backend = "TMB", dist = "gaussian"), "poisson, nbinom2")
+  expect_error(fit_model("year", data = dat, backend = "TMB", dist = "notafamily"), "Unknown")
+})

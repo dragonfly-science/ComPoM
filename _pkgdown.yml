@@ -21,6 +21,10 @@ articles:
     contents:
       - vessel_bias_simulation
       - spatial_bias_simulation
+  - title: Model formulation
+    navbar: ~
+    contents:
+      - stratum_intercept
 
 reference:
   - title: Workflow

@@ -266,10 +266,14 @@ parse_form <- function(data,
 #'   e.g. \code{"Season + Gear"}. These become \code{(1|bin:var)} IID
 #'   intercepts. \code{NULL} = none.
 #' @param data Prepared data frame from \code{data_prep()}.
-#' @param dist Response family passed to \code{brms::brm()} as \code{family}:
-#'   a family name (default \code{"poisson"}) or family object such as
-#'   \code{poisson()} (brms backend only; the TMB backend always uses
-#'   \code{poisson()}).
+#' @param dist Response family: a family name (default \code{"poisson"}) or a
+#'   family object such as \code{poisson()}. With \code{backend = "brms"} it is
+#'   passed to \code{brms::brm()} as \code{family}. With \code{backend = "TMB"} it
+#'   must be \code{poisson}, \code{nbinom2} or \code{nbinom1} (sdmTMB). The
+#'   negative binomial families allow variance between bins in excess of the
+#'   Poisson variance. The offset is kept, but the equivalence to a multinomial
+#'   likelihood then holds only approximately (see
+#'   \code{vignette("stratum_intercept")}).
 #' @param backend the backend used for model fitting: \code{"brms"} or
 #'   \code{"TMB"}.
 #' @param cvars Continuous covariate(s) to be fitted as smooths with bin; see
@@ -391,6 +395,7 @@ fit_model <- function(ffx_form,
   data    <- df$data
   re_vars <- df$re_vars   # nuisance RE variable names (may be NULL)
 
+  tmb_fam <- if (backend == 'TMB') tmb_family(dist) else NULL
   fixed <- paste0("bin", unique(data$bin)[1])
   pp    <- set_prior("student_t(10, 0, 1)", class = "b")
 
@@ -448,7 +453,7 @@ fit_model <- function(ffx_form,
         data             = svc_setup$data_expanded,
         offset           = log(data$n),
         formula          = form,
-        family           = poisson(),
+        family           = tmb_fam,
         mesh             = mesh,
         spatial          = "off",
         spatiotemporal   = "off",
@@ -461,7 +466,7 @@ fit_model <- function(ffx_form,
         data    = data,
         offset  = log(data$n),
         formula = form,
-        family  = poisson(),
+        family  = tmb_fam,
         spatial      = "off",
         priors       = if (!is.null(priors)) priors else sdmTMBpriors(),
         control      = sdmTMBcontrol(
@@ -512,7 +517,7 @@ fit_model <- function(ffx_form,
       knots = knots, backend = backend, mesh = mesh, time = time, coords = coords,
       spatiotemporal = spatiotemporal, share_spatial_sd = share_spatial_sd,
       share_spatiotemporal_sd = share_spatiotemporal_sd, priors = priors,
-      newton_loops = newton_loops, iter = iter, warmup = warmup, thin = thin
+      newton_loops = newton_loops, iter = iter, warmup = warmup, thin = thin, dist = dist
     ),
     ffx_vars        = ffx_vars,  # stored for use in scale_comps
     re_vars         = re_vars,   # stored for use in scale_comps
@@ -526,3 +531,17 @@ fit_model <- function(ffx_form,
 
 
 
+
+# Resolve `dist` to an sdmTMB family. Only count families with a log link and an offset are
+# supported.
+tmb_family <- function(dist) {
+  fam <- if (is.character(dist)) {
+    f <- tryCatch(get(dist, mode = "function", envir = asNamespace("sdmTMB")),
+                  error = function(e) NULL)
+    if (is.null(f)) stop("Unknown `dist` '", dist, "' for backend = \"TMB\".", call. = FALSE)
+    f()
+  } else if (is.function(dist)) dist() else dist
+  if (!inherits(fam, "family") || !fam$family %in% c("poisson", "nbinom1", "nbinom2"))
+    stop("With backend = \"TMB\", `dist` must be poisson, nbinom2 or nbinom1.", call. = FALSE)
+  fam
+}
