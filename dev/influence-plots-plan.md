@@ -45,7 +45,7 @@ term types (fixed effects, random effects, covariate smooths, spatial fields).
 4. The two components are two settings of the prediction at each step.
    - **Catch component:** `mode = "catch"`. Each stratum is predicted at its own levels with the
      terms present and weighted by catch.
-   - **Index component:** `mode = "index"` on the grid, with the terms present. Catchability terms
+   - **Index component:** `mode = "index"` on the grid, with the terms present. Selectivity terms
      are set to a reference once they have been added, so the step shows when they stop affecting
      the index.
 
@@ -59,14 +59,29 @@ at the levels observed in year y and the prediction with the term at its referen
 for a smooth). This is the same quantity as the Bentley influence (the average contribution of the
 term over the observations of the year), computed on the composition scale.
 
-- **Coefficient pane.** The effect of each level of the term on S, as S at that level minus S at the
-  reference level, with intervals from the draws. For terms with bin-specific coefficients, an
-  optional heat map of the coefficient by bin and level.
+- **Coefficient pane (bin-resolved).** The effect of each level of the term on every bin, not on
+  S. The effect of level l on bin b is the log ratio of the predicted proportion at level l to
+  the proportion at the reference level (or to the geometric mean across levels), with intervals
+  from the draws. This is the multiplier that `Fx_plot()` already shows, reorganised.
+  - Bins run vertically (the length axis). For each level, a bar starts at zero and extends to the
+    left (fewer fish in the bin than at the reference) or to the right (more), filled with a
+    diverging scale (orange below zero, skyblue above).
+  - Few levels (about 8 or fewer, e.g. season, year): one panel per level, side by side.
+  - Many levels (e.g. 40 vessels): a heat map with levels on x, bins on y and the effect as a
+    diverging fill, ordered by the mean effect.
+  - Proportions sum to one, so the effects are relative. One bin going up means others go down.
+    The log ratio is therefore centred across bins (centred log ratio) when the reference is the
+    geometric mean, so that the bars sum to zero.
+  - Covariate smooths: the same bars at a few values of the covariate (quartiles), or a heat map of
+    covariate value by bin. Spatial fields: one map per bin, as in `spatial_field_plot()`.
 - **Distribution pane.** The share of the samples (or of the catch in catch mode) in each level by
   year. This needs no model, only the data and the strata.
 - **Influence pane.** The influence by year, as above, with the same summary metrics as Ginflu.
+  The influence is also bin-resolved: a heat map with year on x, bin on y and the log ratio of
+  the predicted proportion with and without the term as a diverging fill. S is shown as an
+  optional line beneath it, because Ginflu's metrics (overall influence, trend) need a scalar.
 - **Catch against index.** The influence of a term on the catch composition, and on the index
-  composition, can be shown side by side. For catchability terms, the influence on the index is
+  composition, can be shown side by side. For selectivity terms, the influence on the index is
   zero by construction. The difference between the two is the effect of the term on the sampling,
   which is the quantity the stock assessment needs to interpret the index fleet.
 - Continuous covariates and spatial fields are binned the way Ginflu bins numeric terms
@@ -99,7 +114,9 @@ option 2 after the results look right.
 
 ## Decisions needed
 
-1. Default summary S: mean length, or something else (for example proportion above a threshold).
+1. Summary S for the step plot and the influence metrics: mean length, or something else (for
+   example proportion above a threshold). The coefficient and influence panes are bin-resolved and
+   do not need S.
 2. Plotting: new ComPoM functions, or adapters to Ginflu so that the plots match the existing
    CPUE reports?
 3. Whether the step order should follow the model formula or be set by the user.

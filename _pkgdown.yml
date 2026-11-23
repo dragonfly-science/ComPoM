@@ -36,6 +36,16 @@ reference:
       - Fx_plot
       - cvar_smooth_plot
       - spatial_field_plot
+  - title: Influence of model terms
+    desc: Step and coefficient-distribution-influence plots for compositions.
+    contents:
+      - step_comps
+      - plot_step_comps
+      - influ_comps
+      - plot_cdi_comps
+      - comp_quantile
+  - title: Plot theme
+    contents:
       - theme_compom
   - title: Scaled compositions
     contents:

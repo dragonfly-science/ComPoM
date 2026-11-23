@@ -35,5 +35,7 @@
 utils::globalVariables(c(
   ".", ".draw", ".linpred", ".lower", ".pad", ".pred", ".prediction", ".upper",
   "bin", "est", "est_c", "hi", "iter", "lo", "lp", "ml", "pred", "prop", "tot",
-  "tot_by_bin"
+  "tot_by_bin", "var", "level", "sign", "share", "effect", "lo", "hi", "p", "p_r", "S", "S_r",
+  "dS", "infl", "w", "Lower", "Upper", "panel", "role", "component", "step", "x", "m", "v",
+  "j", "faded", "b"
 ))

@@ -49,40 +49,9 @@ post_pred_group <- function(mod, grp=NULL, xlab = 'Length (cm)'){
   return(p)
 }
 
-#' Plot bin-specific effects as multipliers
-#'
-#' Predicts the composition for each level of \code{grp}, holding all other
-#' covariates at their mean (numeric) or mode (factor), and with the offset
-#' fixed. Within each level and draw, predictions are converted to
-#' proportions. Each proportion is then divided by the geometric mean of that
-#' bin's proportions across levels of \code{grp} and draws. A multiplier above 1
-#' indicates that the bin is relatively more frequent in that level than on
-#' average.
-#'
-#' @param mod An object from fit_model
-#' @param grp Character vector of the variable(s) to plot effects for (e.g.
-#'   \code{"Year"}); must include \code{cvar} if one is used. Facets are by the
-#'   first variable.
-#' @param form Unused; retained for backwards compatibility.
-#' @param grid Optional character vector of two variables in \code{grp} for a
-#'   \code{facet_grid()} layout (rows, columns) instead of \code{facet_wrap()}.
-#' @param cvar Name of the continuous covariate, if the model has one. It is
-#'   held at its mean.
-#' @param xlab x-axis label (the bin variable)
-#' @return A ggplot of median multipliers and intervals per bin, faceted by
-#'   the first variable in \code{grp} (or by \code{grid}).
-#'
-#' @importFrom tidybayes add_linpred_draws median_qi
-#' @importFrom stats predict
-#' @examples
-#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
-#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
-#'                  iter = 300, warmup = 100, thin = 2)
-#' Fx_plot(fit, grp = "Year")
-#' @export
-#'
-Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
-                    xlab = 'Length bin (cm)'){
+# Median and interval of the multiplier of each bin at each level of `grp`
+# (relative to the geometric mean across levels); used by Fx_plot() and the CDI plot
+fx_effects <- function(mod, grp = 'Year', cvar = NULL) {
 
   if(!is.null(cvar)) grps <- syms(grp[(!grp %in% cvar)]) else grps <- syms(grp)
 
@@ -187,6 +156,47 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
     median_qi(pred = lp/ml)
 
 
+  preda
+}
+
+#' Plot bin-specific effects as multipliers
+#'
+#' Predicts the composition for each level of \code{grp}, holding all other
+#' covariates at their mean (numeric) or mode (factor), and with the offset
+#' fixed. Within each level and draw, predictions are converted to
+#' proportions. Each proportion is then divided by the geometric mean of that
+#' bin's proportions across levels of \code{grp} and draws. A multiplier above 1
+#' indicates that the bin is relatively more frequent in that level than on
+#' average.
+#'
+#' @param mod An object from fit_model
+#' @param grp Character vector of the variable(s) to plot effects for (e.g.
+#'   \code{"Year"}); must include \code{cvar} if one is used. Facets are by the
+#'   first variable.
+#' @param form Unused; retained for backwards compatibility.
+#' @param grid Optional character vector of two variables in \code{grp} for a
+#'   \code{facet_grid()} layout (rows, columns) instead of \code{facet_wrap()}.
+#' @param cvar Name of the continuous covariate, if the model has one. It is
+#'   held at its mean.
+#' @param xlab x-axis label (the bin variable)
+#' @return A ggplot of median multipliers and intervals per bin, faceted by
+#'   the first variable in \code{grp} (or by \code{grid}).
+#'
+#' @importFrom tidybayes add_linpred_draws median_qi
+#' @importFrom stats predict
+#' @examples
+#' dat <- data_prep(ex_comp, c("Year", "Season", "Vessel", "trip"), "length", "count")
+#' fit <- fit_model("Year", "Season + Vessel", data = dat, backend = "TMB",
+#'                  iter = 300, warmup = 100, thin = 2)
+#' Fx_plot(fit, grp = "Year")
+#' @export
+#'
+Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
+                    xlab = 'Length bin (cm)'){
+
+  preda <- fx_effects(mod, grp = grp, cvar = cvar)
+  if(!is.null(cvar)) grps <- syms(grp[(!grp %in% cvar)]) else grps <- syms(grp)
+
   p <- ggplot(preda)  + geom_hline(yintercept = 1,linetype=2,alpha=0.5) +
     geom_pointrange(aes(x=bin,y=pred,ymin=.lower,ymax=.upper)) +
     xlab(xlab) +
@@ -217,7 +227,7 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
 #'     therefore be in \code{grps}.}
 #'   \item{\code{"index"}}{The composition of the population that a CPUE index
 #'     describes, predicted as a CPUE analysis would predict the index.
-#'     Catchability terms (\code{catchability}) are set to a reference. All
+#'     Selectivity terms (\code{selectivity}) are set to a reference. All
 #'     other terms are predicted at the values in \code{grid}. For non-spatial
 #'     models, \code{grid} has one row per index time step (e.g. Year). For
 #'     spatial models, \code{grid} has one row per cell and time step, with the
@@ -227,14 +237,14 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
 #' }
 #'
 #' In index mode, every fixed-effect variable and continuous covariate of the
-#' model is either listed in \code{catchability} or is a column of \code{grid}.
+#' model is either listed in \code{selectivity} or is a column of \code{grid}.
 #' The function stops otherwise, so that the role of each term is chosen by the
-#' user. Random effects (\code{re_form}) are catchability terms unless they are
+#' user. Random effects (\code{re_form}) are selectivity terms unless they are
 #' listed in \code{density}, in which case they are evaluated at the values in
 #' \code{grid}. With the TMB backend, either all or none of the random effects
 #' can be kept.
 #'
-#' Reference values for catchability terms are the most frequent level (factors)
+#' Reference values for selectivity terms are the most frequent level (factors)
 #' or the mean (continuous covariates) in the fitted data, unless given in
 #' \code{reference}. Random effects are set to the population level.
 #'
@@ -259,7 +269,7 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
 #' @param predvar Column in \code{scale_df} used for scaling (e.g. catch)
 #' @param grps Grouping variables defining the strata (catch mode) or the
 #'   output time steps and other prediction variables (index mode). Must
-#'   include the \code{ffx_form} variables (except catchability terms) and, for
+#'   include the \code{ffx_form} variables (except selectivity terms) and, for
 #'   catch weighting, the \code{re_form} variables.
 #' @param fit A \code{ComPoM} object from \code{fit_model()}
 #' @param iters Number of posterior draws (brms only; default uses all stored
@@ -267,15 +277,17 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
 #' @param pgrid Not used; reserved for future use.
 #' @param remove_nuisance Deprecated. \code{FALSE} is \code{mode = "catch"}.
 #'   \code{TRUE} is \code{mode = "index"} with the random effects as
-#'   catchability terms, \code{scale_df} as \code{grid} and \code{predvar} as
+#'   selectivity terms, \code{scale_df} as \code{grid} and \code{predvar} as
 #'   \code{weight}.
 #' @param mode \code{"catch"} or \code{"index"}; see Details.
-#' @param catchability Character vector of model terms that are catchability
-#'   covariates, set to a reference (index mode).
+#' @param selectivity Character vector of model terms that are selectivity
+#'   covariates, set to a reference (index mode). In catch mode, the listed
+#'   terms are also set to a reference, which gives the prediction without
+#'   them (see \code{influ_comps()}).
 #' @param density Optional character vector of terms declared as density terms
 #'   (index mode). They must be columns of \code{grid}. Random effects listed
 #'   here are kept.
-#' @param reference Named list of reference values for catchability terms, e.g.
+#' @param reference Named list of reference values for selectivity terms, e.g.
 #'   \code{list(Gear = "trawl", sst = 15)}.
 #' @param grid Prediction grid for \code{mode = "index"}; see Details. Defaults
 #'   to \code{scale_df}.
@@ -299,7 +311,7 @@ Fx_plot <- function(mod, grp='Year', form='~(1|bin:Year)', grid=NULL, cvar=NULL,
 #' head(sc)
 #' scaled_comp_plot(sc, grps = "Year")
 #'
-#' # index population: Season and Vessel are catchability terms; one cell per year
+#' # index population: Season and Vessel are selectivity terms; one cell per year
 #' sc_pop <- scale_comps(fit = fit, mode = "index", grps = "Year",
 #'                       grid = data.frame(Year = factor(2015:2020)))
 #' scaled_comp_plot(sc_pop, grps = "Year")
@@ -313,7 +325,7 @@ scale_comps <- function(scale_df,
                         pgrid      = NULL,
                         remove_nuisance = FALSE,
                         mode       = c("catch", "index"),
-                        catchability = NULL,
+                        selectivity = NULL,
                         density    = NULL,
                         reference  = NULL,
                         grid       = NULL,
@@ -425,47 +437,49 @@ scale_comps <- function(scale_df,
   # ── term roles ──────────────────────────────────────────────────────────────
   # Catch mode: every term is evaluated at the stratum's own level, so every
   # nuisance variable must be in grps (and scale_df).
-  # Index mode: catchability terms are set to a reference; all other terms are
-  # predicted at the values in the grid. Random effects are catchability terms
+  # Index mode: selectivity terms are set to a reference; all other terms are
+  # predicted at the values in the grid. Random effects are selectivity terms
   # unless listed in `density`.
   re_vars <- fit$re_vars
   keep_re_vars <- re_vars
+  model_terms <- unique(c(fit$ffx_vars, cvars))
+  bad_cat <- setdiff(selectivity, c(model_terms, re_vars))
+  if (length(bad_cat) > 0)
+    stop("`selectivity` terms not in the model: ", paste(bad_cat, collapse = ", "))
   if (mode == "catch") {
-    missing_re <- setdiff(re_vars, names(nd))
+    # terms listed in `selectivity` are set to a reference even in catch mode
+    # (used to compute the influence of a term)
+    missing_re <- setdiff(re_vars, c(names(nd), selectivity))
     if (length(missing_re) > 0)
       stop("Catch weighting (mode = 'catch') predicts each stratum at its own ",
            "level of every nuisance variable; add ",
            paste0("'", missing_re, "'", collapse = ", "),
            " to `grps` and `scale_df`, or use mode = 'index'.")
+    keep_re_vars <- setdiff(re_vars, selectivity)
   } else {
-    model_terms <- unique(c(fit$ffx_vars, cvars))
-    bad_cat <- setdiff(catchability, c(model_terms, re_vars))
-    if (length(bad_cat) > 0)
-      stop("`catchability` terms not in the model: ", paste(bad_cat, collapse = ", "))
-    in_grps <- intersect(catchability, group_vars)
+    in_grps <- intersect(selectivity, group_vars)
     if (length(in_grps) > 0)
-      stop("Catchability terms are set to a reference and must not be in `grps`: ",
+      stop("Selectivity terms are set to a reference and must not be in `grps`: ",
            paste(in_grps, collapse = ", "))
-    if (length(intersect(catchability, density)) > 0)
-      stop("Terms cannot be both catchability and density: ",
-           paste(intersect(catchability, density), collapse = ", "))
+    if (length(intersect(selectivity, density)) > 0)
+      stop("Terms cannot be both selectivity and density: ",
+           paste(intersect(selectivity, density), collapse = ", "))
     bad_den <- setdiff(density, names(nd))
     if (length(bad_den) > 0)
       stop("`density` terms must be columns of `grid`: ", paste(bad_den, collapse = ", "))
-    unclassified <- setdiff(model_terms, c(catchability, names(nd)))
+    unclassified <- setdiff(model_terms, c(selectivity, names(nd)))
     if (length(unclassified) > 0)
       stop("Model terms with no role in index mode: ", paste(unclassified, collapse = ", "),
-           ". List them in `catchability`, or add them to `grid`.")
+           ". List them in `selectivity`, or add them to `grid`.")
     keep_re_vars <- intersect(re_vars, density)
-
-    # reference values for catchability fixed effects and covariates
-    for (v in intersect(catchability, model_terms)) {
-      x   <- fit$data[[v]]
-      val <- if (!is.null(reference[[v]])) reference[[v]] else
-        if (is.numeric(x)) mean(x, na.rm = TRUE) else names(sort(-table(x)))[1]
-      nd[[v]] <- if (is.numeric(x)) as.numeric(val) else
-        factor(as.character(val), levels = levels(x))
-    }
+  }
+  # reference values for selectivity fixed effects and covariates
+  for (v in intersect(selectivity, model_terms)) {
+    x   <- fit$data[[v]]
+    val <- if (!is.null(reference[[v]])) reference[[v]] else
+      if (is.numeric(x)) mean(x, na.rm = TRUE) else names(sort(-table(x)))[1]
+    nd[[v]] <- if (is.numeric(x)) as.numeric(val) else
+      factor(as.character(val), levels = levels(x))
   }
   if (length(keep_re_vars) > 0 && length(keep_re_vars) < length(re_vars) &&
       inherits(fit$model, "sdmTMB"))

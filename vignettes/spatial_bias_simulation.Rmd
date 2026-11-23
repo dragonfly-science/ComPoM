@@ -848,7 +848,7 @@ values of each stratum. The SST spline is evaluated at the observed quintile
 midpoint and the Season random effect at the stratum's season. `Season` must
 therefore be in `grps`.
 
-`mode = "index"` sets the Season random effect (a catchability term) to the population level,
+`mode = "index"` sets the Season random effect (a selectivity term) to the population level,
 and `sst_c = 0` in the grid evaluates the spline at mean SST. This gives year compositions
 standardised to average oceanographic conditions and to the population level
 of the season effect, removing the ENSO signal. In an application the weight

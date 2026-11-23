@@ -43,7 +43,6 @@ Useful links:
 Authors:
 \itemize{
   \item Philipp Neubauer \email{philipp@dragonfly.co.nz} [copyright holder]
-  \item D'Arcy Webber
 }
 
 }

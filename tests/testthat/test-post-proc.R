@@ -393,12 +393,6 @@ test_that("index mode uses equal weights when `weight` is NULL", {
   expect_true(all(sc$n == 1))
 })
 
-# two fixed-effect terms (year, area) and a nuisance random effect (season)
-sim_fit_two <- suppressMessages(suppressWarnings(
-  fit_model(ffx_form = "year + area", re_form = "season", data = sim_dat, backend = "TMB",
-            iter = 300, warmup = 100, thin = 1)
-))
-
 test_that("index mode errors on terms without a role", {
   g <- data.frame(year = factor(2020:2021))
   expect_error(
@@ -407,26 +401,26 @@ test_that("index mode errors on terms without a role", {
   )
 })
 
-test_that("index mode checks catchability and density arguments", {
+test_that("index mode checks selectivity and density arguments", {
   g <- data.frame(year = factor(2020:2021), area = factor("A"))
   expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
-                           grid = g, catchability = "year"), "must not be in `grps`")
+                           grid = g, selectivity = "year"), "must not be in `grps`")
   expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
-                           grid = g, catchability = "nope"), "not in the model")
+                           grid = g, selectivity = "nope"), "not in the model")
   expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
                            grid = g, density = "nope"), "columns of `grid`")
   expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
                            grid = g, weight = "nope"), "not in `grid`")
 })
 
-test_that("a catchability fixed effect is set to the reference and ignored in the grid", {
+test_that("a selectivity fixed effect is set to the reference and ignored in the grid", {
   g <- data.frame(year = factor(2020:2021))
   set.seed(1)
   a <- suppressWarnings(scale_comps(fit = sim_fit_two, mode = "index", grps = "year", grid = g,
-                                    catchability = "area", reference = list(area = "A")))
+                                    selectivity = "area", reference = list(area = "A")))
   set.seed(1)
   b <- suppressWarnings(scale_comps(fit = sim_fit_two, mode = "index", grps = "year", grid = g,
-                                    catchability = "area", reference = list(area = "B")))
+                                    selectivity = "area", reference = list(area = "B")))
   expect_s3_class(a, "data.frame")
   # different references give different predictions when area has an effect
   expect_false(isTRUE(all.equal(a$tot_by_bin, b$tot_by_bin)))
@@ -448,7 +442,7 @@ test_that("index mode runs for a spatial grid [TMB spatial]", {
   expect_true(all(c("tot_by_bin", ".draw", "bin", "x", "y") %in% names(sc)))
 })
 
-test_that("index mode runs with a catchability random effect and a reference [brms]", {
+test_that("index mode runs with a selectivity random effect and a reference [brms]", {
   skip_if_no_brms()
   g <- data.frame(year = factor(2020:2021), area = factor("A"))
   sc <- suppressWarnings(scale_comps(fit = sim_fit_brms, mode = "index",

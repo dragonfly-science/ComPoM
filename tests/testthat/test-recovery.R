@@ -79,7 +79,7 @@ test_that("the legacy 'by' smooth builds one t2 term per non-reference bin", {
   expect_equal(lengths(regmatches(f, gregexpr("t2\\(", f))), 3)  # 4 bins -> 3 terms
 })
 
-test_that("index mode with a catchability fixed effect recovers the reference-gear composition", {
+test_that("index mode with a selectivity fixed effect recovers the reference-gear composition", {
   set.seed(11)
   bins <- c(10, 20, 30, 40, 50)
   # gear B selects larger fish than gear A; the population composition shifts with year
@@ -99,7 +99,7 @@ test_that("index mode with a catchability fixed effect recovers the reference-ge
   ))
   sc <- suppressWarnings(scale_comps(fit = fit, mode = "index", grps = "year",
                                      grid = data.frame(year = factor(1:3)),
-                                     catchability = "gear", reference = list(gear = "A")))
+                                     selectivity = "gear", reference = list(gear = "A")))
   est <- sc |>
     dplyr::group_by(year, bin, .draw) |>
     dplyr::summarise(v = sum(tot_by_bin), .groups = "drop") |>
@@ -144,7 +144,7 @@ test_that("spatial index mode recovers the population composition under spatiall
 
   cells <- expand.grid(x = seq(5, 95, 10), y = seq(5, 95, 10), year = factor(1:3))
   sc <- suppressWarnings(scale_comps(fit = fit, mode = "index", grps = "year", grid = cells,
-                                     catchability = "gear", reference = list(gear = "A")))
+                                     selectivity = "gear", reference = list(gear = "A")))
   est <- sc |>
     dplyr::group_by(year, bin, .draw) |>
     dplyr::summarise(v = sum(tot_by_bin), .groups = "drop") |>

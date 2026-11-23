@@ -1,4 +1,4 @@
-# ComPoM
+# ComPoM <img src="man/figures/logo.png" align="right" height="139" alt="ComPoM hex logo" />
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/dragonfly-science/ComPoM/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dragonfly-science/ComPoM/actions/workflows/R-CMD-check.yaml)
@@ -115,7 +115,7 @@ scaled <- scale_comps(
 scaled_comp_plot(scaled, grps = "Year")
 
 # 4b. Index population: the composition of the population that a CPUE index describes.
-#     Season and Vessel are catchability terms (random effects) and are set to the
+#     Season and Vessel are selectivity terms (random effects) and are set to the
 #     population level. The grid has one row per index time step (here one per year).
 scaled_pop <- scale_comps(
   fit  = fit,

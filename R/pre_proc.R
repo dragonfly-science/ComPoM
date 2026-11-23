@@ -369,6 +369,7 @@ fit_model <- function(ffx_form,
                       priors   = NULL,
                       newton_loops = 1) {
 
+  data_in <- data   # kept in the fit so that terms can be added or dropped later
   spatial_varying <- !is.null(mesh)
 
   df <- parse_form(
@@ -506,6 +507,13 @@ fit_model <- function(ffx_form,
     spatial_varying = spatial_varying,
     time            = time,
     coords          = if (spatial_varying) coords else NULL,
+    spec            = list(  # arguments needed to refit with other terms (step_comps)
+      data = data_in, ffx_form = ffx_form, re_form = re_form, cvars = cvars, spl = spl,
+      knots = knots, backend = backend, mesh = mesh, time = time, coords = coords,
+      spatiotemporal = spatiotemporal, share_spatial_sd = share_spatial_sd,
+      share_spatiotemporal_sd = share_spatiotemporal_sd, priors = priors,
+      newton_loops = newton_loops, iter = iter, warmup = warmup, thin = thin
+    ),
     ffx_vars        = ffx_vars,  # stored for use in scale_comps
     re_vars         = re_vars,   # stored for use in scale_comps
     cvars           = cvars      # continuous spline covariates

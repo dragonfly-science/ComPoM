@@ -144,3 +144,9 @@ sim_scale_df_spatial <- sim_strata_spatial |>
 skip_if_no_brms <- function() {
   testthat::skip_if(is.null(sim_fit_brms), "rstan is not installed")
 }
+
+# two fixed-effect terms (year, area) and a nuisance random effect (season)
+sim_fit_two <- suppressMessages(suppressWarnings(
+  fit_model(ffx_form = "year + area", re_form = "season", data = sim_dat, backend = "TMB",
+            iter = 300, warmup = 100, thin = 1)
+))

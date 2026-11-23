@@ -13,7 +13,7 @@ scale_comps(
   pgrid = NULL,
   remove_nuisance = FALSE,
   mode = c("catch", "index"),
-  catchability = NULL,
+  selectivity = NULL,
   density = NULL,
   reference = NULL,
   grid = NULL,
@@ -31,7 +31,7 @@ per stratum, containing \code{grps}, \code{predvar}, any \code{cvars}, and
 
 \item{grps}{Grouping variables defining the strata (catch mode) or the
 output time steps and other prediction variables (index mode). Must
-include the \code{ffx_form} variables (except catchability terms) and, for
+include the \code{ffx_form} variables (except selectivity terms) and, for
 catch weighting, the \code{re_form} variables.}
 
 \item{iters}{Number of posterior draws (brms only; default uses all stored
@@ -41,19 +41,21 @@ draws). For sdmTMB fits the number of draws is set by \code{fit_model()}.}
 
 \item{remove_nuisance}{Deprecated. \code{FALSE} is \code{mode = "catch"}.
 \code{TRUE} is \code{mode = "index"} with the random effects as
-catchability terms, \code{scale_df} as \code{grid} and \code{predvar} as
+selectivity terms, \code{scale_df} as \code{grid} and \code{predvar} as
 \code{weight}.}
 
 \item{mode}{\code{"catch"} or \code{"index"}; see Details.}
 
-\item{catchability}{Character vector of model terms that are catchability
-covariates, set to a reference (index mode).}
+\item{selectivity}{Character vector of model terms that are selectivity
+covariates, set to a reference (index mode). In catch mode, the listed
+terms are also set to a reference, which gives the prediction without
+them (see \code{influ_comps()}).}
 
 \item{density}{Optional character vector of terms declared as density terms
 (index mode). They must be columns of \code{grid}. Random effects listed
 here are kept.}
 
-\item{reference}{Named list of reference values for catchability terms, e.g.
+\item{reference}{Named list of reference values for selectivity terms, e.g.
 \code{list(Gear = "trawl", sst = 15)}.}
 
 \item{grid}{Prediction grid for \code{mode = "index"}; see Details. Defaults
@@ -84,7 +86,7 @@ compositions (e.g. with \code{scaled_comp_plot()}).
     therefore be in \code{grps}.}
   \item{\code{"index"}}{The composition of the population that a CPUE index
     describes, predicted as a CPUE analysis would predict the index.
-    Catchability terms (\code{catchability}) are set to a reference. All
+    Selectivity terms (\code{selectivity}) are set to a reference. All
     other terms are predicted at the values in \code{grid}. For non-spatial
     models, \code{grid} has one row per index time step (e.g. Year). For
     spatial models, \code{grid} has one row per cell and time step, with the
@@ -94,14 +96,14 @@ compositions (e.g. with \code{scaled_comp_plot()}).
 }
 
 In index mode, every fixed-effect variable and continuous covariate of the
-model is either listed in \code{catchability} or is a column of \code{grid}.
+model is either listed in \code{selectivity} or is a column of \code{grid}.
 The function stops otherwise, so that the role of each term is chosen by the
-user. Random effects (\code{re_form}) are catchability terms unless they are
+user. Random effects (\code{re_form}) are selectivity terms unless they are
 listed in \code{density}, in which case they are evaluated at the values in
 \code{grid}. With the TMB backend, either all or none of the random effects
 can be kept.
 
-Reference values for catchability terms are the most frequent level (factors)
+Reference values for selectivity terms are the most frequent level (factors)
 or the mean (continuous covariates) in the fitted data, unless given in
 \code{reference}. Random effects are set to the population level.
 
@@ -131,7 +133,7 @@ sc <- scale_comps(ex_catch, predvar = "catch", fit = fit,
 head(sc)
 scaled_comp_plot(sc, grps = "Year")
 
-# index population: Season and Vessel are catchability terms; one cell per year
+# index population: Season and Vessel are selectivity terms; one cell per year
 sc_pop <- scale_comps(fit = fit, mode = "index", grps = "Year",
                       grid = data.frame(Year = factor(2015:2020)))
 scaled_comp_plot(sc_pop, grps = "Year")

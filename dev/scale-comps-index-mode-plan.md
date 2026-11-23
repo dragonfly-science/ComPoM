@@ -1,10 +1,10 @@
 # Plan: index-population compositions in `scale_comps()`
 
-Status: implemented 2026-11-23 (steps 1 to 5). Decisions taken: catchability fixed effects are set to
+Status: implemented 2026-11-23 (steps 1 to 5). Decisions taken: selectivity fixed effects are set to
 a reference (default: most frequent level, or the mean for covariates; override with `reference`),
 index-mode cells have equal weights unless a `weight` column is given, and roles are given with
-explicit `catchability` and `density` arguments. Averaging over levels of a catchability term is
-not implemented. Recovery tests cover a non-spatial catchability fixed effect and a spatial fit
+explicit `selectivity` and `density` arguments. Averaging over levels of a selectivity term is
+not implemented. Recovery tests cover a non-spatial selectivity fixed effect and a spatial fit
 with spatially biased sampling. With the TMB backend, either all or none of the random effects can be kept.
 
 ## Background
@@ -27,17 +27,17 @@ is arbitrary. The intended meaning is the composition of the abstract population
 tracks, so that the selectivity of the index fleet can be estimated. The prediction should follow
 a CPUE analysis.
 
-- Catchability covariates are dropped (set to a reference).
+- Selectivity covariates are dropped (set to a reference).
 - In a spatio-temporal analysis, density is predicted over a spatial domain from the spatial and
   spatio-temporal fields and the direct covariates (productivity, SST), after accounting for the
-  catchability covariates.
+  selectivity covariates.
 - In a non-spatial analysis, the index is predicted from Year only, and the length frequencies
   mirror this.
 - Predictions are made for each CPUE time step (annual or seasonal), on the same or a similar
   grid and with the same covariates where available.
 
 "Weighting by CPUE" is therefore the wrong description. The output is the composition of the
-population described by the index. Some covariates (e.g. SST) can be catchability or density
+population described by the index. Some covariates (e.g. SST) can be selectivity or density
 terms, and the author has to decide for each term. An earlier version of the code allowed the user
 to specify which effects were kept (brms `re_formula`).
 
@@ -45,7 +45,7 @@ to specify which effects were kept (brms `re_formula`).
 
 Each model term has a role, supplied by the user.
 
-- **Catchability.** Set to a reference. Examples are vessel, gear, effort-related season, and
+- **Selectivity.** Set to a reference. Examples are vessel, gear, effort-related season, and
   possibly SST.
 - **Density.** Kept and predicted. Examples are the spatial and spatio-temporal fields,
   productivity covariates, and possibly SST.
@@ -56,17 +56,17 @@ Proposed interface (`fit_model()` is unchanged):
 ```r
 scale_comps(..., mode = "catch")            # current remove_nuisance = FALSE
 scale_comps(..., mode = "index",
-            catchability = c("Season", "Vessel", "sst"),   # set to reference
+            selectivity = c("Season", "Vessel", "sst"),   # set to reference
             density      = NULL,                            # default: all other terms
             grid         = pred_grid)                       # spatial models
 ```
 
 - `remove_nuisance` remains as a deprecated alias (`FALSE` is `mode = "catch"`; `TRUE` is
-  `mode = "index"` with `catchability = fit$re_vars`).
+  `mode = "index"` with `selectivity = fit$re_vars`).
 - Terms that are neither listed nor the index axis are not classified automatically. The function
   stops with an error that lists them, so the author makes the decision.
 
-## 2. Reference values for catchability terms
+## 2. Reference values for selectivity terms
 
 - Random effects: population level, as now.
 - Fixed effects: a reference level (default: most frequent level) or an average over levels. The
@@ -102,7 +102,7 @@ for it is needed in this package.
 
 ## 6. Work breakdown
 
-1. Add `mode`, `catchability`, `density` and `grid`, with validation and the deprecation alias.
+1. Add `mode`, `selectivity`, `density` and `grid`, with validation and the deprecation alias.
 2. Rewrite the sdmTMB and brms prediction paths. brms uses `re_formula` plus reference values.
    sdmTMB uses reference values for fixed terms and `re_form_iid = NA` for random effects.
 3. Add grid aggregation with weights.
@@ -113,8 +113,8 @@ for it is needed in this package.
 
 ## Open decisions
 
-1. Fixed-effect catchability terms: reference level (most frequent) or average over levels?
+1. Fixed-effect selectivity terms: reference level (most frequent) or average over levels?
 2. Weights in index mode: equal cells by default, plus an optional `weight` column from a separate
    CPUE model?
-3. Interface: explicit `catchability`/`density` arguments with an error on unclassified terms, or
+3. Interface: explicit `selectivity`/`density` arguments with an error on unclassified terms, or
    roles inferred from `re_form` membership?
