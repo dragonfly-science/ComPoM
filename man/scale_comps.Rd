@@ -2,7 +2,7 @@
 % Please edit documentation in R/post_proc.R
 \name{scale_comps}
 \alias{scale_comps}
-\title{Scale predicted compositions to catch}
+\title{Scale predicted compositions to catch or to an index population}
 \usage{
 scale_comps(
   scale_df,
@@ -11,72 +11,106 @@ scale_comps(
   grps = NULL,
   iters = NULL,
   pgrid = NULL,
-  remove_nuisance = FALSE
+  remove_nuisance = FALSE,
+  mode = c("catch", "index"),
+  catchability = NULL,
+  density = NULL,
+  reference = NULL,
+  grid = NULL,
+  weight = NULL
 )
 }
 \arguments{
-\item{scale_df}{data frame used for scaling, with one or more rows per
-stratum, containing \code{grps}, \code{predvar}, any \code{cvars}, and
+\item{scale_df}{data frame used for catch weighting, with one or more rows
+per stratum, containing \code{grps}, \code{predvar}, any \code{cvars}, and
 (spatial fits) the coordinate and time columns.}
 
 \item{predvar}{Column in \code{scale_df} used for scaling (e.g. catch)}
 
 \item{fit}{A \code{ComPoM} object from \code{fit_model()}}
 
-\item{grps}{Grouping variables defining the scaling strata. Must include the
-\code{ffx_form} variables and, for catch weighting, the \code{re_form}
-variables.}
+\item{grps}{Grouping variables defining the strata (catch mode) or the
+output time steps and other prediction variables (index mode). Must
+include the \code{ffx_form} variables (except catchability terms) and, for
+catch weighting, the \code{re_form} variables.}
 
 \item{iters}{Number of posterior draws (brms only; default uses all stored
 draws). For sdmTMB fits the number of draws is set by \code{fit_model()}.}
 
 \item{pgrid}{Not used; reserved for future use.}
 
-\item{remove_nuisance}{Logical. \code{FALSE} (default) selects catch
-weighting, with nuisance random effects evaluated at each stratum's level.
-\code{TRUE} selects CPUE-based scaling, with nuisance random effects
-removed.}
+\item{remove_nuisance}{Deprecated. \code{FALSE} is \code{mode = "catch"}.
+\code{TRUE} is \code{mode = "index"} with the random effects as
+catchability terms, \code{scale_df} as \code{grid} and \code{predvar} as
+\code{weight}.}
+
+\item{mode}{\code{"catch"} or \code{"index"}; see Details.}
+
+\item{catchability}{Character vector of model terms that are catchability
+covariates, set to a reference (index mode).}
+
+\item{density}{Optional character vector of terms declared as density terms
+(index mode). They must be columns of \code{grid}. Random effects listed
+here are kept.}
+
+\item{reference}{Named list of reference values for catchability terms, e.g.
+\code{list(Gear = "trawl", sst = 15)}.}
+
+\item{grid}{Prediction grid for \code{mode = "index"}; see Details. Defaults
+to \code{scale_df}.}
+
+\item{weight}{Column of \code{grid} with the weight of each row (index
+mode). \code{NULL} gives equal weights.}
 }
 \value{
 A data frame of draws (\code{.draw}) with predicted numbers-at-bin
-  (\code{tot_by_bin}) per stratum and bin. The weight per stratum (sum of
-  \code{predvar}) is in \code{n}.
+  (\code{tot_by_bin}) per stratum or cell and bin. The weight per row (sum
+  of the weight column) is in \code{n}.
 }
 \description{
-Predicts the composition for each stratum in \code{scale_df} from a fitted
-model and multiplies the predicted proportions by the stratum weight
-(\code{predvar}, e.g. catch or predicted CPUE). Strata are the unique combinations of
-\code{grps} (plus
-the coordinates for spatial models). The result is a set of draws of
-numbers-at-bin per stratum, which can be summed over any subset of
-\code{grps} and normalised to obtain weighted compositions (e.g. with
-\code{scaled_comp_plot()}).
+Predicts numbers-at-bin from a fitted model and weights the predictions.
+The result is a set of draws of numbers-at-bin per stratum (or grid cell),
+which can be summed over any subset of \code{grps} and normalised to obtain
+compositions (e.g. with \code{scaled_comp_plot()}).
 }
 \details{
-The two settings of \code{remove_nuisance} correspond to two uses:
+\code{mode} selects between two uses.
 \describe{
-  \item{Catch weighting (\code{remove_nuisance = FALSE}, default)}{The
-    aim is the composition of the total catch of the full fleet. All model
-    terms are evaluated at the values of each stratum in \code{scale_df},
-    including the nuisance random effects (\code{re_form}). Every nuisance
-    variable must therefore be in \code{grps}. \code{predvar} is the catch.}
-  \item{CPUE-based scaling (\code{remove_nuisance = TRUE})}{The aim is a
-    composition representative of the population, standardised for
-    variables that affect the local availability of sizes to the sampling
-    (e.g. fleet, season). Nuisance random effects are removed (population
-    level); fixed effects, smooths and spatial fields are retained.
-    \code{predvar} is typically predicted CPUE or abundance per stratum.}
+  \item{\code{"catch"} (default)}{The composition of the catch. Each stratum
+    in \code{scale_df} is predicted at its own level of every model term,
+    including the nuisance random effects (\code{re_form}) and continuous
+    covariates, and the prediction is weighted by the catch of the stratum
+    (\code{predvar}). Every fixed-effect and nuisance variable must
+    therefore be in \code{grps}.}
+  \item{\code{"index"}}{The composition of the population that a CPUE index
+    describes, predicted as a CPUE analysis would predict the index.
+    Catchability terms (\code{catchability}) are set to a reference. All
+    other terms are predicted at the values in \code{grid}. For non-spatial
+    models, \code{grid} has one row per index time step (e.g. Year). For
+    spatial models, \code{grid} has one row per cell and time step, with the
+    coordinates, the time column and the density covariates. Cells are
+    weighted by \code{weight} (equal weights if \code{NULL}), which can come
+    from a separate CPUE or abundance model.}
 }
 
-In both cases:
+In index mode, every fixed-effect variable and continuous covariate of the
+model is either listed in \code{catchability} or is a column of \code{grid}.
+The function stops otherwise, so that the role of each term is chosen by the
+user. Random effects (\code{re_form}) are catchability terms unless they are
+listed in \code{density}, in which case they are evaluated at the values in
+\code{grid}. With the TMB backend, either all or none of the random effects
+can be kept.
+
+Reference values for catchability terms are the most frequent level (factors)
+or the mean (continuous covariates) in the fitted data, unless given in
+\code{reference}. Random effects are set to the population level.
+
+In both modes:
 \itemize{
-  \item Fixed effects (\code{ffx_form}) are evaluated at the levels in
-    \code{scale_df}; these variables must therefore be in \code{grps}.
   \item Continuous covariates (\code{cvars}) are evaluated at their mean
-    within each stratum of \code{scale_df}. Setting them to a reference
-    value in \code{scale_df} standardises the compositions to that value.
+    within each stratum or cell of the data frame supplied.
   \item Spatial and spatio-temporal fields (spatial sdmTMB fits) are
-    evaluated at the coordinates in \code{scale_df}.
+    evaluated at the coordinates in the data frame supplied.
 }
 
 Nuisance levels that were not in the fitted data (e.g. unsampled vessels)
@@ -97,10 +131,10 @@ sc <- scale_comps(ex_catch, predvar = "catch", fit = fit,
 head(sc)
 scaled_comp_plot(sc, grps = "Year")
 
-# CPUE-based scaling: nuisance effects removed; one weight per year
-cpue <- data.frame(Year = factor(2015:2020), cpue = 1)
-sc_pop <- scale_comps(cpue, predvar = "cpue", fit = fit, grps = "Year",
-                      remove_nuisance = TRUE)
+# index population: Season and Vessel are catchability terms; one cell per year
+sc_pop <- scale_comps(fit = fit, mode = "index", grps = "Year",
+                      grid = data.frame(Year = factor(2015:2020)))
+scaled_comp_plot(sc_pop, grps = "Year")
 }
 \seealso{
 \code{scaled_comp_plot()}, \code{scaled_ridge_plot()}

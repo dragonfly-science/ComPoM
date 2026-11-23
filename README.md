@@ -114,16 +114,14 @@ scaled <- scale_comps(
 )
 scaled_comp_plot(scaled, grps = "Year")
 
-# 4b. CPUE-based scaling: composition representative of the population,
-#     standardised for the nuisance variables (removed from the prediction).
-#     One weight (e.g. a standardised CPUE) per year.
-cpue <- data.frame(Year = factor(2015:2020), cpue = 1)
+# 4b. Index population: the composition of the population that a CPUE index describes.
+#     Season and Vessel are catchability terms (random effects) and are set to the
+#     population level. The grid has one row per index time step (here one per year).
 scaled_pop <- scale_comps(
-  scale_df        = cpue,
-  predvar         = "cpue",
-  fit             = fit,
-  grps            = "Year",
-  remove_nuisance = TRUE
+  fit  = fit,
+  mode = "index",
+  grps = "Year",
+  grid = data.frame(Year = factor(2015:2020))
 )
 scaled_ridge_plot(scaled_pop, grps = "Year", plot_y = "Year")
 ```

@@ -141,7 +141,7 @@ test_that("scale_comps contains expected columns [TMB spatial]", {
   expect_true(all(c("tot_by_bin", ".draw", "bin") %in% names(sc)))
 })
 
-# ── scale_comps remove_nuisance ───────────────────────────────────────────────
+# ── scale_comps index mode ───────────────────────────────────────────────
 
 # Predicted proportion per draw x stratum x bin, for comparing seasons
 season_props <- function(sc) {
@@ -184,79 +184,79 @@ test_that("catch weighting warns on unseen nuisance levels [TMB non-spatial]", {
   )
 })
 
-test_that("CPUE scaling gives identical compositions across nuisance levels [TMB non-spatial]", {
+test_that("index mode gives identical compositions across nuisance levels [TMB non-spatial]", {
   sc <- suppressWarnings(
     scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_tmb,
-                grps = c("year", "area", "season"), remove_nuisance = TRUE)
+                grps = c("year", "area", "season"), mode = "index", weight = "catch")
   )
   sp <- season_props(sc)
   expect_equal(sp$S1, sp$S2)
 })
 
-test_that("CPUE scaling keeps the stratum columns in the output [TMB non-spatial]", {
+test_that("index mode keeps the stratum columns in the output [TMB non-spatial]", {
   sc <- suppressWarnings(
     scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_tmb,
-                grps = c("year", "area", "season"), remove_nuisance = TRUE)
+                grps = c("year", "area", "season"), mode = "index", weight = "catch")
   )
   expect_setequal(as.character(unique(sc$season)), c("S1", "S2"))
 })
 
-test_that("CPUE scaling runs [brms]", {
+test_that("index mode runs [brms]", {
   skip_if_no_brms()
   sc <- suppressWarnings(
     scale_comps(sim_scale_df, predvar = "catch", fit = sim_fit_brms,
-                grps = c("year", "area"), remove_nuisance = TRUE)
+                grps = c("year", "area"), mode = "index", weight = "catch")
   )
   expect_true(all(c("tot_by_bin", ".draw", "bin") %in% names(sc)))
 })
 
-test_that("scale_comps remove_nuisance returns a data frame [TMB non-spatial]", {
+test_that("scale_comps index mode returns a data frame [TMB non-spatial]", {
   sc <- suppressWarnings(
     scale_comps(
       scale_df        = sim_scale_df,
       predvar         = "catch",
       fit             = sim_fit_tmb,
       grps            = c("year", "area"),
-      remove_nuisance = TRUE
+      mode = "index", weight = "catch"
     )
   )
   expect_s3_class(sc, "data.frame")
 })
 
-test_that("scale_comps remove_nuisance contains expected columns [TMB non-spatial]", {
+test_that("scale_comps index mode contains expected columns [TMB non-spatial]", {
   sc <- suppressWarnings(
     scale_comps(
       scale_df        = sim_scale_df,
       predvar         = "catch",
       fit             = sim_fit_tmb,
       grps            = c("year", "area"),
-      remove_nuisance = TRUE
+      mode = "index", weight = "catch"
     )
   )
   expect_true(all(c("tot_by_bin", ".draw", "bin") %in% names(sc)))
 })
 
-test_that("scale_comps remove_nuisance returns a data frame [TMB spatial]", {
+test_that("scale_comps index mode returns a data frame [TMB spatial]", {
   sc <- suppressWarnings(
     scale_comps(
       scale_df        = sim_scale_df_spatial,
       predvar         = "catch",
       fit             = sim_fit_tmb_spatial,
       grps            = c("year", "area"),
-      remove_nuisance = TRUE
+      mode = "index", weight = "catch"
     )
   )
   expect_s3_class(sc, "data.frame")
 })
 
-test_that("scale_comps remove_nuisance contains expected columns [TMB spatial]", {
+test_that("scale_comps index mode contains expected columns [TMB spatial]", {
   sc <- suppressWarnings(
     scale_comps(
       scale_df        = sim_scale_df_spatial,
       predvar         = "catch",
       fit             = sim_fit_tmb_spatial,
       grps            = c("year", "area"),
-      remove_nuisance = TRUE
+      mode = "index", weight = "catch"
     )
   )
   expect_true(all(c("tot_by_bin", ".draw", "bin") %in% names(sc)))
@@ -372,4 +372,86 @@ test_that("theme_compom and legend labels in scaled_comp_plot", {
 
 test_that("post_pred_group plot builds", {
   expect_no_error(ggplot2::ggplot_build(post_pred_group(sim_fit_tmb_spatial, grp = "year")))
+})
+
+# ── index mode: roles, references, deprecated alias ───────────────────────────
+
+test_that("remove_nuisance = TRUE still works and matches mode = 'index'", {
+  set.seed(1)
+  a <- suppressWarnings(scale_comps(sim_scale_df, "catch", sim_fit_tmb,
+                                    grps = c("year", "area"), remove_nuisance = TRUE))
+  set.seed(1)
+  b <- suppressWarnings(scale_comps(sim_scale_df, "catch", sim_fit_tmb, grps = c("year", "area"),
+                                    mode = "index", weight = "catch"))
+  expect_equal(a$tot_by_bin, b$tot_by_bin)
+})
+
+test_that("index mode uses equal weights when `weight` is NULL", {
+  g <- data.frame(year = factor(2020:2021), area = factor("A"))
+  sc <- suppressWarnings(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
+                                     grid = g))
+  expect_true(all(sc$n == 1))
+})
+
+# two fixed-effect terms (year, area) and a nuisance random effect (season)
+sim_fit_two <- suppressMessages(suppressWarnings(
+  fit_model(ffx_form = "year + area", re_form = "season", data = sim_dat, backend = "TMB",
+            iter = 300, warmup = 100, thin = 1)
+))
+
+test_that("index mode errors on terms without a role", {
+  g <- data.frame(year = factor(2020:2021))
+  expect_error(
+    scale_comps(fit = sim_fit_two, mode = "index", grps = "year", grid = g),
+    "no role"
+  )
+})
+
+test_that("index mode checks catchability and density arguments", {
+  g <- data.frame(year = factor(2020:2021), area = factor("A"))
+  expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
+                           grid = g, catchability = "year"), "must not be in `grps`")
+  expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
+                           grid = g, catchability = "nope"), "not in the model")
+  expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
+                           grid = g, density = "nope"), "columns of `grid`")
+  expect_error(scale_comps(fit = sim_fit_tmb, mode = "index", grps = c("year", "area"),
+                           grid = g, weight = "nope"), "not in `grid`")
+})
+
+test_that("a catchability fixed effect is set to the reference and ignored in the grid", {
+  g <- data.frame(year = factor(2020:2021))
+  set.seed(1)
+  a <- suppressWarnings(scale_comps(fit = sim_fit_two, mode = "index", grps = "year", grid = g,
+                                    catchability = "area", reference = list(area = "A")))
+  set.seed(1)
+  b <- suppressWarnings(scale_comps(fit = sim_fit_two, mode = "index", grps = "year", grid = g,
+                                    catchability = "area", reference = list(area = "B")))
+  expect_s3_class(a, "data.frame")
+  # different references give different predictions when area has an effect
+  expect_false(isTRUE(all.equal(a$tot_by_bin, b$tot_by_bin)))
+})
+
+test_that("keeping all random effects via `density` evaluates them at grid values", {
+  g <- data.frame(year = factor(2020:2021), area = factor("A"),
+                  season = factor(c("S1", "S2")))
+  sc <- suppressWarnings(scale_comps(fit = sim_fit_tmb, mode = "index",
+                                     grps = c("year", "area", "season"), grid = g,
+                                     density = "season"))
+  expect_setequal(as.character(unique(sc$season)), c("S1", "S2"))
+})
+
+test_that("index mode runs for a spatial grid [TMB spatial]", {
+  sc <- suppressWarnings(scale_comps(sim_scale_df_spatial, fit = sim_fit_tmb_spatial,
+                                     mode = "index", grps = c("year", "area"),
+                                     weight = "catch"))
+  expect_true(all(c("tot_by_bin", ".draw", "bin", "x", "y") %in% names(sc)))
+})
+
+test_that("index mode runs with a catchability random effect and a reference [brms]", {
+  skip_if_no_brms()
+  g <- data.frame(year = factor(2020:2021), area = factor("A"))
+  sc <- suppressWarnings(scale_comps(fit = sim_fit_brms, mode = "index",
+                                     grps = c("year", "area"), grid = g))
+  expect_true(all(c("tot_by_bin", ".draw", "bin") %in% names(sc)))
 })

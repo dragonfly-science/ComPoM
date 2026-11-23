@@ -28,8 +28,8 @@ fixed-effect interactions in the model.}
 \item{re_form}{Character string of nuisance random-effect variables separated
 by \code{+}, e.g. \code{"Season + Gear"}. These become
 \code{(1|bin:Season)} IID random intercepts. \code{scale_comps()}
-evaluates them at each stratum's level (\code{remove_nuisance = FALSE})
-or removes them (\code{remove_nuisance = TRUE}).}
+evaluates them at each stratum's level (\code{mode = "catch"}) or sets
+them to the population level (\code{mode = "index"}).}
 
 \item{cvars}{Character vector of continuous covariates to be fitted as
 smooths with bin (see Details). \code{NULL} = none.}

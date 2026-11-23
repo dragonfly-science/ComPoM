@@ -14,6 +14,12 @@
 
 ## Changes
 
+* `scale_comps()` gains `mode = "index"` for the composition of the population that a CPUE index
+  describes. Catchability terms (`catchability`, `reference`) and the `re_form` random effects
+  are set to references, all other terms are predicted on a user-supplied `grid`, and rows are
+  weighted by `weight` (equal if `NULL`). `remove_nuisance` is deprecated.
+  `fit_model()` stores the fixed-effect variables in `ffx_vars`.
+
 * `fit_model()` gains `spatiotemporal` (default `TRUE`). `spatiotemporal = FALSE` fits spatial
   fields only when a `mesh` is supplied.
 * `cvar_smooth_plot()` and `spatial_field_plot()` no longer add a plot title.

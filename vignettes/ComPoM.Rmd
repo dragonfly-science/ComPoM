@@ -167,23 +167,26 @@ This is the computation in `scaled_comp_plot()` and `scaled_ridge_plot()`. The w
 stratum in $\hat{P}_{gb}$ is proportional to $C_j \sum_b \exp(\hat{\eta}_{jb})$, which equals
 $C_j$ when the predicted proportions sum to one.
 
-`scale_comps()` supports two uses, selected by `remove_nuisance`.
+`scale_comps()` supports two uses, selected by `mode`.
 
-- Catch weighting (`remove_nuisance = FALSE`, default) estimates the composition of the total
+- Catch weighting (`mode = "catch"`, default) estimates the composition of the total
   catch of the full fleet. The strata are all combinations of the model variables in the catch
   records (e.g. year, season, vessel and location), and $C_j$ is the catch. All model terms,
   including the nuisance random effects, are evaluated at the values of each stratum. Every
   nuisance variable must therefore be in `grps`.
-- CPUE-based scaling (`remove_nuisance = TRUE`) estimates a composition representative of the
-  population. $C_j$ is a predicted CPUE or abundance per stratum (e.g. per location and year).
-  The nuisance random effects are removed, which standardises the composition for variables that
-  affect the local availability of sizes to the sampling, such as fleet, or season when the
-  composition is to match an annual abundance index.
+- Index mode (`mode = "index"`) estimates the composition of the population that a CPUE index
+  describes, predicted as the index would be. Catchability terms, such as fleet or gear, are set
+  to a reference (`catchability`, `reference`), and nuisance random effects to the population
+  level. All other terms are predicted at the values in a prediction grid (`grid`): one row per
+  index time step for a non-spatial model, and one row per cell and time step for a spatial model,
+  with the coordinates and the density covariates. $C_j$ is a weight per grid row, which can come
+  from a separate CPUE or abundance model (`weight`) and is equal for all rows otherwise. Every
+  fixed-effect variable and covariate of the model is either a catchability term or a column of
+  the grid, so that the role of each term is chosen by the user.
 
-In both cases, fixed effects are evaluated at the levels in the scaling data, and spatial and
-spatio-temporal fields at the coordinates in the scaling data. Continuous covariates are evaluated
-at their mean within each scaling stratum. Setting them to a reference value in the scaling data
-standardises the compositions to that value.
+In both modes, spatial and spatio-temporal fields are evaluated at the coordinates in the data
+frame supplied, and continuous covariates at their mean within each stratum or cell. Setting a
+covariate to a reference value in that data frame standardises the compositions to that value.
 
 Nuisance levels that were not in the fitted data, such as unsampled vessels, are handled
 differently by the two backends. brms uses, in each draw, the posterior draw of a randomly

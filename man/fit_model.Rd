@@ -111,7 +111,7 @@ An object of class \code{ComPoM}: a list with the fitted model
   (\code{data}), the number of draws used downstream (\code{nsim}),
   posterior predictive draws (\code{preds}, or \code{NULL}), and the
   settings needed by the post-processing functions (\code{mesh},
-  \code{spatial_varying}, \code{time}, \code{coords}, \code{re_vars},
+  \code{spatial_varying}, \code{time}, \code{coords}, \code{ffx_vars}, \code{re_vars},
   \code{cvars}).
 }
 \description{

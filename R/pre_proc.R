@@ -109,8 +109,8 @@ data_prep <- function(
 #' @param re_form Character string of nuisance random-effect variables separated
 #'   by \code{+}, e.g. \code{"Season + Gear"}. These become
 #'   \code{(1|bin:Season)} IID random intercepts. \code{scale_comps()}
-#'   evaluates them at each stratum's level (\code{remove_nuisance = FALSE})
-#'   or removes them (\code{remove_nuisance = TRUE}).
+#'   evaluates them at each stratum's level (\code{mode = "catch"}) or sets
+#'   them to the population level (\code{mode = "index"}).
 #' @param cvars Character vector of continuous covariates to be fitted as
 #'   smooths with bin (see Details). \code{NULL} = none.
 #' @param knots Basis dimension of the smooths, as a character string: a single
@@ -313,7 +313,7 @@ parse_form <- function(data,
 #'   (\code{data}), the number of draws used downstream (\code{nsim}),
 #'   posterior predictive draws (\code{preds}, or \code{NULL}), and the
 #'   settings needed by the post-processing functions (\code{mesh},
-#'   \code{spatial_varying}, \code{time}, \code{coords}, \code{re_vars},
+#'   \code{spatial_varying}, \code{time}, \code{coords}, \code{ffx_vars}, \code{re_vars},
 #'   \code{cvars}).
 #' @seealso \code{data_prep()}, \code{scale_comps()}, \code{Fx_plot()},
 #'   \code{vignette("ComPoM")}
@@ -382,6 +382,9 @@ fit_model <- function(ffx_form,
     coords   = if (backend == 'TMB' && spatial_varying) coords else NULL,
     time     = if (backend == 'TMB') time else NULL
   )
+
+  ffx_vars <- if (!is.null(ffx_form) && nchar(trimws(ffx_form)) > 0)
+    gsub(' ', '', strsplit(ffx_form, '+', fixed = TRUE)[[1]]) else NULL
 
   form    <- df$form
   data    <- df$data
@@ -503,6 +506,7 @@ fit_model <- function(ffx_form,
     spatial_varying = spatial_varying,
     time            = time,
     coords          = if (spatial_varying) coords else NULL,
+    ffx_vars        = ffx_vars,  # stored for use in scale_comps
     re_vars         = re_vars,   # stored for use in scale_comps
     cvars           = cvars      # continuous spline covariates
   )

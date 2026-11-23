@@ -843,13 +843,13 @@ Fx_plot(mods_sst_enso, grp = "Year")
 
 ### Scale Compositions — Retaining vs Removing ENSO Signal
 
-`remove_nuisance = FALSE` (catch weighting) evaluates all model terms at the
+`mode = "catch"` evaluates all model terms at the
 values of each stratum. The SST spline is evaluated at the observed quintile
 midpoint and the Season random effect at the stratum's season. `Season` must
 therefore be in `grps`.
 
-`remove_nuisance = TRUE` (CPUE-based scaling) removes the Season random effect,
-and `sst_c = 0` evaluates the spline at mean SST. This gives year compositions
+`mode = "index"` sets the Season random effect (a catchability term) to the population level,
+and `sst_c = 0` in the grid evaluates the spline at mean SST. This gives year compositions
 standardised to average oceanographic conditions and to the population level
 of the season effect, removing the ENSO signal. In an application the weight
 would be a predicted CPUE or abundance per stratum. Here the simulated catch
@@ -876,16 +876,16 @@ scaled_enso_with <- suppressWarnings(scale_comps(
   predvar         = "catch",
   fit             = mods_sst_enso,
   grps            = c("Year", "Season", "sst_q"),
-  remove_nuisance = FALSE
+  mode            = "catch"
 ))
 
-# ENSO signal removed: SST set to 0 (mean), Season RE removed (CPUE-based scaling)
+# ENSO signal removed: SST set to 0 (mean), Season RE set to the population level (index mode)
 scaled_enso_without <- suppressWarnings(scale_comps(
-  scale_df        = scale_df_sst_enso |> dplyr::mutate(sst_c = 0),
-  predvar         = "catch",
-  fit             = mods_sst_enso,
-  grps            = c("Year", "Season", "sst_q"),
-  remove_nuisance = TRUE
+  fit      = mods_sst_enso,
+  mode     = "index",
+  grps     = c("Year", "Season", "sst_q"),
+  grid     = scale_df_sst_enso |> dplyr::mutate(sst_c = 0),
+  weight   = "catch"
 ))
 ```
 

@@ -286,7 +286,7 @@ Figure 4 shows the year and season effects from both models.
 ## Scale Compositions to Catch
 
 Predictions from each model were scaled to the true catch by year, season and
-vessel (catch weighting, `remove_nuisance = FALSE`) and then aggregated to
+vessel (catch weighting, `mode = "catch"`) and then aggregated to
 annual compositions. Catch weighting evaluates the nuisance random effects (season
 and vessel) at the level of each stratum, so both variables must be in `grps`.
 The result estimates the composition of the total catch of the fleet.
