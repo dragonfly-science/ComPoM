@@ -1,0 +1,3 @@
+# Pull requests need approval from a code owner (a repository admin) unless the author is an admin.
+# Add further admins or a team here.
+* @Philipp-Neubauer
