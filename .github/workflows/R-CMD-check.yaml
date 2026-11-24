@@ -3,7 +3,7 @@
 # The test suite compiles small brms models with rstan, so a run takes several minutes.
 on:
   push:
-    branches: [main, master]
+    branches: [main, dev]
   pull_request:
   workflow_dispatch:
   schedule:

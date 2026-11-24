@@ -163,7 +163,8 @@ step_comps <- function(fit, scale_df = NULL, predvar = "catch", grps, by,
       time = if (spatial_on) sp$time else NULL, coords = if (spatial_on) sp$coords else NULL,
       spatiotemporal = sp$spatiotemporal, share_spatial_sd = sp$share_spatial_sd,
       share_spatiotemporal_sd = sp$share_spatiotemporal_sd, priors = sp$priors,
-      newton_loops = sp$newton_loops, iter = sp$iter, warmup = sp$warmup, thin = sp$thin
+      newton_loops = sp$newton_loops, iter = sp$iter, warmup = sp$warmup, thin = sp$thin,
+      dist = sp$dist %||% "poisson"
     )))
     for (cmp in components) {
       sc <- predict_component(fit_k, cmp, scale_df, predvar, grps, grid, selectivity,

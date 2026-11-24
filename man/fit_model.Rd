@@ -55,10 +55,14 @@ string (e.g. \code{"4"} or \code{"c(5,10)"} for \code{spl = "2D"}).}
 
 \item{data}{Prepared data frame from \code{data_prep()}.}
 
-\item{dist}{Response family passed to \code{brms::brm()} as \code{family}:
-a family name (default \code{"poisson"}) or family object such as
-\code{poisson()} (brms backend only; the TMB backend always uses
-\code{poisson()}).}
+\item{dist}{Response family: a family name (default \code{"poisson"}) or a
+family object such as \code{poisson()}. With \code{backend = "brms"} it is
+passed to \code{brms::brm()} as \code{family}. With \code{backend = "TMB"} it
+must be \code{poisson}, \code{nbinom2} or \code{nbinom1} (sdmTMB). The
+negative binomial families allow variance between bins in excess of the
+Poisson variance. The offset is kept, but the equivalence to a multinomial
+likelihood then holds only approximately (see
+\code{vignette("stratum_intercept")}).}
 
 \item{chains, cores, threads}{Number of MCMC chains, cores and within-chain
 threads (brms backend only). By default, one core is used per chain (up

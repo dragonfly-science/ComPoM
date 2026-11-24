@@ -1,9 +1,9 @@
 # Builds the pkgdown site (reference, NEWS and the vignettes as articles) and deploys it to
-# GitHub Pages from main. Pages must be enabled for the gh-pages branch (repository settings).
+# GitHub Pages from main (builds on dev and pull requests are not deployed). Pages must be enabled for the gh-pages branch (repository settings).
 # The articles fit models, so a build takes about 15-20 minutes.
 on:
   push:
-    branches: [main, master]
+    branches: [main, dev]
   pull_request:
   release:
     types: [published]
@@ -46,7 +46,8 @@ jobs:
         shell: Rscript {0}
 
       - name: Deploy to GitHub Pages
-        if: github.event_name != 'pull_request'
+        # deploy from main and on releases; builds on dev and pull requests only test the site
+        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
           clean: false

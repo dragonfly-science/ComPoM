@@ -18,6 +18,10 @@
   weighted by `weight` (equal if `NULL`). `remove_nuisance` is deprecated.
   `fit_model()` stores the fixed-effect variables in `ffx_vars`.
 
+* `fit_model(backend = "TMB")` accepts `dist = "nbinom2"` or `"nbinom1"` (default `"poisson"`) for
+  counts with variance between bins in excess of the Poisson variance. The offset is kept. See the
+  new vignette `stratum_intercept`, which also compares the offset formulation with models with a
+  stratum intercept.
 * `fit_model()` gains `spatiotemporal` (default `TRUE`). `spatiotemporal = FALSE` fits spatial
   fields only when a `mesh` is supplied.
 * `cvar_smooth_plot()` and `spatial_field_plot()` no longer add a plot title.

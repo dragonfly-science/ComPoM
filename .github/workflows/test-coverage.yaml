@@ -2,7 +2,7 @@
 # a CODECOV_TOKEN repository secret (Codecov -> repo settings -> upload token).
 on:
   push:
-    branches: [main, master]
+    branches: [main, dev]
   pull_request:
   workflow_dispatch:
 

@@ -51,6 +51,7 @@ Suggests:
     fmesher,
     knitr,
     MASS,
+    nnet,
     rmarkdown,
     rstan,
     sf,

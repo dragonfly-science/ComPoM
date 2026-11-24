@@ -10,7 +10,7 @@
 
 ComPoM fits Poisson-multinomial models to compositional count data (e.g. length or age
 frequencies from observer sampling) and uses them to standardise compositions for
-non-representative sampling and scale them to total catch.
+non-representative sampling and scale them to total catch or standardise them for use with index fisheries in stock assessments.
 
 Counts per bin and sampling stratum are modelled as Poisson with the stratum sample size as
 offset. All covariate effects are bin-specific, so that the implied within-stratum proportions
