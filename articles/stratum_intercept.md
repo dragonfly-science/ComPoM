@@ -188,10 +188,10 @@ knitr::kable(tab0, row.names = FALSE,
 
 | model       | parameters | pd_hessian |   loglik | max_diff_to_multinom | seconds |
 |:------------|-----------:|:-----------|---------:|---------------------:|--------:|
-| offset      |         48 | TRUE       | -3981.12 |              1.2e-05 |    0.10 |
-| random      |         49 | TRUE       | -3981.12 |              1.2e-05 |    0.62 |
-| fixed_naive |        318 | FALSE      | -3981.12 |              1.2e-05 |    0.38 |
-| fixed_ref   |        313 | TRUE       | -3981.12 |              1.2e-05 |    0.43 |
+| offset      |         48 | TRUE       | -3981.12 |              1.2e-05 |    0.16 |
+| random      |         49 | TRUE       | -3981.12 |              1.2e-05 |    1.13 |
+| fixed_naive |        318 | FALSE      | -3981.12 |              1.2e-05 |    0.63 |
+| fixed_ref   |        313 | TRUE       | -3981.12 |              1.2e-05 |    0.71 |
 
 Table 1. Fixed-effects-only fits to one simulated data set. {.table}
 
@@ -263,18 +263,18 @@ res |>
 
 | scenario                | model       | pd Hessian (%) |   RMSE | seconds |
 |:------------------------|:------------|---------------:|-------:|--------:|
-| no vessel effect        | offset      |            100 | 0.0071 |    0.09 |
-| no vessel effect        | random      |            100 | 0.0071 |    0.58 |
-| no vessel effect        | fixed_naive |              0 | 0.0071 |    0.36 |
-| no vessel effect        | fixed_ref   |             50 | 0.0065 |    0.40 |
-| vessel effect           | offset      |            100 | 0.0145 |    0.47 |
-| vessel effect           | random      |            100 | 0.0145 |    1.09 |
-| vessel effect           | fixed_naive |              0 | 0.0141 |    1.79 |
-| vessel effect           | fixed_ref   |            100 | 0.0141 |    1.88 |
-| vessel + overdispersion | offset      |            100 | 0.0233 |    0.47 |
-| vessel + overdispersion | random      |            100 | 0.0233 |    1.06 |
-| vessel + overdispersion | fixed_naive |              0 | 0.0226 |    1.77 |
-| vessel + overdispersion | fixed_ref   |            100 | 0.0226 |    1.91 |
+| no vessel effect        | offset      |            100 | 0.0071 |    0.16 |
+| no vessel effect        | random      |            100 | 0.0071 |    1.12 |
+| no vessel effect        | fixed_naive |              0 | 0.0071 |    0.61 |
+| no vessel effect        | fixed_ref   |             38 | 0.0067 |    0.70 |
+| vessel effect           | offset      |            100 | 0.0145 |    0.95 |
+| vessel effect           | random      |            100 | 0.0145 |    2.12 |
+| vessel effect           | fixed_naive |              0 | 0.0141 |    3.58 |
+| vessel effect           | fixed_ref   |            100 | 0.0141 |    3.82 |
+| vessel + overdispersion | offset      |            100 | 0.0233 |    0.94 |
+| vessel + overdispersion | random      |            100 | 0.0233 |    2.23 |
+| vessel + overdispersion | fixed_naive |              0 | 0.0226 |    3.57 |
+| vessel + overdispersion | fixed_ref   |            100 | 0.0226 |    3.78 |
 
 Table 2. Mean over 8 replicates of the share of fits with a
 positive-definite Hessian, the root mean squared error of annual
@@ -366,9 +366,9 @@ sp |> group_by(model) |>
 
 | model     | pd Hessian (%) | parameters |   RMSE | seconds |
 |:----------|---------------:|-----------:|-------:|--------:|
-| fixed_ref |            100 |        243 | 0.0220 |    1.96 |
-| offset    |            100 |         26 | 0.0223 |    0.57 |
-| random    |             88 |         27 | 0.0223 |    1.24 |
+| fixed_ref |            100 |        243 | 0.0225 |    4.16 |
+| offset    |            100 |         26 | 0.0230 |    1.20 |
+| random    |            100 |         27 | 0.0230 |    2.44 |
 
 Table 3. Spatial fits, means over 8 replicates. {.table}
 
@@ -425,12 +425,12 @@ nb |> group_by(overdispersion, family) |>
 
 | overdispersion | family  | pd Hessian (%) |   RMSE | median phi | mean AIC | seconds |
 |---------------:|:--------|---------------:|-------:|-----------:|---------:|--------:|
-|            0.0 | nbinom2 |             62 | 0.0145 |    2.4e+07 |     7439 |     3.0 |
-|            0.0 | poisson |            100 | 0.0145 |         NA |     7437 |     0.4 |
-|            0.5 | nbinom2 |            100 | 0.0223 |    2.8e+00 |     8926 |     2.8 |
-|            0.5 | poisson |            100 | 0.0233 |         NA |    10395 |     0.4 |
-|            1.5 | nbinom2 |            100 | 0.0296 |    8.1e-01 |     9346 |     2.4 |
-|            1.5 | poisson |            100 | 0.0293 |         NA |    15083 |     0.4 |
+|            0.0 | nbinom2 |             62 | 0.0145 |    2.3e+07 |     7439 |     5.5 |
+|            0.0 | poisson |            100 | 0.0145 |         NA |     7437 |     0.9 |
+|            0.5 | nbinom2 |            100 | 0.0223 |    2.8e+00 |     8926 |     5.0 |
+|            0.5 | poisson |            100 | 0.0233 |         NA |    10395 |     0.9 |
+|            1.5 | nbinom2 |            100 | 0.0296 |    8.1e-01 |     9346 |     4.3 |
+|            1.5 | poisson |            100 | 0.0293 |         NA |    15083 |     0.9 |
 
 Table 4. Poisson and negative binomial offset fits, means over 8
 replicates. {.table}
@@ -504,9 +504,9 @@ knitr::kable(brms_res, caption = "Table 5. brms fits of the three formulations t
 
 | model  | divergences | max_rhat | min_bulk_ess | minutes |
 |:-------|------------:|---------:|-------------:|--------:|
-| offset |           0 |    1.016 |          153 |     1.0 |
-| random |           0 |    1.021 |          108 |     1.0 |
-| fixed  |           0 |    1.123 |           15 |     1.1 |
+| offset |           0 |    1.016 |          153 |     1.4 |
+| random |           0 |    1.021 |          108 |     1.4 |
+| fixed  |           0 |    1.123 |           15 |     1.5 |
 
 Table 5. brms fits of the three formulations to one data set. The time
 includes compilation. {.table}
