@@ -255,13 +255,15 @@ Table 2 and Figure 1 give three results.
   $\sigma_\gamma$ was at the lower bound of the optimiser (below $2 \times 10^{-5}$) in every
   replicate (Figure 1b), including with overdispersion between bins. The data contained no stratum-level variation in $S_i$ that the
   intercept could absorb, because the totals $n_i$ were used as the offset.
-- The free intercept with the reference bin (`fixed_ref`) had a positive-definite Hessian in 88%
+- The free intercept with the reference bin (`fixed_ref`) had a positive-definite Hessian in 75%
   (no vessel effect) to 100% of fits, and none of the fits without the reference bin
-  (`fixed_naive`) did. Their estimated proportions were nearly the same. Where the vessel effect
-  was included, the free intercept had a larger error than the offset model (mean 0.032 against
-  0.029). The two formulations differ in this case because the vessel effect has a different meaning. In the
-  multinomial likelihood, only the contrasts of the vessel effect between bins are identified, and
-  in the offset model the vessel effects also have to leave $S_i$ close to one.
+  (`fixed_naive`) did. Their estimated proportions were nearly the same as those of the offset model.
+  The free intercept had a smaller error in the two scenarios with a vessel effect (0.0141 against
+  0.0145 and 0.0226 against 0.0233), and in 7 of 8 replicates in each. The difference was about 3%
+  of the error. It arises because the vessel effect has a different meaning in the two
+  formulations. In the multinomial likelihood only the contrasts of the vessel effect between
+  bins are identified, and in the offset model the vessel effects also have to leave $S_i$ close to
+  one.
 - The fit time of the free intercept was about four times that of the offset model with the vessel
   effect (Table 2) and had 313 instead of 49 parameters.
 
@@ -336,13 +338,13 @@ nb |> group_by(overdispersion, family) |>
   knitr::kable(caption = "Table 4. Poisson and negative binomial offset fits, means over 8 replicates.")
 ```
 
-In Table 4, the negative binomial under overdispersion reduced the error of the annual proportions (0.0425 to
-0.0399 at 0.5 and 0.0451 to 0.0382 at 1.5) and the mean AIC (10395 to 8926 and 15083 to 9346).
-Without overdispersion
+In Table 4, the negative binomial under overdispersion reduced the mean AIC (10395 to 8926 at 0.5
+and 15083 to 9346 at 1.5). The error of the annual proportions changed little (0.0233 to 0.0223
+at 0.5 and 0.0293 to 0.0296 at 1.5). Without overdispersion
 the dispersion parameter diverged ($\hat\phi \to \infty$, the Poisson limit), the
 Hessian was not positive definite in 3 of 8 fits, and the error was the same as for the Poisson
-model. The negative binomial was about six to eight times slower. The AIC decreased by 14% and 38%,
-against decreases in the error of 6% and 15%. The coverage of intervals was not evaluated.
+model. The negative binomial was about six to eight times slower. The AIC decreased by 14% and 38%, and
+the error by 4% and by none. The coverage of intervals was not evaluated.
 
 # brms
 
@@ -365,7 +367,7 @@ brms_res <- bind_rows(lapply(names(rhs), function(v) {
   np <- nuts_params(m)
   data.frame(model = v, divergences = sum(np$Value[np$Parameter == "divergent__"]),
              max_rhat = round(max(rhat(m), na.rm = TRUE), 3),
-             min_bulk_ess = round(min(summary(m)$fixed$Bulk_ESS)),
+             min_bulk_ess = round(min(summary(m)$fixed[, "Bulk_ESS"])),
              minutes = round(tm / 60, 1))
 }))
 knitr::kable(brms_res, caption = "Table 5. brms fits of the three formulations to one data set. The time includes compilation.")
@@ -379,26 +381,27 @@ direction that only the prior restrained. The run reported in Table 5 used a sin
 # Practical implications
 
 - **Estimates.** Where the model contains only effects that are constant within groups of strata,
-  the offset model returned the multinomial estimates exactly. With nuisance effects the offset
-  and free-intercept formulations estimate slightly different quantities, and the simulations did
-  not show an advantage for the free intercept.
+  the offset model returned the multinomial estimates exactly. With nuisance effects or spatial
+  fields the offset and free-intercept formulations estimate slightly different quantities. The
+  error of the free intercept was about 3% smaller in all of these simulations, which is small
+  against the differences in fit time and stability.
 - **Convergence.** The free intercept requires a reference bin for every stratum-level term, adds
-  one parameter per stratum, and was slower and less stable in both backends. This agrees with the
-  decision to drop it from ComPoM.
+  one parameter per stratum, and was slower and less stable in both backends. This is the reason
+  ComPoM does not use it.
 - **Random intercept.** The random stratum intercept converged to the offset model. It adds
   a variance parameter and fit time without changing the result for multinomial sampling. It could
   matter if the totals are not informative about the composition, for example when the
   recorded total is a subsample, but that was not examined here.
 - **Overdispersion.** Neither formulation handles variance between bins in excess of the
   multinomial variance. Figure 1 shows that the error of both increased in the overdispersed
-  scenario. In brms an overdispersed family can be used with `dist`.
+  scenario and the negative binomial did not reduce it (Table 4). In brms an overdispersed family can be used with `dist`.
 - **Spatial fields.** In the spatial simulation the error of the free intercept was 0.0214
-  against 0.0220 for the offset model, a difference not resolved by 8 replicates, at three times the
+  against 0.0220 for the offset model, a 3% difference, at three times the
   fit time. The other conclusions were unchanged. Covariate smooths were not
   compared. Like random effects and fields, they generate differences between strata within a
   level.
-- **Negative binomial.** With overdispersion the negative binomial reduced the AIC and
-  the error of the proportions, and without it the dispersion parameter was not estimable. It is
+- **Negative binomial.** With overdispersion the negative binomial reduced the AIC with little change in
+  the proportions, and without it the dispersion parameter was not estimable. It is
   available through `fit_model(dist = "nbinom2")` with `backend = "TMB"`, and is not needed when
   data are not overdispersed.
 
@@ -407,9 +410,9 @@ direction that only the prior restrained. The run reported in Table 5 used a sin
 The offset model is the multinomial model with an additional Poisson term for the total that fixes
 the level of the linear predictor and makes every bin-specific effect identifiable without a
 reference bin. In the simulations it matched the free-intercept model where the two are
-equivalent. With vessel effects it was more accurate than the free intercept. With spatial fields the
-error differed by 3%, which 8 replicates did not resolve. It was the fastest formulation in every scenario and the
-only one that did not need a reference bin. ComPoM therefore uses the offset formulation only.
+equivalent. With vessel effects and spatial fields the error of the free intercept was about 3% smaller.
+The offset model was the fastest formulation in every scenario and the only one that did not need
+a reference bin. ComPoM therefore uses the offset formulation only.
 
 # References
 
