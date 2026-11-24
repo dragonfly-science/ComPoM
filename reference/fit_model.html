@@ -31,6 +31,7 @@ vignette(&quot;ComPoM&quot;) for the model equations)."><meta property="og:image
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/vessel_bias_simulation.html">Correcting for vessel-level sampling bias in compositional data</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_bias_simulation.html">Correcting for spatially biased sampling in compositional data</a></li>
+    <li><a class="dropdown-item" href="../articles/stratum_intercept.html">Offset or free stratum intercept: formulations of the Poisson-multinomial model</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -127,10 +128,14 @@ string (e.g. <code>"4"</code> or <code>"c(5,10)"</code> for <code>spl = "2D"</co
 
 
 <dt id="arg-dist">dist<a class="anchor" aria-label="anchor" href="#arg-dist"></a></dt>
-<dd><p>Response family passed to <code><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brms::brm()</a></code> as <code>family</code>:
-a family name (default <code>"poisson"</code>) or family object such as
-<code><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson()</a></code> (brms backend only; the TMB backend always uses
-<code><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson()</a></code>).</p></dd>
+<dd><p>Response family: a family name (default <code>"poisson"</code>) or a
+family object such as <code><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson()</a></code>. With <code>backend = "brms"</code> it is
+passed to <code><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brms::brm()</a></code> as <code>family</code>. With <code>backend = "TMB"</code> it
+must be <code>poisson</code>, <code>nbinom2</code> or <code>nbinom1</code> (sdmTMB). The
+negative binomial families allow variance between bins in excess of the
+Poisson variance. The offset is kept, but the equivalence to a multinomial
+likelihood then holds only approximately (see
+<code><a href="../articles/stratum_intercept.html">vignette("stratum_intercept")</a></code>).</p></dd>
 
 
 <dt id="arg-chains-cores-threads">chains, cores, threads<a class="anchor" aria-label="anchor" href="#arg-chains-cores-threads"></a></dt>
@@ -258,6 +263,10 @@ approximate joint sampling distribution of the parameters.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Model formula: tot_by_bin ~ offset(log(n)) + 0 + bin + factor(Year):bin + (1 | bin:Season) + (1 | bin:Vessel)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Compiling Stan program...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Start sampling</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>There were 1 divergent transitions after warmup. See</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> to find out why this is a problem and how to eliminate them.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Examine the pairs() plot to diagnose sampling problems</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> Running the chains for more iterations may help. See</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> https://mc-stan.org/misc/warnings.html#bulk-ess</span>

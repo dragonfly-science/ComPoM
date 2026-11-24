@@ -576,7 +576,7 @@ previous step skyblue and earlier steps grey.
 
 Adding the year effect produced the trend in mean length. Adding season
 changed the mean length by 0.001 on average in the catch component.
-Adding vessel changed it by -0.082 in the catch component and by -0.048
+Adding vessel changed it by -0.083 in the catch component and by -0.049
 in the index component.
 
 [`influ_comps()`](https://dragonfly-science.github.io/ComPoM/reference/influ_comps.md)
@@ -631,8 +631,8 @@ season.](vessel_bias_simulation_files/figure-html/cdi-season-1.png)
 
 Figure 12. As Figure 11, for season.
 
-The largest absolute effect of a level on a bin was 0.46 for vessel and
-0.01 for season on the log scale. The largest absolute influence of the
+The largest absolute effect of a level on a bin was 0.45 for vessel and
+0.00 for season on the log scale. The largest absolute influence of the
 random effects on any bin and year was 0.05 on the log scale. The
 influence was similar in all years, because the shares of the catch by
 vessel and season were similar in all years (centre panels).

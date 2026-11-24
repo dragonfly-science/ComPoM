@@ -2,10 +2,13 @@
 
 ComPoM fits Poisson-multinomial models to compositional count data, such
 as length or age frequencies from observer or market sampling. The
-fitted model predicts the composition for each stratum of a fishery with
-known catch. The predicted compositions are then weighted by catch and
-aggregated, giving catch-weighted compositions that are standardised for
-the uneven distribution of sampling across strata.
+fitted model predicts the composition for each stratum of a fishery. The
+predicted compositions are weighted and aggregated by one of two routes.
+The catch route weights them by catch and gives the composition of the
+catch, standardised for the uneven distribution of sampling across
+strata. The index route predicts the model on a grid, with selectivity
+terms set to a reference, and gives the composition of the population
+that a CPUE index describes.
 
 This vignette describes the model in its basic (non-spatial) and
 spatio-temporal forms, the wrapper functions and the order in which they
@@ -93,7 +96,11 @@ The model contains no free intercept per stratum. The expected stratum
 total is therefore $`n_i \sum_b \exp(\eta_{ib})`$ and equals $`n_i`$
 only on average over the strata within each level of the fixed-effect
 factors. The model with a free stratum intercept would reproduce the
-multinomial likelihood exactly but would add one parameter per stratum.
+multinomial likelihood exactly but would add one parameter per stratum
+and requires a reference bin for every stratum-level term. In
+simulations it gave the same compositions where the two are equivalent,
+and was slower and less stable (see
+[`vignette("stratum_intercept")`](https://dragonfly-science.github.io/ComPoM/articles/stratum_intercept.md)).
 All downstream summaries in ComPoM are normalised to proportions, or use
 $`\exp(\eta_{ib})`$ as a proportion (see below).
 
@@ -157,12 +164,10 @@ $`(\text{iter} - \text{warmup}) / \text{thin}`$ samples of the fixed and
 random effects from their joint approximate sampling distribution, and
 uncertainty is propagated through these draws.
 
-### Scaling to catch
+### Predicting compositions: catch and index routes
 
-The model is used to predict the composition in strata $`j`$ with a
-known weight $`C_j`$.
 [`scale_comps()`](https://dragonfly-science.github.io/ComPoM/reference/scale_comps.md)
-predicts the numbers-at-bin for each draw as
+predicts numbers-at-bin for strata $`j`$ with a weight $`C_j`$ as
 
 ``` math
 \hat{y}_{jb} = C_j \exp(\hat{\eta}_{jb}),
@@ -170,7 +175,7 @@ predicts the numbers-at-bin for each draw as
 
 that is, with the offset set to zero and the predicted rates multiplied
 by the weight. Weighted compositions for a group $`g`$ of strata (e.g. a
-year) are then obtained by summing and normalising:
+year) are obtained by summing and normalising:
 
 ``` math
 \hat{P}_{gb} = \frac{\sum_{j \in g} \hat{y}_{jb}}{\sum_{j \in g} \sum_{b'} \hat{y}_{jb'}}.
@@ -184,28 +189,73 @@ The weight of each stratum in $`\hat{P}_{gb}`$ is proportional to
 $`C_j \sum_b \exp(\hat{\eta}_{jb})`$, which equals $`C_j`$ when the
 predicted proportions sum to one.
 
-[`scale_comps()`](https://dragonfly-science.github.io/ComPoM/reference/scale_comps.md)
-supports two uses, selected by `mode`.
+The two routes differ in the strata $`j`$, in the values given to the
+model terms, and in $`C_j`$. They answer different questions. The catch
+route gives the composition of what was removed. The index route gives
+the composition of the population that a CPUE (or other abundance) index
+describes. The second is the input for estimating the selectivity of the
+index fleet in a stock assessment, where the index and its composition
+have to describe the same population.
 
-- Catch weighting (`mode = "catch"`, default) estimates the composition
-  of the total catch of the full fleet. The strata are all combinations
-  of the model variables in the catch records (e.g. year, season, vessel
-  and location), and $`C_j`$ is the catch. All model terms, including
-  the nuisance random effects, are evaluated at the values of each
-  stratum. Every nuisance variable must therefore be in `grps`.
-- Index mode (`mode = "index"`) estimates the composition of the
-  population that a CPUE index describes, predicted as the index would
-  be. Selectivity terms, such as fleet or gear, are set to a reference
-  (`selectivity`, `reference`), and nuisance random effects to the
-  population level. All other terms are predicted at the values in a
-  prediction grid (`grid`): one row per index time step for a
-  non-spatial model, and one row per cell and time step for a spatial
-  model, with the coordinates and the density covariates. $`C_j`$ is a
-  weight per grid row, which can come from a separate CPUE or abundance
-  model (`weight`) and is equal for all rows otherwise. Every
-  fixed-effect variable and covariate of the model is either a
-  selectivity term or a column of the grid, so that the role of each
-  term is chosen by the user.
+#### Catch route (`mode = "catch"`, default)
+
+The strata are all combinations of the model variables in the catch
+records (e.g. year, season, vessel and location), and $`C_j`$ is the
+catch. Every term of the model, including the nuisance random effects,
+is evaluated at the values of the stratum, so that the predicted
+composition includes the selectivity of the fleet that did the fishing.
+Every nuisance variable must therefore be in `grps`. Terms in
+`selectivity` can still be set to a reference, which gives the catch
+that would have been taken at that selectivity.
+
+#### Index route (`mode = "index"`)
+
+The strata are the rows of a prediction grid (`grid`), with one row per
+index time step for a non-spatial model and one row per cell and time
+step for a spatial model. The model terms are given one of three roles.
+
+- Selectivity terms (`selectivity`, e.g. fleet, gear or mesh) describe
+  how the fleet sampled the population and are set to a reference
+  (`reference`). The default reference is the most frequent level of a
+  factor and the mean of a covariate.
+- Nuisance random effects (`re_form`, e.g. vessel) are set to the
+  population level.
+- All other terms (e.g. year, density covariates such as temperature,
+  and the spatial fields) are predicted at the values in `grid`. These
+  are the terms that a CPUE standardisation would retain as describing
+  abundance.
+
+Writing $`\mathcal{S}`$ for the selectivity terms with reference values
+$`\mathbf{r}`$, the grid row $`g`$ at time step $`t_g`$ is predicted as
+
+``` math
+\hat{y}_{gb} = w_g \exp\Big(\hat\alpha_b
+  + \sum_{k \in \mathcal{S}} \hat\beta^{(k)}_{b,\,r_k}
+  + \sum_{k \notin \mathcal{S}} \hat\beta^{(k)}_{b,\,z_{gk}}
+  + \hat f_b(c_g) + \hat\omega_b(\mathbf{s}_g) + \hat\varepsilon_{b,t_g}(\mathbf{s}_g)\Big),
+```
+
+with the random effects $`u`$ set to zero, and the composition at time
+step $`t`$ is the normalised sum of $`\hat{y}_{gb}`$ over the rows of
+that time step, as above. The weight $`w_g`$ is the relative abundance
+of the row. It can come from a separate CPUE or abundance model
+(`weight`), and is equal for all rows otherwise. Every fixed-effect
+variable and covariate of the model has to be either in `selectivity` or
+a column of `grid`, so that the role of each term is chosen by the
+analyst and is not guessed. For example, sea surface temperature may be
+a selectivity term (it changes catchability) or a grid column (it
+changes density), and ComPoM leaves that decision to the user.
+
+The routes differ as follows.
+
+|  | Catch route | Index route |
+|:---|:---|:---|
+| Question | Composition of the catch | Composition of the indexed population |
+| Strata | Catch records | Prediction grid |
+| Weight $`C_j`$ | Catch | Relative abundance (`weight`), or equal |
+| Selectivity terms | At the stratum values | At a reference |
+| Nuisance random effects | At the stratum values | At the population level |
+| Other terms | At the stratum values | At the grid values |
 
 In both modes, spatial and spatio-temporal fields are evaluated at the
 coordinates in the data frame supplied, and continuous covariates at
@@ -464,13 +514,13 @@ levels (year 1, season 1), relative to the bin mean on the log scale.
 
 ### Scaled compositions
 
-The compositions were scaled by catch weighting. The scaling data
-contained a catch of 100 units for every location, year and season,
-including the location-year-season combinations that were not sampled.
-Season was included in `grps`, so that each stratum was predicted at its
-own season effect. For the spatial model the scaling data included the
-coordinates, and for the non-spatial model the catch was summed over
-locations.
+The compositions were first scaled by catch weighting (catch route). The
+scaling data contained a catch of 100 units for every location, year and
+season, including the location-year-season combinations that were not
+sampled. Season was included in `grps`, so that each stratum was
+predicted at its own season effect. For the spatial model the scaling
+data included the coordinates, and for the non-spatial model the catch
+was summed over locations.
 
 ``` r
 
@@ -589,6 +639,101 @@ bind_rows(
 | Spatial     |              0.0093 |
 
 Table 2. Mean absolute error of annual proportions. {.table}
+
+### Index composition
+
+For the index route, the composition of the population seen by a CPUE
+index was predicted. The only selectivity-like term in the example model
+is the Season random effect, which was set to the population level. Year
+and the spatial fields were predicted on a grid with one row for each
+location (spatial model) or one row per year (non-spatial model), and
+the weight was equal for all rows. In an application, `weight` would
+hold the relative abundance of each cell from a CPUE model. Season was
+not in `grps`, because it is not evaluated at stratum values in this
+route.
+
+``` r
+
+grid_sp <- expand_grid(loc = 1:60, Year = factor(1:6)) |> left_join(locs, by = "loc")
+
+index_sp <- scale_comps(
+  fit  = fit_sp,
+  mode = "index",
+  grps = "Year",
+  grid = grid_sp,
+  weight = NULL
+)
+
+index_ns <- scale_comps(
+  fit  = fit_ns,
+  mode = "index",
+  grps = "Year",
+  grid = tibble(Year = factor(1:6))
+)
+```
+
+The true index composition was the mean over all locations of the
+simulated composition, averaged over the two seasons. This is an
+approximation to the population level of the Season random effect, which
+is an average on the log scale.
+
+``` r
+
+truth_index <- truth |>
+  group_by(Year, bin, loc) |>
+  summarise(p = mean(p), .groups = "drop_last") |>
+  group_by(Year, bin) |>
+  summarise(tcatch = mean(p), .groups = "drop")
+```
+
+``` r
+
+scaled_comp_plot(
+  index_sp,
+  grps     = "Year",
+  comp_are = truth_index,
+  cvar     = "tcatch",
+  comp_label = "True"
+)
+```
+
+![Figure 5. Annual index compositions from the spatial model (black,
+mean and 95% interval) and the true compositions at all locations
+averaged over seasons
+(skyblue).](ComPoM_files/figure-html/index-plot-1.png)
+
+Figure 5. Annual index compositions from the spatial model (black, mean
+and 95% interval) and the true compositions at all locations averaged
+over seasons (skyblue).
+
+Figure 5 compares the index compositions from the spatial model with the
+true index composition, and Table 3 gives the mean absolute error of the
+annual proportions from both models. The index route does not use the
+sampled strata or the catch, so the sampling bias towards the west and
+towards season 1 enters only through the fitted spatial fields and the
+Season effect, and not through weights. The error of the spatial model
+(0.0091) was half that of the non-spatial model (0.0185), as for the
+catch route.
+
+``` r
+
+bind_rows(
+  `Non-spatial` = model_props(index_ns),
+  Spatial       = model_props(index_sp),
+  .id = "Estimate"
+) |>
+  left_join(annual_props(truth_index, tcatch), by = c("Year", "bin"), suffix = c("", "_true")) |>
+  group_by(Estimate) |>
+  summarise(`Mean absolute error` = mean(abs(p - p_true))) |>
+  knitr::kable(digits = 4, caption = "Table 3. Mean absolute error of annual index proportions.")
+```
+
+| Estimate    | Mean absolute error |
+|:------------|--------------------:|
+| Non-spatial |              0.0185 |
+| Spatial     |              0.0092 |
+
+Table 3. Mean absolute error of annual index proportions. {.table}
 
 ## References
 

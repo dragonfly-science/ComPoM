@@ -292,223 +292,223 @@ summary(mods_spatial$model)
 #> 
 #> Conditional model:
 #>      Groups        Name    Variance    Std.Dev. 
-#>  bin:Season (Intercept)        0.00        0.03 
+#>  bin:Season (Intercept)        0.00        0.00 
 #> 
 #> Conditional model:
 #>                      coef.est coef.se
-#> bin1                    -3.07    0.08
+#> bin1                    -3.09    0.07
 #> bin2                    -2.69    0.07
-#> bin3                    -2.32    0.06
-#> bin4                    -2.26    0.06
-#> bin5                    -2.14    0.06
-#> bin6                    -2.08    0.06
-#> bin7                    -2.10    0.06
-#> bin8                    -2.20    0.06
+#> bin3                    -2.35    0.06
+#> bin4                    -2.23    0.06
+#> bin5                    -2.15    0.05
+#> bin6                    -2.05    0.05
+#> bin7                    -2.08    0.05
+#> bin8                    -2.20    0.05
 #> bin9                    -2.29    0.06
-#> bin10                   -2.45    0.06
-#> bin1:factor(Year)2      -0.15    0.09
-#> bin2:factor(Year)2      -0.07    0.08
-#> bin3:factor(Year)2      -0.02    0.07
-#> bin4:factor(Year)2       0.05    0.06
-#> bin5:factor(Year)2      -0.03    0.06
-#> bin6:factor(Year)2       0.05    0.06
-#> bin7:factor(Year)2      -0.01    0.06
+#> bin10                   -2.46    0.06
+#> bin1:factor(Year)2      -0.15    0.10
+#> bin2:factor(Year)2      -0.02    0.08
+#> bin3:factor(Year)2       0.02    0.07
+#> bin4:factor(Year)2       0.03    0.06
+#> bin5:factor(Year)2      -0.02    0.06
+#> bin6:factor(Year)2       0.06    0.06
+#> bin7:factor(Year)2      -0.02    0.06
 #> bin8:factor(Year)2       0.02    0.06
-#> bin9:factor(Year)2       0.02    0.06
-#> bin10:factor(Year)2      0.01    0.07
-#> bin1:factor(Year)3       0.15    0.09
-#> bin2:factor(Year)3      -0.02    0.08
-#> bin3:factor(Year)3      -0.04    0.07
-#> bin4:factor(Year)3       0.03    0.06
-#> bin5:factor(Year)3      -0.04    0.06
-#> bin6:factor(Year)3      -0.01    0.06
-#> bin7:factor(Year)3      -0.05    0.06
-#> bin8:factor(Year)3       0.04    0.06
+#> bin9:factor(Year)2       0.00    0.07
+#> bin10:factor(Year)2     -0.01    0.07
+#> bin1:factor(Year)3       0.11    0.09
+#> bin2:factor(Year)3      -0.10    0.08
+#> bin3:factor(Year)3      -0.03    0.07
+#> bin4:factor(Year)3      -0.01    0.06
+#> bin5:factor(Year)3       0.02    0.06
+#> bin6:factor(Year)3       0.00    0.06
+#> bin7:factor(Year)3      -0.06    0.06
+#> bin8:factor(Year)3       0.07    0.06
 #> bin9:factor(Year)3      -0.05    0.07
-#> bin10:factor(Year)3      0.07    0.07
-#> bin1:factor(Year)4       0.17    0.09
-#> bin2:factor(Year)4      -0.01    0.08
-#> bin3:factor(Year)4      -0.12    0.07
-#> bin4:factor(Year)4       0.02    0.06
-#> bin5:factor(Year)4       0.04    0.06
-#> bin6:factor(Year)4      -0.01    0.06
-#> bin7:factor(Year)4      -0.08    0.06
-#> bin8:factor(Year)4      -0.04    0.06
-#> bin9:factor(Year)4       0.03    0.06
+#> bin10:factor(Year)3      0.08    0.07
+#> bin1:factor(Year)4       0.18    0.09
+#> bin2:factor(Year)4       0.01    0.08
+#> bin3:factor(Year)4      -0.04    0.07
+#> bin4:factor(Year)4       0.00    0.07
+#> bin5:factor(Year)4       0.07    0.06
+#> bin6:factor(Year)4      -0.02    0.06
+#> bin7:factor(Year)4      -0.12    0.06
+#> bin8:factor(Year)4      -0.06    0.06
+#> bin9:factor(Year)4       0.00    0.06
 #> bin10:factor(Year)4      0.08    0.07
-#> bin1:factor(Year)5       0.09    0.09
-#> bin2:factor(Year)5       0.06    0.08
-#> bin3:factor(Year)5      -0.07    0.07
-#> bin4:factor(Year)5       0.03    0.07
-#> bin5:factor(Year)5       0.11    0.06
-#> bin6:factor(Year)5      -0.02    0.06
-#> bin7:factor(Year)5      -0.03    0.06
-#> bin8:factor(Year)5       0.01    0.06
-#> bin9:factor(Year)5      -0.04    0.07
-#> bin10:factor(Year)5     -0.08    0.07
-#> bin1:factor(Year)6       0.00    0.09
-#> bin2:factor(Year)6      -0.01    0.08
-#> bin3:factor(Year)6      -0.05    0.07
-#> bin4:factor(Year)6       0.05    0.06
-#> bin5:factor(Year)6      -0.01    0.06
-#> bin6:factor(Year)6      -0.08    0.06
-#> bin7:factor(Year)6       0.02    0.06
-#> bin8:factor(Year)6       0.03    0.06
-#> bin9:factor(Year)6       0.03    0.06
-#> bin10:factor(Year)6      0.02    0.07
-#> bin1:factor(Year)7      -0.12    0.09
-#> bin2:factor(Year)7      -0.08    0.08
-#> bin3:factor(Year)7       0.04    0.07
+#> bin1:factor(Year)5       0.12    0.09
+#> bin2:factor(Year)5       0.03    0.08
+#> bin3:factor(Year)5       0.00    0.07
+#> bin4:factor(Year)5      -0.02    0.07
+#> bin5:factor(Year)5       0.16    0.06
+#> bin6:factor(Year)5      -0.03    0.06
+#> bin7:factor(Year)5      -0.08    0.06
+#> bin8:factor(Year)5      -0.01    0.06
+#> bin9:factor(Year)5      -0.06    0.07
+#> bin10:factor(Year)5     -0.05    0.07
+#> bin1:factor(Year)6      -0.03    0.09
+#> bin2:factor(Year)6       0.02    0.08
+#> bin3:factor(Year)6       0.02    0.07
+#> bin4:factor(Year)6       0.06    0.06
+#> bin5:factor(Year)6      -0.02    0.06
+#> bin6:factor(Year)6      -0.05    0.06
+#> bin7:factor(Year)6      -0.02    0.06
+#> bin8:factor(Year)6       0.01    0.06
+#> bin9:factor(Year)6      -0.03    0.07
+#> bin10:factor(Year)6      0.05    0.07
+#> bin1:factor(Year)7      -0.08    0.09
+#> bin2:factor(Year)7      -0.11    0.08
+#> bin3:factor(Year)7       0.07    0.07
 #> bin4:factor(Year)7       0.00    0.07
-#> bin5:factor(Year)7       0.07    0.06
-#> bin6:factor(Year)7       0.04    0.06
-#> bin7:factor(Year)7      -0.01    0.06
-#> bin8:factor(Year)7       0.01    0.06
-#> bin9:factor(Year)7       0.02    0.07
-#> bin10:factor(Year)7     -0.06    0.07
-#> bin1:factor(Year)8      -0.38    0.10
-#> bin2:factor(Year)8       0.00    0.08
-#> bin3:factor(Year)8       0.03    0.07
-#> bin4:factor(Year)8       0.16    0.06
-#> bin5:factor(Year)8       0.15    0.06
-#> bin6:factor(Year)8      -0.01    0.06
-#> bin7:factor(Year)8      -0.01    0.06
-#> bin8:factor(Year)8       0.00    0.06
-#> bin9:factor(Year)8      -0.12    0.07
-#> bin10:factor(Year)8     -0.12    0.07
+#> bin5:factor(Year)7       0.04    0.06
+#> bin6:factor(Year)7      -0.01    0.06
+#> bin7:factor(Year)7      -0.04    0.06
+#> bin8:factor(Year)7       0.04    0.06
+#> bin9:factor(Year)7       0.05    0.07
+#> bin10:factor(Year)7     -0.03    0.07
+#> bin1:factor(Year)8      -0.46    0.11
+#> bin2:factor(Year)8      -0.08    0.08
+#> bin3:factor(Year)8       0.13    0.07
+#> bin4:factor(Year)8       0.13    0.06
+#> bin5:factor(Year)8       0.14    0.06
+#> bin6:factor(Year)8       0.01    0.06
+#> bin7:factor(Year)8       0.02    0.06
+#> bin8:factor(Year)8       0.01    0.06
+#> bin9:factor(Year)8      -0.14    0.07
+#> bin10:factor(Year)8     -0.13    0.07
 #> bin1:factor(Year)9      -0.31    0.10
 #> bin2:factor(Year)9      -0.11    0.08
-#> bin3:factor(Year)9       0.03    0.07
-#> bin4:factor(Year)9       0.11    0.06
-#> bin5:factor(Year)9       0.15    0.06
-#> bin6:factor(Year)9       0.06    0.06
-#> bin7:factor(Year)9       0.00    0.06
-#> bin8:factor(Year)9      -0.07    0.06
-#> bin9:factor(Year)9      -0.03    0.07
-#> bin10:factor(Year)9     -0.09    0.07
-#> bin1:factor(Year)10     -0.37    0.10
-#> bin2:factor(Year)10     -0.07    0.09
-#> bin3:factor(Year)10      0.03    0.07
-#> bin4:factor(Year)10      0.23    0.06
-#> bin5:factor(Year)10      0.15    0.06
-#> bin6:factor(Year)10      0.09    0.06
-#> bin7:factor(Year)10     -0.06    0.06
-#> bin8:factor(Year)10     -0.05    0.07
-#> bin9:factor(Year)10     -0.23    0.07
-#> bin10:factor(Year)10    -0.07    0.07
+#> bin3:factor(Year)9       0.09    0.07
+#> bin4:factor(Year)9       0.07    0.06
+#> bin5:factor(Year)9       0.16    0.06
+#> bin6:factor(Year)9       0.07    0.06
+#> bin7:factor(Year)9      -0.04    0.06
+#> bin8:factor(Year)9      -0.08    0.06
+#> bin9:factor(Year)9      -0.08    0.07
+#> bin10:factor(Year)9     -0.04    0.07
+#> bin1:factor(Year)10     -0.40    0.10
+#> bin2:factor(Year)10     -0.07    0.08
+#> bin3:factor(Year)10      0.09    0.07
+#> bin4:factor(Year)10      0.21    0.06
+#> bin5:factor(Year)10      0.19    0.06
+#> bin6:factor(Year)10      0.06    0.06
+#> bin7:factor(Year)10     -0.05    0.06
+#> bin8:factor(Year)10     -0.06    0.06
+#> bin9:factor(Year)10     -0.28    0.07
+#> bin10:factor(Year)10    -0.09    0.07
 #> 
-#> Matérn range: 10.35
-#> Spatially varying coefficient SD (bin1): 0.19
-#> Spatially varying coefficient SD (bin2): 0.19
-#> Spatially varying coefficient SD (bin3): 0.19
-#> Spatially varying coefficient SD (bin4): 0.19
-#> Spatially varying coefficient SD (bin5): 0.19
-#> Spatially varying coefficient SD (bin6): 0.19
-#> Spatially varying coefficient SD (bin7): 0.19
-#> Spatially varying coefficient SD (bin8): 0.19
-#> Spatially varying coefficient SD (bin9): 0.19
-#> Spatially varying coefficient SD (bin10): 0.19
-#> Spatially varying coefficient SD (`factor(Year)1:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin1`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin2`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin3`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin4`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin5`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin6`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin7`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin8`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin9`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)1:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)2:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)3:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)4:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)5:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)6:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)7:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)8:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)9:bin10`): 0.00
-#> Spatially varying coefficient SD (`factor(Year)10:bin10`): 0.00
-#> ML criterion at convergence: 11363.120
+#> Matérn range: 10.47
+#> Spatially varying coefficient SD (bin1): 0.18
+#> Spatially varying coefficient SD (bin2): 0.18
+#> Spatially varying coefficient SD (bin3): 0.18
+#> Spatially varying coefficient SD (bin4): 0.18
+#> Spatially varying coefficient SD (bin5): 0.18
+#> Spatially varying coefficient SD (bin6): 0.18
+#> Spatially varying coefficient SD (bin7): 0.18
+#> Spatially varying coefficient SD (bin8): 0.18
+#> Spatially varying coefficient SD (bin9): 0.18
+#> Spatially varying coefficient SD (bin10): 0.18
+#> Spatially varying coefficient SD (`factor(Year)1:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin1`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin2`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin3`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin4`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin5`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin6`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin7`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin8`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin9`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)1:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)2:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)3:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)4:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)5:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)6:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)7:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)8:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)9:bin10`): 0.03
+#> Spatially varying coefficient SD (`factor(Year)10:bin10`): 0.03
+#> ML criterion at convergence: 11372.529
 #> 
 #> See ?tidy.sdmTMB to extract these values as a data frame.
 #> 
@@ -545,107 +545,107 @@ summary(mods_nonspatial$model)
 #> Conditional model:
 #>                      coef.est coef.se
 #> bin1                    -2.96    0.06
-#> bin2                    -2.71    0.05
-#> bin3                    -2.37    0.05
-#> bin4                    -2.25    0.04
-#> bin5                    -2.16    0.04
+#> bin2                    -2.68    0.05
+#> bin3                    -2.41    0.05
+#> bin4                    -2.24    0.04
+#> bin5                    -2.18    0.04
 #> bin6                    -2.07    0.04
-#> bin7                    -2.06    0.04
+#> bin7                    -2.04    0.04
 #> bin8                    -2.16    0.04
-#> bin9                    -2.24    0.04
-#> bin10                   -2.37    0.05
-#> bin1:factor(Year)2      -0.11    0.09
-#> bin2:factor(Year)2      -0.03    0.08
-#> bin3:factor(Year)2      -0.02    0.07
+#> bin9                    -2.23    0.04
+#> bin10                   -2.38    0.05
+#> bin1:factor(Year)2      -0.15    0.09
+#> bin2:factor(Year)2      -0.01    0.08
+#> bin3:factor(Year)2       0.01    0.07
 #> bin4:factor(Year)2       0.05    0.06
-#> bin5:factor(Year)2      -0.04    0.06
-#> bin6:factor(Year)2       0.06    0.06
+#> bin5:factor(Year)2      -0.03    0.06
+#> bin6:factor(Year)2       0.07    0.06
 #> bin7:factor(Year)2      -0.05    0.06
 #> bin8:factor(Year)2       0.02    0.06
-#> bin9:factor(Year)2       0.01    0.06
-#> bin10:factor(Year)2      0.04    0.06
-#> bin1:factor(Year)3       0.11    0.09
-#> bin2:factor(Year)3       0.02    0.08
-#> bin3:factor(Year)3      -0.01    0.07
-#> bin4:factor(Year)3       0.04    0.06
-#> bin5:factor(Year)3      -0.02    0.06
+#> bin9:factor(Year)2       0.00    0.06
+#> bin10:factor(Year)2      0.01    0.07
+#> bin1:factor(Year)3       0.07    0.09
+#> bin2:factor(Year)3      -0.07    0.08
+#> bin3:factor(Year)3       0.00    0.07
+#> bin4:factor(Year)3       0.01    0.06
+#> bin5:factor(Year)3       0.03    0.06
 #> bin6:factor(Year)3      -0.01    0.06
 #> bin7:factor(Year)3      -0.08    0.06
-#> bin8:factor(Year)3       0.01    0.06
+#> bin8:factor(Year)3       0.04    0.06
 #> bin9:factor(Year)3      -0.05    0.06
-#> bin10:factor(Year)3      0.06    0.06
-#> bin1:factor(Year)4       0.16    0.08
-#> bin2:factor(Year)4       0.01    0.08
-#> bin3:factor(Year)4      -0.11    0.07
+#> bin10:factor(Year)3      0.07    0.06
+#> bin1:factor(Year)4       0.19    0.08
+#> bin2:factor(Year)4       0.03    0.08
+#> bin3:factor(Year)4      -0.03    0.07
 #> bin4:factor(Year)4      -0.01    0.06
-#> bin5:factor(Year)4       0.04    0.06
-#> bin6:factor(Year)4      -0.02    0.06
-#> bin7:factor(Year)4      -0.09    0.06
-#> bin8:factor(Year)4      -0.03    0.06
-#> bin9:factor(Year)4       0.03    0.06
-#> bin10:factor(Year)4      0.09    0.06
-#> bin1:factor(Year)5       0.13    0.09
-#> bin2:factor(Year)5       0.12    0.08
-#> bin3:factor(Year)5      -0.05    0.07
-#> bin4:factor(Year)5       0.02    0.06
-#> bin5:factor(Year)5       0.08    0.06
-#> bin6:factor(Year)5      -0.05    0.06
-#> bin7:factor(Year)5      -0.07    0.06
-#> bin8:factor(Year)5       0.00    0.06
-#> bin9:factor(Year)5      -0.03    0.06
-#> bin10:factor(Year)5     -0.07    0.07
-#> bin1:factor(Year)6       0.01    0.09
-#> bin2:factor(Year)6       0.01    0.08
-#> bin3:factor(Year)6      -0.08    0.07
-#> bin4:factor(Year)6       0.03    0.06
-#> bin5:factor(Year)6      -0.02    0.06
-#> bin6:factor(Year)6      -0.09    0.06
-#> bin7:factor(Year)6       0.01    0.06
-#> bin8:factor(Year)6       0.03    0.06
-#> bin9:factor(Year)6       0.03    0.06
-#> bin10:factor(Year)6      0.08    0.06
-#> bin1:factor(Year)7      -0.10    0.09
-#> bin2:factor(Year)7      -0.02    0.08
-#> bin3:factor(Year)7       0.05    0.06
-#> bin4:factor(Year)7       0.00    0.06
-#> bin5:factor(Year)7       0.05    0.06
-#> bin6:factor(Year)7       0.01    0.06
-#> bin7:factor(Year)7      -0.04    0.06
-#> bin8:factor(Year)7       0.01    0.06
-#> bin9:factor(Year)7       0.01    0.06
-#> bin10:factor(Year)7     -0.04    0.07
-#> bin1:factor(Year)8      -0.43    0.10
-#> bin2:factor(Year)8       0.04    0.08
-#> bin3:factor(Year)8       0.06    0.06
-#> bin4:factor(Year)8       0.18    0.06
-#> bin5:factor(Year)8       0.16    0.06
-#> bin6:factor(Year)8      -0.01    0.06
-#> bin7:factor(Year)8      -0.05    0.06
+#> bin5:factor(Year)4       0.06    0.06
+#> bin6:factor(Year)4      -0.03    0.06
+#> bin7:factor(Year)4      -0.14    0.06
+#> bin8:factor(Year)4      -0.05    0.06
+#> bin9:factor(Year)4       0.02    0.06
+#> bin10:factor(Year)4      0.08    0.06
+#> bin1:factor(Year)5       0.17    0.08
+#> bin2:factor(Year)5       0.08    0.08
+#> bin3:factor(Year)5       0.02    0.07
+#> bin4:factor(Year)5      -0.01    0.06
+#> bin5:factor(Year)5       0.13    0.06
+#> bin6:factor(Year)5      -0.06    0.06
+#> bin7:factor(Year)5      -0.12    0.06
+#> bin8:factor(Year)5      -0.02    0.06
+#> bin9:factor(Year)5      -0.05    0.06
+#> bin10:factor(Year)5     -0.05    0.07
+#> bin1:factor(Year)6       0.00    0.09
+#> bin2:factor(Year)6       0.02    0.08
+#> bin3:factor(Year)6      -0.01    0.07
+#> bin4:factor(Year)6       0.07    0.06
+#> bin5:factor(Year)6      -0.04    0.06
+#> bin6:factor(Year)6      -0.07    0.06
+#> bin7:factor(Year)6      -0.03    0.06
+#> bin8:factor(Year)6       0.01    0.06
+#> bin9:factor(Year)6      -0.01    0.06
+#> bin10:factor(Year)6      0.09    0.06
+#> bin1:factor(Year)7      -0.04    0.09
+#> bin2:factor(Year)7      -0.08    0.08
+#> bin3:factor(Year)7       0.07    0.07
+#> bin4:factor(Year)7       0.01    0.06
+#> bin5:factor(Year)7       0.01    0.06
+#> bin6:factor(Year)7      -0.02    0.06
+#> bin7:factor(Year)7      -0.07    0.06
+#> bin8:factor(Year)7       0.05    0.06
+#> bin9:factor(Year)7       0.06    0.06
+#> bin10:factor(Year)7     -0.02    0.07
+#> bin1:factor(Year)8      -0.52    0.10
+#> bin2:factor(Year)8      -0.08    0.08
+#> bin3:factor(Year)8       0.13    0.06
+#> bin4:factor(Year)8       0.17    0.06
+#> bin5:factor(Year)8       0.18    0.06
+#> bin6:factor(Year)8       0.02    0.06
+#> bin7:factor(Year)8      -0.02    0.06
 #> bin8:factor(Year)8      -0.01    0.06
-#> bin9:factor(Year)8      -0.13    0.06
-#> bin10:factor(Year)8     -0.12    0.07
-#> bin1:factor(Year)9      -0.31    0.10
-#> bin2:factor(Year)9      -0.08    0.08
-#> bin3:factor(Year)9       0.06    0.06
-#> bin4:factor(Year)9       0.12    0.06
-#> bin5:factor(Year)9       0.15    0.06
-#> bin6:factor(Year)9       0.05    0.06
-#> bin7:factor(Year)9      -0.03    0.06
-#> bin8:factor(Year)9      -0.08    0.06
-#> bin9:factor(Year)9      -0.05    0.06
-#> bin10:factor(Year)9     -0.08    0.07
-#> bin1:factor(Year)10     -0.44    0.10
-#> bin2:factor(Year)10     -0.02    0.08
-#> bin3:factor(Year)10      0.08    0.06
-#> bin4:factor(Year)10      0.23    0.06
-#> bin5:factor(Year)10      0.16    0.06
+#> bin9:factor(Year)8      -0.14    0.06
+#> bin10:factor(Year)8     -0.15    0.07
+#> bin1:factor(Year)9      -0.32    0.10
+#> bin2:factor(Year)9      -0.10    0.08
+#> bin3:factor(Year)9       0.11    0.07
+#> bin4:factor(Year)9       0.09    0.06
+#> bin5:factor(Year)9       0.17    0.06
+#> bin6:factor(Year)9       0.07    0.06
+#> bin7:factor(Year)9      -0.06    0.06
+#> bin8:factor(Year)9      -0.09    0.06
+#> bin9:factor(Year)9      -0.08    0.06
+#> bin10:factor(Year)9     -0.04    0.07
+#> bin1:factor(Year)10     -0.49    0.10
+#> bin2:factor(Year)10     -0.09    0.08
+#> bin3:factor(Year)10      0.13    0.06
+#> bin4:factor(Year)10      0.24    0.06
+#> bin5:factor(Year)10      0.20    0.06
 #> bin6:factor(Year)10      0.09    0.06
 #> bin7:factor(Year)10     -0.05    0.06
-#> bin8:factor(Year)10     -0.07    0.06
-#> bin9:factor(Year)10     -0.27    0.07
-#> bin10:factor(Year)10    -0.09    0.07
+#> bin8:factor(Year)10     -0.08    0.06
+#> bin9:factor(Year)10     -0.29    0.07
+#> bin10:factor(Year)10    -0.12    0.07
 #> 
-#> ML criterion at convergence: 11707.319
+#> ML criterion at convergence: 11691.592
 #> 
 #> See ?tidy.sdmTMB to extract these values as a data frame.
 #> 
@@ -657,9 +657,9 @@ summary(mods_nonspatial$model)
 ``` r
 
 AIC(mods_spatial$model)
-#> [1] 22934.24
+#> [1] 22953.06
 AIC(mods_nonspatial$model)
-#> [1] 23616.64
+#> [1] 23585.18
 ```
 
 ## Effects Plots
@@ -846,12 +846,12 @@ points and bars are medians and 95% intervals.
 
 tidy(mods_spatial$model, "ran_pars")
 #> # A tibble: 4 × 6
-#>   group_name term             estimate std.error  conf.low conf.high
-#>   <chr>      <chr>               <dbl>     <dbl>     <dbl>     <dbl>
-#> 1 NA         range           10.3        1.31    8.07e+  0 1.33e+  1
-#> 2 NA         sigma_Z          0.193      0.00988 1.75e-  1 2.14e-  1
-#> 3 NA         sigma_Z          0.000132   0.0163  5.65e-110 3.08e+101
-#> 4 bin:Season sd__(Intercept)  0.0287    NA       1.44e-  2 5.74e-  2
+#>   group_name term              estimate std.error conf.low conf.high
+#>   <chr>      <chr>                <dbl>     <dbl>    <dbl>     <dbl>
+#> 1 NA         range           10.5         1.35     8.13       13.5  
+#> 2 NA         sigma_Z          0.183       0.00964  0.165       0.203
+#> 3 NA         sigma_Z          0.0309      0.0279   0.00526     0.181
+#> 4 bin:Season sd__(Intercept)  0.0000279  NA        0         Inf
 ```
 
 The spatial model can better account for the non-representative sampling
@@ -995,7 +995,7 @@ weight for every stratum differs from the catch-weighted composition
 even without sampling and without a model. In the simulated world of
 scenario A, the two compositions differed by an MAE of 0.0060 (chunk
 above), and the stratum catch was correlated with the mean size of the
-stratum (correlation -0.628), because a stratum with larger fish had a
+stratum (correlation -0.594), because a stratum with larger fish had a
 lower selected abundance. This was computed for the world of scenario A
 only.
 
@@ -1036,7 +1036,7 @@ and 0.077 in C (Table 1), against 0.095 in A.
 In scenario A, the model with spatio-temporal fields and the
 spatial-only model had an MAE of 0.0070 and 0.0070 and a constant
 component of 0.0044 and 0.0045. The estimated spatio-temporal standard
-deviation of the model fitted above was 1.3e-04, and the simulated field
+deviation of the model fitted above was 3.1e-02, and the simulated field
 was constant over time.
 
 The Hessian of the spatial-only fit was positive definite in all
@@ -1155,15 +1155,15 @@ input_sst_enso |>
 #> # A tibble: 10 × 3
 #>    Year  prop_large mean_sst
 #>    <fct>      <dbl>    <dbl>
-#>  1 1          0.053     0   
-#>  2 2          0.164     1.43
-#>  3 3          0.089     0.88
-#>  4 4          0.048    -0.88
-#>  5 5          0.051    -1.43
+#>  1 1          0.052     0   
+#>  2 2          0.167     1.43
+#>  3 3          0.091     0.88
+#>  4 4          0.046    -0.88
+#>  5 5          0.05     -1.43
 #>  6 6          0.052     0   
-#>  7 7          0.158     1.43
+#>  7 7          0.153     1.43
 #>  8 8          0.089     0.88
-#>  9 9          0.046    -0.88
+#>  9 9          0.047    -0.88
 #> 10 10         0.05     -1.43
 ```
 

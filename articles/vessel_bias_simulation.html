@@ -35,6 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/vessel_bias_simulation.html">Correcting for vessel-level sampling bias in compositional data</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_bias_simulation.html">Correcting for spatially biased sampling in compositional data</a></li>
+    <li><a class="dropdown-item" href="../articles/stratum_intercept.html">Offset or free stratum intercept: formulations of the Poisson-multinomial model</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -341,7 +342,7 @@ Figure 3. Number of samples per season in each year.
 <span>   <span class="fu"><a href="../reference/Fx_plot.html">Fx_plot</a></span><span class="op">(</span><span class="va">mod_brms</span>, grp <span class="op">=</span> <span class="st">"Year"</span>, grid <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span></span>
 <span>  <span class="op">(</span><span class="fu"><a href="../reference/Fx_plot.html">Fx_plot</a></span><span class="op">(</span><span class="va">mod_tmb</span>, grp <span class="op">=</span> <span class="st">"Season"</span>, grid <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">|</span></span>
 <span>     <span class="fu"><a href="../reference/Fx_plot.html">Fx_plot</a></span><span class="op">(</span><span class="va">mod_brms</span>, grp <span class="op">=</span> <span class="st">"Season"</span>, grid <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">plot_annotation</span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="vessel_bias_simulation_files/figure-html/effects-1.png" class="r-plt" alt="Figure 4. Year effects (a, b) and season effects (c, d) on the composition, as multipliers relative to the geometric mean across bins, from the sdmTMB model (a, c) and the brms model (b, d). Points are medians and bars 95% intervals." width="1344"><p class="caption">
 Figure 4. Year effects (a, b) and season effects (c, d) on the
@@ -415,7 +416,7 @@ composition.</p>
 <span>  comp_label <span class="op">=</span> <span class="st">"True"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p_truth_tmb</span> <span class="op">/</span> <span class="va">p_truth_brms</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">p_truth_tmb</span> <span class="op">/</span> <span class="va">p_truth_brms</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="vessel_bias_simulation_files/figure-html/compare-truth-1.png" class="r-plt" alt="Figure 5. Annual compositions of the catch from the sdmTMB model (a) and the brms model (b). Black points and bars are medians and 95% intervals, and skyblue points the true composition." width="960"><p class="caption">
 Figure 5. Annual compositions of the catch from the sdmTMB model (a) and
@@ -458,7 +459,7 @@ sample compositions.</p>
 <span>  comp2_label <span class="op">=</span> <span class="st">"Raw samples"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p_raw_tmb</span> <span class="op">/</span> <span class="va">p_raw_brms</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">p_raw_tmb</span> <span class="op">/</span> <span class="va">p_raw_brms</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="vessel_bias_simulation_files/figure-html/compare-raw-1.png" class="r-plt" alt="Figure 6. Annual compositions from the sdmTMB model (a) and the brms model (b), with the true composition (skyblue) and the raw sample composition (orange). Black points and bars are medians and 95% intervals." width="960"><p class="caption">
 Figure 6. Annual compositions from the sdmTMB model (a) and the brms
@@ -493,7 +494,7 @@ already aggregated to annual).</p>
 <span>  plot_y      <span class="op">=</span> <span class="st">"Year"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="op">(</span><span class="va">p_ridge_tmb</span> <span class="op">|</span> <span class="va">p_ridge_brms</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">(</span><span class="va">p_ridge_tmb</span> <span class="op">|</span> <span class="va">p_ridge_brms</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="vessel_bias_simulation_files/figure-html/ridge-1.png" class="r-plt" alt="Figure 7. Annual size compositions (ridgelines) from the sdmTMB model (a) and the brms model (b)." width="1152"><p class="caption">
 Figure 7. Annual size compositions (ridgelines) from the sdmTMB model
@@ -547,7 +548,7 @@ samples.</p>
 <span>  cvar <span class="op">=</span> <span class="st">"tcatch"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="op">(</span><span class="va">p_err_tmb</span> <span class="op">|</span> <span class="va">p_err_brms</span><span class="op">)</span> <span class="op">+</span> <span class="fu">plot_annotation</span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">(</span><span class="va">p_err_tmb</span> <span class="op">|</span> <span class="va">p_err_brms</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span>tag_levels <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="vessel_bias_simulation_files/figure-html/relative-error-1.png" class="r-plt" alt="Figure 9. Relative error of the annual proportions from the sdmTMB model (a) and the brms model (b), compared with the relative error of the raw samples, against the true composition." width="960"><p class="caption">
 Figure 9. Relative error of the annual proportions from the sdmTMB model
@@ -592,8 +593,8 @@ previous step skyblue and earlier steps grey.
 </div>
 <p>Adding the year effect produced the trend in mean length. Adding
 season changed the mean length by 0.001 on average in the catch
-component. Adding vessel changed it by -0.082 in the catch component and
-by -0.048 in the index component.</p>
+component. Adding vessel changed it by -0.083 in the catch component and
+by -0.049 in the index component.</p>
 <p><code><a href="../reference/influ_comps.html">influ_comps()</a></code> summarises the effect of a term on each
 bin. With the TMB backend, the two random effects can only be removed
 together, so season and vessel form one term. Figures 11 and 12 show the
@@ -634,8 +635,8 @@ the annual composition (right).
 Figure 12. As Figure 11, for season.
 </p>
 </div>
-<p>The largest absolute effect of a level on a bin was 0.46 for vessel
-and 0.01 for season on the log scale. The largest absolute influence of
+<p>The largest absolute effect of a level on a bin was 0.45 for vessel
+and 0.00 for season on the log scale. The largest absolute influence of
 the random effects on any bin and year was 0.05 on the log scale. The
 influence was similar in all years, because the shares of the catch by
 vessel and season were similar in all years (centre panels).</p>

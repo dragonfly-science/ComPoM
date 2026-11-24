@@ -36,6 +36,12 @@
   [`fit_model()`](https://dragonfly-science.github.io/ComPoM/reference/fit_model.md)
   stores the fixed-effect variables in `ffx_vars`.
 
+- `fit_model(backend = "TMB")` accepts `dist = "nbinom2"` or `"nbinom1"`
+  (default `"poisson"`) for counts with variance between bins in excess
+  of the Poisson variance. The offset is kept. See the new vignette
+  `stratum_intercept`, which also compares the offset formulation with
+  models with a stratum intercept.
+
 - [`fit_model()`](https://dragonfly-science.github.io/ComPoM/reference/fit_model.md)
   gains `spatiotemporal` (default `TRUE`). `spatiotemporal = FALSE` fits
   spatial fields only when a `mesh` is supplied.

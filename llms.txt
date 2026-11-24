@@ -3,7 +3,8 @@
 ComPoM fits Poisson-multinomial models to compositional count data
 (e.g. length or age frequencies from observer sampling) and uses them to
 standardise compositions for non-representative sampling and scale them
-to total catch.
+to total catch or standardise them for use with index fisheries in stock
+assessments.
 
 Counts per bin and sampling stratum are modelled as Poisson with the
 stratum sample size as offset. All covariate effects are bin-specific,
@@ -313,3 +314,9 @@ Step and coefficient-distribution-influence plots for compositions.
   data](https://dragonfly-science.github.io/ComPoM/articles/vessel_bias_simulation.md):
 - [Correcting for spatially biased sampling in compositional
   data](https://dragonfly-science.github.io/ComPoM/articles/spatial_bias_simulation.md):
+
+### Model formulation
+
+- [Offset or free stratum intercept: formulations of the
+  Poisson-multinomial
+  model](https://dragonfly-science.github.io/ComPoM/articles/stratum_intercept.md):

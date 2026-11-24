@@ -80,12 +80,16 @@ fit_model(
 
 - dist:
 
-  Response family passed to
+  Response family: a family name (default `"poisson"`) or a family
+  object such as [`poisson()`](https://rdrr.io/r/stats/family.html).
+  With `backend = "brms"` it is passed to
   [`brms::brm()`](https://paulbuerkner.com/brms/reference/brm.html) as
-  `family`: a family name (default `"poisson"`) or family object such as
-  [`poisson()`](https://rdrr.io/r/stats/family.html) (brms backend only;
-  the TMB backend always uses
-  [`poisson()`](https://rdrr.io/r/stats/family.html)).
+  `family`. With `backend = "TMB"` it must be `poisson`, `nbinom2` or
+  `nbinom1` (sdmTMB). The negative binomial families allow variance
+  between bins in excess of the Poisson variance. The offset is kept,
+  but the equivalence to a multinomial likelihood then holds only
+  approximately (see
+  [`vignette("stratum_intercept")`](https://dragonfly-science.github.io/ComPoM/articles/stratum_intercept.md)).
 
 - chains, cores, threads:
 
@@ -217,6 +221,10 @@ fit_b <- fit_model(
 #> Model formula: tot_by_bin ~ offset(log(n)) + 0 + bin + factor(Year):bin + (1 | bin:Season) + (1 | bin:Vessel)
 #> Compiling Stan program...
 #> Start sampling
+#> Warning: There were 1 divergent transitions after warmup. See
+#> https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+#> to find out why this is a problem and how to eliminate them.
+#> Warning: Examine the pairs() plot to diagnose sampling problems
 #> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
 #> Running the chains for more iterations may help. See
 #> https://mc-stan.org/misc/warnings.html#bulk-ess

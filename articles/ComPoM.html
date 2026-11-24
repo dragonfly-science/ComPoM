@@ -35,6 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/vessel_bias_simulation.html">Correcting for vessel-level sampling bias in compositional data</a></li>
     <li><a class="dropdown-item" href="../articles/spatial_bias_simulation.html">Correcting for spatially biased sampling in compositional data</a></li>
+    <li><a class="dropdown-item" href="../articles/stratum_intercept.html">Offset or free stratum intercept: formulations of the Poisson-multinomial model</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -67,10 +68,13 @@
     
 <p>ComPoM fits Poisson-multinomial models to compositional count data,
 such as length or age frequencies from observer or market sampling. The
-fitted model predicts the composition for each stratum of a fishery with
-known catch. The predicted compositions are then weighted by catch and
-aggregated, giving catch-weighted compositions that are standardised for
-the uneven distribution of sampling across strata.</p>
+fitted model predicts the composition for each stratum of a fishery. The
+predicted compositions are weighted and aggregated by one of two routes.
+The catch route weights them by catch and gives the composition of the
+catch, standardised for the uneven distribution of sampling across
+strata. The index route predicts the model on a grid, with selectivity
+terms set to a reference, and gives the composition of the population
+that a CPUE index describes.</p>
 <p>This vignette describes the model in its basic (non-spatial) and
 spatio-temporal forms, the wrapper functions and the order in which they
 are used, and an example with simulated data. The vignettes
@@ -208,8 +212,12 @@ and equals
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>i</mi></msub><annotation encoding="application/x-tex">n_i</annotation></semantics></math>
 only on average over the strata within each level of the fixed-effect
 factors. The model with a free stratum intercept would reproduce the
-multinomial likelihood exactly but would add one parameter per stratum.
-All downstream summaries in ComPoM are normalised to proportions, or use
+multinomial likelihood exactly but would add one parameter per stratum
+and requires a reference bin for every stratum-level term. In
+simulations it gave the same compositions where the two are equivalent,
+and was slower and less stable (see
+<code><a href="../articles/stratum_intercept.html">vignette("stratum_intercept")</a></code>). All downstream summaries in
+ComPoM are normalised to proportions, or use
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>η</mi><mrow><mi>i</mi><mi>b</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\exp(\eta_{ib})</annotation></semantics></math>
 as a proportion (see below).</p>
 <p>The nuisance factors are treated as random effects because their
@@ -285,13 +293,12 @@ sampling distribution, and uncertainty is propagated through these
 draws.</p>
 </div>
 <div class="section level3">
-<h3 id="scaling-to-catch">Scaling to catch<a class="anchor" aria-label="anchor" href="#scaling-to-catch"></a>
+<h3 id="predicting-compositions-catch-and-index-routes">Predicting compositions: catch and index routes<a class="anchor" aria-label="anchor" href="#predicting-compositions-catch-and-index-routes"></a>
 </h3>
-<p>The model is used to predict the composition in strata
+<p><code><a href="../reference/scale_comps.html">scale_comps()</a></code> predicts numbers-at-bin for strata
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
-with a known weight
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>.
-<code><a href="../reference/scale_comps.html">scale_comps()</a></code> predicts the numbers-at-bin for each draw
+with a weight
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
 as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>j</mi><mi>b</mi></mrow></msub><mo>=</mo><msub><mi>C</mi><mi>j</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>η</mi><mo accent="true">̂</mo></mover><mrow><mi>j</mi><mi>b</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \hat{y}_{jb} = C_j \exp(\hat{\eta}_{jb}),
@@ -299,8 +306,7 @@ as</p>
 <p>that is, with the offset set to zero and the predicted rates
 multiplied by the weight. Weighted compositions for a group
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
-of strata (e.g. a year) are then obtained by summing and
-normalising:</p>
+of strata (e.g. a year) are obtained by summing and normalising:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>P</mi><mo accent="true">̂</mo></mover><mrow><mi>g</mi><mi>b</mi></mrow></msub><mo>=</mo><mfrac><mrow><munder><mo>∑</mo><mrow><mi>j</mi><mo>∈</mo><mi>g</mi></mrow></munder><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>j</mi><mi>b</mi></mrow></msub></mrow><mrow><munder><mo>∑</mo><mrow><mi>j</mi><mo>∈</mo><mi>g</mi></mrow></munder><munder><mo>∑</mo><msup><mi>b</mi><mo>′</mo></msup></munder><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>j</mi><msup><mi>b</mi><mo>′</mo></msup></mrow></msub></mrow></mfrac><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \hat{P}_{gb} = \frac{\sum_{j \in g} \hat{y}_{jb}}{\sum_{j \in g} \sum_{b'} \hat{y}_{jb'}}.
 </annotation></semantics></math></p>
@@ -312,33 +318,126 @@ is proportional to
 which equals
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
 when the predicted proportions sum to one.</p>
-<p><code><a href="../reference/scale_comps.html">scale_comps()</a></code> supports two uses, selected by
-<code>mode</code>.</p>
+<p>The two routes differ in the strata
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
+in the values given to the model terms, and in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>.
+They answer different questions. The catch route gives the composition
+of what was removed. The index route gives the composition of the
+population that a CPUE (or other abundance) index describes. The second
+is the input for estimating the selectivity of the index fleet in a
+stock assessment, where the index and its composition have to describe
+the same population.</p>
+<div class="section level4">
+<h4 id="catch-route-mode-catch-default">Catch route (<code>mode = "catch"</code>, default)<a class="anchor" aria-label="anchor" href="#catch-route-mode-catch-default"></a>
+</h4>
+<p>The strata are all combinations of the model variables in the catch
+records (e.g. year, season, vessel and location), and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
+is the catch. Every term of the model, including the nuisance random
+effects, is evaluated at the values of the stratum, so that the
+predicted composition includes the selectivity of the fleet that did the
+fishing. Every nuisance variable must therefore be in <code>grps</code>.
+Terms in <code>selectivity</code> can still be set to a reference, which
+gives the catch that would have been taken at that selectivity.</p>
+</div>
+<div class="section level4">
+<h4 id="index-route-mode-index">Index route (<code>mode = "index"</code>)<a class="anchor" aria-label="anchor" href="#index-route-mode-index"></a>
+</h4>
+<p>The strata are the rows of a prediction grid (<code>grid</code>),
+with one row per index time step for a non-spatial model and one row per
+cell and time step for a spatial model. The model terms are given one of
+three roles.</p>
 <ul>
-<li>Catch weighting (<code>mode = "catch"</code>, default) estimates the
-composition of the total catch of the full fleet. The strata are all
-combinations of the model variables in the catch records (e.g. year,
-season, vessel and location), and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
-is the catch. All model terms, including the nuisance random effects,
-are evaluated at the values of each stratum. Every nuisance variable
-must therefore be in <code>grps</code>.</li>
-<li>Index mode (<code>mode = "index"</code>) estimates the composition
-of the population that a CPUE index describes, predicted as the index
-would be. Selectivity terms, such as fleet or gear, are set to a
-reference (<code>selectivity</code>, <code>reference</code>), and
-nuisance random effects to the population level. All other terms are
-predicted at the values in a prediction grid (<code>grid</code>): one
-row per index time step for a non-spatial model, and one row per cell
-and time step for a spatial model, with the coordinates and the density
-covariates.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
-is a weight per grid row, which can come from a separate CPUE or
-abundance model (<code>weight</code>) and is equal for all rows
-otherwise. Every fixed-effect variable and covariate of the model is
-either a selectivity term or a column of the grid, so that the role of
-each term is chosen by the user.</li>
+<li>Selectivity terms (<code>selectivity</code>, e.g. fleet, gear or
+mesh) describe how the fleet sampled the population and are set to a
+reference (<code>reference</code>). The default reference is the most
+frequent level of a factor and the mean of a covariate.</li>
+<li>Nuisance random effects (<code>re_form</code>, e.g. vessel) are set
+to the population level.</li>
+<li>All other terms (e.g. year, density covariates such as temperature,
+and the spatial fields) are predicted at the values in
+<code>grid</code>. These are the terms that a CPUE standardisation would
+retain as describing abundance.</li>
 </ul>
+<p>Writing
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>
+for the selectivity terms with reference values
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐫</mi><annotation encoding="application/x-tex">\mathbf{r}</annotation></semantics></math>,
+the grid row
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+at time step
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mi>g</mi></msub><annotation encoding="application/x-tex">t_g</annotation></semantics></math>
+is predicted as</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>g</mi><mi>b</mi></mrow></msub><mo>=</mo><msub><mi>w</mi><mi>g</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mover><mi>α</mi><mo accent="true">̂</mo></mover><mi>b</mi></msub><mo>+</mo><munder><mo>∑</mo><mrow><mi>k</mi><mo>∈</mo><mi>𝒮</mi></mrow></munder><msubsup><mover><mi>β</mi><mo accent="true">̂</mo></mover><mrow><mi>b</mi><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>r</mi><mi>k</mi></msub></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><munder><mo>∑</mo><mrow><mi>k</mi><mo>∉</mo><mi>𝒮</mi></mrow></munder><msubsup><mover><mi>β</mi><mo accent="true">̂</mo></mover><mrow><mi>b</mi><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>z</mi><mrow><mi>g</mi><mi>k</mi></mrow></msub></mrow><mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><msub><mover><mi>f</mi><mo accent="true">̂</mo></mover><mi>b</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>c</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mover><mi>ω</mi><mo accent="true">̂</mo></mover><mi>b</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>𝐬</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mover><mi>ε</mi><mo accent="true">̂</mo></mover><mrow><mi>b</mi><mo>,</mo><msub><mi>t</mi><mi>g</mi></msub></mrow></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>𝐬</mi><mi>g</mi></msub><mo stretchy="false" form="postfix">)</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\hat{y}_{gb} = w_g \exp\Big(\hat\alpha_b
+  + \sum_{k \in \mathcal{S}} \hat\beta^{(k)}_{b,\,r_k}
+  + \sum_{k \notin \mathcal{S}} \hat\beta^{(k)}_{b,\,z_{gk}}
+  + \hat f_b(c_g) + \hat\omega_b(\mathbf{s}_g) + \hat\varepsilon_{b,t_g}(\mathbf{s}_g)\Big),
+</annotation></semantics></math></p>
+<p>with the random effects
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math>
+set to zero, and the composition at time step
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+is the normalised sum of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mrow><mi>g</mi><mi>b</mi></mrow></msub><annotation encoding="application/x-tex">\hat{y}_{gb}</annotation></semantics></math>
+over the rows of that time step, as above. The weight
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>g</mi></msub><annotation encoding="application/x-tex">w_g</annotation></semantics></math>
+is the relative abundance of the row. It can come from a separate CPUE
+or abundance model (<code>weight</code>), and is equal for all rows
+otherwise. Every fixed-effect variable and covariate of the model has to
+be either in <code>selectivity</code> or a column of <code>grid</code>,
+so that the role of each term is chosen by the analyst and is not
+guessed. For example, sea surface temperature may be a selectivity term
+(it changes catchability) or a grid column (it changes density), and
+ComPoM leaves that decision to the user.</p>
+<p>The routes differ as follows.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th align="left"></th>
+<th align="left">Catch route</th>
+<th align="left">Index route</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Question</td>
+<td align="left">Composition of the catch</td>
+<td align="left">Composition of the indexed population</td>
+</tr>
+<tr class="even">
+<td align="left">Strata</td>
+<td align="left">Catch records</td>
+<td align="left">Prediction grid</td>
+</tr>
+<tr class="odd">
+<td align="left">Weight
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>C</mi><mi>j</mi></msub><annotation encoding="application/x-tex">C_j</annotation></semantics></math>
+</td>
+<td align="left">Catch</td>
+<td align="left">Relative abundance (<code>weight</code>), or equal</td>
+</tr>
+<tr class="even">
+<td align="left">Selectivity terms</td>
+<td align="left">At the stratum values</td>
+<td align="left">At a reference</td>
+</tr>
+<tr class="odd">
+<td align="left">Nuisance random effects</td>
+<td align="left">At the stratum values</td>
+<td align="left">At the population level</td>
+</tr>
+<tr class="even">
+<td align="left">Other terms</td>
+<td align="left">At the stratum values</td>
+<td align="left">At the grid values</td>
+</tr>
+</tbody>
+</table>
 <p>In both modes, spatial and spatio-temporal fields are evaluated at
 the coordinates in the data frame supplied, and continuous covariates at
 their mean within each stratum or cell. Setting a covariate to a
@@ -350,6 +449,7 @@ draw, the posterior draw of a randomly chosen fitted level
 (<code>sample_new_levels = "uncertainty"</code>). sdmTMB predicts these
 strata at the population level of all nuisance random effects and issues
 a warning.</p>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -628,13 +728,13 @@ levels (year 1, season 1), relative to the bin mean on the log scale.
 <div class="section level3">
 <h3 id="scaled-compositions">Scaled compositions<a class="anchor" aria-label="anchor" href="#scaled-compositions"></a>
 </h3>
-<p>The compositions were scaled by catch weighting. The scaling data
-contained a catch of 100 units for every location, year and season,
-including the location-year-season combinations that were not sampled.
-Season was included in <code>grps</code>, so that each stratum was
-predicted at its own season effect. For the spatial model the scaling
-data included the coordinates, and for the non-spatial model the catch
-was summed over locations.</p>
+<p>The compositions were first scaled by catch weighting (catch route).
+The scaling data contained a catch of 100 units for every location, year
+and season, including the location-year-season combinations that were
+not sampled. Season was included in <code>grps</code>, so that each
+stratum was predicted at its own season effect. For the spatial model
+the scaling data included the coordinates, and for the non-spatial model
+the catch was summed over locations.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">catch</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">60</span>, Year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>, Season <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">locs</span>, by <span class="op">=</span> <span class="st">"loc"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -747,6 +847,97 @@ the other two estimates.</p>
 <tr class="odd">
 <td align="left">Spatial</td>
 <td align="right">0.0093</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="index-composition">Index composition<a class="anchor" aria-label="anchor" href="#index-composition"></a>
+</h3>
+<p>For the index route, the composition of the population seen by a CPUE
+index was predicted. The only selectivity-like term in the example model
+is the Season random effect, which was set to the population level. Year
+and the spatial fields were predicted on a grid with one row for each
+location (spatial model) or one row per year (non-spatial model), and
+the weight was equal for all rows. In an application,
+<code>weight</code> would hold the relative abundance of each cell from
+a CPUE model. Season was not in <code>grps</code>, because it is not
+evaluated at stratum values in this route.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">grid_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>loc <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">60</span>, Year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">locs</span>, by <span class="op">=</span> <span class="st">"loc"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">index_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scale_comps.html">scale_comps</a></span><span class="op">(</span></span>
+<span>  fit  <span class="op">=</span> <span class="va">fit_sp</span>,</span>
+<span>  mode <span class="op">=</span> <span class="st">"index"</span>,</span>
+<span>  grps <span class="op">=</span> <span class="st">"Year"</span>,</span>
+<span>  grid <span class="op">=</span> <span class="va">grid_sp</span>,</span>
+<span>  weight <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">index_ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scale_comps.html">scale_comps</a></span><span class="op">(</span></span>
+<span>  fit  <span class="op">=</span> <span class="va">fit_ns</span>,</span>
+<span>  mode <span class="op">=</span> <span class="st">"index"</span>,</span>
+<span>  grps <span class="op">=</span> <span class="st">"Year"</span>,</span>
+<span>  grid <span class="op">=</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>Year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The true index composition was the mean over all locations of the
+simulated composition, averaged over the two seasons. This is an
+approximation to the population level of the Season random effect, which
+is an average on the log scale.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">truth_index</span> <span class="op">&lt;-</span> <span class="va">truth</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">bin</span>, <span class="va">loc</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop_last"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>, <span class="va">bin</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>tcatch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scaled_comp_plot.html">scaled_comp_plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">index_sp</span>,</span>
+<span>  grps     <span class="op">=</span> <span class="st">"Year"</span>,</span>
+<span>  comp_are <span class="op">=</span> <span class="va">truth_index</span>,</span>
+<span>  cvar     <span class="op">=</span> <span class="st">"tcatch"</span>,</span>
+<span>  comp_label <span class="op">=</span> <span class="st">"True"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<img src="ComPoM_files/figure-html/index-plot-1.png" class="r-plt" alt="Figure 5. Annual index compositions from the spatial model (black, mean and 95% interval) and the true compositions at all locations averaged over seasons (skyblue)." width="672"><p class="caption">
+Figure 5. Annual index compositions from the spatial model (black, mean
+and 95% interval) and the true compositions at all locations averaged
+over seasons (skyblue).
+</p>
+</div>
+<p>Figure 5 compares the index compositions from the spatial model with
+the true index composition, and Table 3 gives the mean absolute error of
+the annual proportions from both models. The index route does not use
+the sampled strata or the catch, so the sampling bias towards the west
+and towards season 1 enters only through the fitted spatial fields and
+the Season effect, and not through weights. The error of the spatial
+model (0.0091) was half that of the non-spatial model (0.0185), as for
+the catch route.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span></span>
+<span>  `Non-spatial` <span class="op">=</span> <span class="fu">model_props</span><span class="op">(</span><span class="va">index_ns</span><span class="op">)</span>,</span>
+<span>  Spatial       <span class="op">=</span> <span class="fu">model_props</span><span class="op">(</span><span class="va">index_sp</span><span class="op">)</span>,</span>
+<span>  .id <span class="op">=</span> <span class="st">"Estimate"</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="fu">annual_props</span><span class="op">(</span><span class="va">truth_index</span>, <span class="va">tcatch</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Year"</span>, <span class="st">"bin"</span><span class="op">)</span>, suffix <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">""</span>, <span class="st">"_true"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Estimate</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>`Mean absolute error` <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">p</span> <span class="op">-</span> <span class="va">p_true</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Table 3. Mean absolute error of annual index proportions."</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Table 3. Mean absolute error of annual index
+proportions.</caption>
+<thead><tr class="header">
+<th align="left">Estimate</th>
+<th align="right">Mean absolute error</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Non-spatial</td>
+<td align="right">0.0185</td>
+</tr>
+<tr class="even">
+<td align="left">Spatial</td>
+<td align="right">0.0092</td>
 </tr>
 </tbody>
 </table>

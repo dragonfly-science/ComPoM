@@ -38,6 +38,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/vessel_bias_simulation.html">Correcting for vessel-level sampling bias in compositional data</a></li>
     <li><a class="dropdown-item" href="articles/spatial_bias_simulation.html">Correcting for spatially biased sampling in compositional data</a></li>
+    <li><a class="dropdown-item" href="articles/stratum_intercept.html">Offset or free stratum intercept: formulations of the Poisson-multinomial model</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -61,7 +62,7 @@
 </div>
 <!-- badges: start -->
 
-<p>ComPoM fits Poisson-multinomial models to compositional count data (e.g. length or age frequencies from observer sampling) and uses them to standardise compositions for non-representative sampling and scale them to total catch.</p>
+<p>ComPoM fits Poisson-multinomial models to compositional count data (e.g. length or age frequencies from observer sampling) and uses them to standardise compositions for non-representative sampling and scale them to total catch or standardise them for use with index fisheries in stock assessments.</p>
 <p>Counts per bin and sampling stratum are modelled as Poisson with the stratum sample size as offset. All covariate effects are bin-specific, so that the implied within-stratum proportions follow a multinomial-logit model:</p>
 <ul>
 <li>effects of interest (e.g. year) enter as bin-specific fixed effects (<code>ffx_form</code>);</li>
