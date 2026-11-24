@@ -589,10 +589,11 @@ scaled_comp_plot(
 )
 ```
 
-Table 3 gives the mean absolute error of the annual proportions from both models against the true
-index composition. The index route does not use the sampled strata or the catch, so
-the sampling bias towards the west and towards season 1 is handled by the spatial fields and the
-random effect, and not by the weights.
+Figure 5 compares the index compositions from the spatial model with the true index composition,
+and Table 3 gives the mean absolute error of the annual proportions from both models. The index
+route does not use the sampled strata or the catch, so the sampling bias towards the west and
+towards season 1 enters only through the fitted spatial fields and the Season effect, and not
+through weights.
 The error of the spatial model (0.0091) was half that of the non-spatial model (0.0185), as for the
 catch route.
 
