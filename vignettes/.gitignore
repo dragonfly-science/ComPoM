@@ -6,3 +6,6 @@
 /.quarto/
 **/*.quarto_ipynb
 !vignette_helpers.R
+!stratum_helpers.R
+*_files/
+*_cache/
