@@ -543,5 +543,8 @@ tmb_family <- function(dist) {
   } else if (is.function(dist)) dist() else dist
   if (!inherits(fam, "family") || !fam$family %in% c("poisson", "nbinom1", "nbinom2"))
     stop("With backend = \"TMB\", `dist` must be poisson, nbinom2 or nbinom1.", call. = FALSE)
+  if (!identical(fam$link, "log"))
+    stop("With backend = \"TMB\", `dist` must use a log link (the offset and the predicted ",
+         "compositions assume it).", call. = FALSE)
   fam
 }

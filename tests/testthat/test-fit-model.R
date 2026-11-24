@@ -122,4 +122,6 @@ test_that("unsupported `dist` values are rejected with backend = 'TMB'", {
   dat <- data_prep(sim_comp, c("year", "area", "season"), "bin", "count")
   expect_error(fit_model("year", data = dat, backend = "TMB", dist = "gaussian"), "poisson, nbinom2")
   expect_error(fit_model("year", data = dat, backend = "TMB", dist = "notafamily"), "Unknown")
+  expect_error(fit_model("year", data = dat, backend = "TMB", dist = poisson(link = "identity")),
+               "log link")
 })

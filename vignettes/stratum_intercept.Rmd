@@ -199,12 +199,13 @@ annual proportions.
 ```{r replicates, cache = TRUE}
 scen <- expand.grid(nuisance = c(FALSE, TRUE), disp = c(0, 0.5))
 scen <- scen[!(!scen$nuisance & scen$disp > 0), ]
+scen$sd_ves <- ifelse(scen$nuisance, 0.5, 0)  # no vessel effect in the data for the first scenario
 scen$label <- c("no vessel effect", "vessel effect", "vessel + overdispersion")
 variants <- c("offset", "random", "fixed_naive", "fixed_ref")
 
 res <- bind_rows(lapply(seq_len(nrow(scen)), function(k) {
   bind_rows(lapply(1:8, function(sd) {
-    s <- sim_strata(seed = sd, dispersion = scen$disp[k])
+    s <- sim_strata(seed = sd, dispersion = scen$disp[k], sd_ves = scen$sd_ves[k])
     dat <- data_prep(s$comp, vars_for_grouping = c("Year", "Vessel", "trip", "stratum"),
                      bin_lab = "bin", count_var = "count")
     bind_rows(lapply(variants, function(v) {

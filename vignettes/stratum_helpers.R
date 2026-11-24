@@ -87,7 +87,8 @@ year_props <- function(fit) {
   nd$stratum <- factor(levels(d$stratum)[1], levels = levels(d$stratum))
   nd$Vessel  <- factor(levels(d$Vessel)[1], levels = levels(d$Vessel))
   nd$`bin:Vessel` <- factor(paste(nd$bin, nd$Vessel, sep = "_"), levels = levels(d$`bin:Vessel`))
-  eta <- predict(fit$model, newdata = nd, re_form = NA, offset = rep(0, nrow(nd)))$est
+  eta <- predict(fit$model, newdata = nd, re_form = NA, re_form_iid = NA,
+                 offset = rep(0, nrow(nd)))$est
   nd$p <- exp(eta)
   nd <- nd |> group_by(Year) |> mutate(p = p / sum(p)) |> ungroup()
   matrix(nd$p, nrow = length(bins))
